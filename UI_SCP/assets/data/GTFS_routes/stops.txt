@@ -1,0 +1,6 @@
+stop_id,stop_name,stop_lat,stop_lon, location_type, parent_station
+S0, 1_Donostia etorbidea, 43.27005546859397, -2.019789337739736, 0,  
+S1, 28_Aita Lertxundi kalea, 43.27663598244553, -2.1250529443717583, 0, 
+S2, Santuenea_Txokoalde, 43.27146782151296, -2.050586082881597, 0, 
+S3, Tolosa hiribidea_Ibaeta, 43.302278275927534, -2.0036754998067003, 0, 
+S4, Ategorrieta hiribidea_Gros, 43.32206370193461, -1.9664393885236355, 0, 

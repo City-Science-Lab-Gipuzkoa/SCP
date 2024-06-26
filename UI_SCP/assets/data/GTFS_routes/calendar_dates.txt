@@ -1,0 +1,9 @@
+service_id,date,exception_type
+EZ,20240101,2
+EZ_sub,20240101,1
+EZ,20240106,2
+EZ_sub,20240106,1
+EZ,20240401,2
+EZ_sub,20240401,1
+EZ,20240501,2
+EZ_sub,20240501,1

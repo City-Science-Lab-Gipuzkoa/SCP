@@ -1,0 +1,3 @@
+agency_id,route_id,route_short_name,route_long_name,route_desc,route_type
+CSL_01,EZ0, Esku_EZ0, Eskuzaitzeta 0, The "Eskuzaitzeta" route serves workers of the industrial park,3
+CSL_01,EZ1, Esku_EZ1, Eskuzaitzeta 1, The "Eskuzaitzeta" route serves workers of the industrial park,3
