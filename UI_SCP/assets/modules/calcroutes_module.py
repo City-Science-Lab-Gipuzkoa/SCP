@@ -107,37 +107,64 @@ def check_UniqueStops(Xmat):
   return
 
 
-"""
-# Merge trips and routes to have the name and the trip_id together
-routes = routes[["route_id","route_long_name"]]
-trips = trips[["route_id","trip_id"]]
-trips = pd.merge(trips, routes, on='route_id', how='left')
-trips = trips.drop(columns='route_id')
-#print(trips)
+def remove_oneway_ends(Gr):
+    G2 = Gr.copy()
+    spn = ox.stats.count_streets_per_node(G2)
+    nx.set_node_attributes(G2, values=spn, name="street_count")
+    completed = 0
+    while(completed==0):
+        nodes2rem = []
+        for u,v,a in G2.edges(data=True):
+            if G2.nodes[u]['street_count'] == 1:
+                if a['oneway'] == True:
+                    nodes2rem.append(u) 
+            if G2.nodes[v]['street_count'] == 1:
+                if a['oneway'] == True:
+                    nodes2rem.append(v)
+        G2.remove_nodes_from(nodes2rem)
+        # count again the number of streets per node #######################
+        spn = ox.stats.count_streets_per_node(G2)
+        nx.set_node_attributes(G2, values=spn, name="street_count")
+        ####################################################################
+        if len(nodes2rem) == 0:
+            completed = 1
+    return G2
+def check_conn_dirty_fix(Gr,pts,bbox):
+    n = len(pts)
+    drive_speed = 50
+    no = bbox[0]
+    so = bbox[1]
+    ea = bbox[2]
+    we = bbox[3]
+    G_walk = ox.graph_from_bbox(no, so, ea, we, network_type="walk", simplify=False) 
+    for i in range(n):
+        origin = pts[i]
+        origin_node = ox.distance.nearest_nodes(Gr, [origin[1]], [origin[0]])[0]
+        coords_1 = (origin[0],origin[1])
+        coords_2 = (Gr.nodes[origin_node]['y'], Gr.nodes[origin_node]['x'])
+        distance_points = distance.geodesic(coords_1, coords_2).km*1000         
+        if distance_points > 50 :
+            o_node = ox.distance.nearest_nodes(G_walk, [coords_1[1]],[coords_1[0]])[0]
+            Gr.add_node(o_node,x=G_walk.nodes[o_node]['x'],y=G_walk.nodes[o_node]['y'])
+            walk_length = nx.shortest_path_length(G_walk, o_node, origin_node, weight='length')
+            Gr.add_edge(o_node,origin_node,length=walk_length, oneway= False, highway='residential', lanes=2, reversed=False,speed_kph=drive_speed,weight=0, travel_time=walk_length*60/drive_speed)  
+            Gr.add_edge(origin_node,o_node,length=walk_length, oneway= False, highway='residential', lanes=2, reversed=False,speed_kph=drive_speed,weight=0, travel_time=walk_length*60/drive_speed)  
+            origin_node = o_node
 
-# Merge stop_times and stops to have the trip_id with the stop latitude and longitud
-stops = stops[["stop_id","stop_lat","stop_lon"]]
-stop_times = stop_times[["trip_id","stop_id",]]
-stops_coord = pd.merge(stop_times, stops, on='stop_id', how='left')
-stops_coord = stops_coord.drop(columns='stop_id')
-#print(stops_coord)
-
-# Merge the two DataFrames
-df = pd.merge(stops_coord, trips, on='trip_id', how='left')
-#print(df)
-
-Zubieta_routes = df[df['route_long_name'].str.contains('Zubieta', case=False)] # El parámetro case=False ignora mayúsculas y minúsculas
-#print("Zubieta routes:")
-#print(Zubieta_routes)
-
-# Iterar a través de los trip_id únicos y guardar el trip seleccionado
-for trip_id in Zubieta_routes['trip_id'].unique():
-    print(trip_id)
-    trip_df = Zubieta_routes[Zubieta_routes['trip_id'] == trip_id]
-    print(len(trip_df))
-    if trip_id ==  selec_trip_id:
-       pts = list(zip(trip_df['stop_lat'], trip_df['stop_lon']))
-"""
+        for j in range(n):
+            destination = pts[j]
+            destination_node = ox.distance.nearest_nodes(Gr, [destination[1]], [destination[0]])[0]
+            coords_1 = (destination[0],destination[1])
+            coords_2 = (Gr.nodes[destination_node]['y'], Gr.nodes[destination_node]['x'])
+            distance_points = distance.geodesic(coords_1, coords_2).km*1000
+            if distance_points > 50 :
+                d_node = ox.distance.nearest_nodes(G_walk, [coords_1[1]],[coords_1[0]])[0]
+                Gr.add_node(d_node,x=G_walk.nodes[d_node]['x'],y=G_walk.nodes[d_node]['y'])
+                walk_length = nx.shortest_path_length(G_walk, d_node, destination_node, weight='length')
+                Gr.add_edge(d_node,destination_node,length=walk_length, oneway= False, highway='residential', lanes=2, reversed=False,speed_kph=drive_speed,weight=0, travel_time=walk_length*60/drive_speed)  
+                Gr.add_edge(destination_node,d_node,length=walk_length, oneway= False, highway='residential', lanes=2, reversed=False,speed_kph=drive_speed,weight=0, travel_time=walk_length*60/drive_speed)  
+                destination_node = d_node
+    return Gr
 
 def CalcRoutes_module(puntos,m_buses,CO2km):
       ################################################
@@ -190,6 +217,8 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       #G = ox.graph_from_point(ori_coord, dist=40000, network_type="drive", simplify=True, retain_all=False)
       #G = ox.graph_from_bbox(north, south, east, west, network_type="drive", simplify=False) 
       G = ox.graph_from_bbox(north, south, east, west, network_type="drive", simplify=False, custom_filter=cf) 
+      #fig, ax = ox.plot_graph(G,edge_linewidth=0.2)
+      #fig.show()
 
 
       t1 = time.time()
@@ -199,7 +228,7 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       print()
       print('Adding edge speeds, lengths and travelling speeds...')
       #hwy_speeds = {"residential": 30, "secondary": 30, "tertiary": 30}
-      hwy_speeds = {"residential": 20, "unclassified": 30, "maxspeed": 50 }
+      hwy_speeds = {"residential": 20, "unclassified": 30, "maxspeed": 100 }
       #hwy_speeds = {"primary": 20, "residential": 20, "unclassified": 30, "maxspeed": 50 }
       G = ox.add_edge_speeds(G, hwy_speeds)
       #G = ox.add_edge_speeds(G)
@@ -207,6 +236,15 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       G = ox.distance.add_edge_lengths(G)
       print('Adding edge speeds, lengths and travelling speeds completed!')
 
+      print('Removing oneway ends...')
+      G = remove_oneway_ends(G)
+      print('Removing oneway ends done!')
+      print('Adding missing connections...')
+      G = check_conn_dirty_fix(G,puntos,[north,south,east,west])
+      print('Adding missing connections done!')    
+      n = len(puntos)
+      C = np.zeros((n,n))
+      
       print()
       print('Calculating distance matrix...')
       for i in range(n):
@@ -219,7 +257,7 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
           path_length = nx.shortest_path_length(G, origin_node, destination_node, weight='length')
           C[i][j] = path_length/1000
       print('Distance matrix calculated!')
-
+      
       # Mostrando la matriz de distancias
       print('La matriz de distancia es:\n')
       print(np.round(C,4))
