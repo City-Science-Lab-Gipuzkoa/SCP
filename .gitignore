@@ -3,7 +3,6 @@
 .RData
 .Ruserdata
 .Rproj
-
 input_data/buildings_with_section
 input_data/networks
 input_data/train_24h
