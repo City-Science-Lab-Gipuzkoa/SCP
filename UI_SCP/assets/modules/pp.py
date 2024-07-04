@@ -131,7 +131,6 @@ def pp(hour,X,root_dir):
            #transit_ped_net = ua.network.load_network(dir=root_dir + 'transit_together_24h/', filename=filen)
            #ped_net = ua.network.load_network(dir=root_dir + 'networks/', filename='pedestrian_net.h5')
            ped_net = pdn.Network.from_hdf5(root_dir + 'networks/' + 'pedestrian_net.h5')
-
            print('done!\n')
            
            # The following sh... is really important!!! Pandana messes up data types (floats instead oif int64!) ####################
@@ -155,13 +154,13 @@ def pp(hour,X,root_dir):
                                     edges[["weight","distance"]])
 
             ped_net_pdn.save_hdf5(root_dir + 'networks/' + 'pedestrian_net.h5')
-            print(urbanaccess_net.osm_nodes.head())
-            print(urbanaccess_net.osm_edges.head()) 
+            #print(urbanaccess_net.osm_nodes.head())
+            #print(urbanaccess_net.osm_edges.head()) 
 
         print('\nIntegrating all networks...')
         # Integrate saved and newly created tansit network 
-        #ua.network.integrate_network(urbanaccess_network=urbanaccess_net,
-        #                            headways=False)     
+        ua.network.integrate_network(urbanaccess_network=urbanaccess_net,  # do we need this?
+                                    headways=False)     
 
         # Add average headways to network travel time
         ua.gtfs.headways.headways(gtfsfeeds_df=loaded_feeds,
@@ -174,15 +173,15 @@ def pp(hour,X,root_dir):
                                 headway_statistic='mean')
         print('successfully integrated existing and newly created networks!')
        
-        print(urbanaccess_net.net_edges["from_int"].head())
+        #print(urbanaccess_net.net_edges["from_int"].head())
         #urbanaccess_net.net_nodes.set_index('ID', inplace= True)
         transit_ped_net_pdn = pdn.network.Network(
                                 urbanaccess_net.net_nodes["x"],
                                 urbanaccess_net.net_nodes["y"],
                                 urbanaccess_net.net_edges["from_int"],
                                 urbanaccess_net.net_edges["to_int"],
-                                urbanaccess_net.net_edges[["weight","distance"]])
-                                #urbanaccess_net.net_edges[["weight"]])
+                                urbanaccess_net.net_edges[["weight"]])
+                                #urbanaccess_net.net_edges[["weight","distance"]])
 
         transit_ped_net_pdn.save_hdf5(root_dir + 'transit_together_24h/' + filen)
   
@@ -207,8 +206,10 @@ def pp(hour,X,root_dir):
     X['Hora_Ini'] = X['Hora_Ini'].dt.strftime('%H:%M')
     convertido=((hour*60*60)/300)+1
     print(convertido)
+    # Get 1-hour interval between "convertido" and "convertido+1hour"? #######
     X=X[X['Hora_Ini_E'] <= (convertido+11)]
     X=X[X['Hora_Ini_E'] >= convertido]
+    ##########################################################################
     
 
     # DRIVE
@@ -339,15 +340,20 @@ def pp(hour,X,root_dir):
     for k in lista:# este bucle elige de lista el transit que hayamos solititado, lo carga y lo asigna a el diccionario
         if hour==cont:
             print(k)
-            X[f"{k}_tt"] = transit[k].shortest_path_lengths(
-            transit[k].get_node_ids(X.O_long,X.O_lat),
-            transit[k].get_node_ids(X.D_long,X.D_lat),
-            imp_name='distance'
-            )
             #X[f"{k}_tt"] = transit[k].shortest_path_lengths(
             #transit[k].get_node_ids(X.O_long,X.O_lat),
-            #transit[k].get_node_ids(X.D_long,X.D_lat)
-            #)            
+            #transit[k].get_node_ids(X.D_long,X.D_lat),
+            #imp_name='distance'
+            #)
+            #X[f"{k}_tt"] = transit[k].shortest_path_lengths(
+            #transit[k].get_node_ids(X.O_long,X.O_lat),
+            #transit[k].get_node_ids(X.D_long,X.D_lat),
+            #imp_name='weight'
+            #)
+            X[f"{k}_tt"] = transit[k].shortest_path_lengths(   # original code
+            transit[k].get_node_ids(X.O_long,X.O_lat),         # original code
+            transit[k].get_node_ids(X.D_long,X.D_lat)          # original code
+            )                                                  # original code
             break
         else:
             cont=cont+1
@@ -411,7 +417,7 @@ def pp(hour,X,root_dir):
     # Don't know why but there are some extreme outliers on drive_tt. 70000 mins?
     X = X.loc[X['drive_tt'] < 200].reset_index(drop=True)
 
-    X = X.drop(columns=[k + '_tt'])
+    X = X.drop(columns=[k + '_tt']) # k?
 
 
     X = X.loc[X['transit_tt'] <= 700]

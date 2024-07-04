@@ -4,6 +4,7 @@ from geopy.geocoders import Nominatim
 from geopy.point import Point
 import datetime
 from datetime import date
+import re
 
 directory = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/GTFS_routes/'
 
@@ -124,6 +125,8 @@ def gGTFS(ruta_EZ0, puntos, G):
                    stop_name = geolocator.reverse(Point(lat,lon))
                    stop_name0 = str(stop_name).split(',')[0]
                    stop_name1 = str(stop_name).split(',')[1][1:]
+                   stop_name0 = re.sub(r'[^\x00-\x7f]',r'', stop_name0) # remove non non-ascii characters
+                   stop_name1 = re.sub(r'[^\x00-\x7f]',r'', stop_name1) # remove non non-ascii characters
                    stop_name = stop_name0 + '_' + stop_name1
                    if [lat, lon] not in stops_coord_written:
                       if i_route == 0 and i == 0:
