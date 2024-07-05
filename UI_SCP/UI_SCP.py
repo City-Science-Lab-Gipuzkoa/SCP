@@ -372,8 +372,8 @@ app.layout = dbc.Container(
     [
         dbc.Row(
             [
-                dbc.Col(sidebar, width=3, className='bg-light'),
-                dbc.Col(content, width=6),
+                dbc.Col(sidebar, width=2, className='bg-light'),
+                dbc.Col(content, width=7),
                 dbc.Col(indicators, width=3)
                 ],
             style={"height": "100vh"}
