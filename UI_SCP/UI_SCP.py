@@ -328,7 +328,8 @@ indicators = html.Div(
              label={'label':'CO2 emissions', 'style':{'font-size':'18px',"font-weight": "bold"}},
              style = {"margin-top": "20px","font-weight": "bold"},
              max=10,
-             min=0)
+             min=0,
+             id='CO2_gauge')
              ]),
           html.Div([
           dcc.Graph(figure=fig, id="graph",
@@ -407,6 +408,51 @@ def suggest_clusters(wdf):
            dist_max = dist_to_max
            best_n_clusters = n_clusters
     return best_n_clusters    
+
+
+
+
+@callback([Output('CO2_gauge', 'value'),Output('graph','figure')],
+              [State('choose_remote_days', 'value'),
+              State('choose_remote_workers', 'value')],
+              Input('run_MCM', 'n_clicks'))
+def run_MCM(list_of_contents, list_of_names, list_of_dates):
+    import sys
+    import pp
+    import prediction
+    import pandas as pd
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    sys.path.append(root_dir + 'modules')
+
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    data_dir = 'data/input_data_MCM/'
+    model_dir = 'modules/models/'
+    #trips_ez = pd.read_csv(root_dir + data_dir + 'workers_eskuzaitzeta_2k.csv')
+    trips_ez = pd.read_csv(root_dir + data_dir + 'temp_workers_data.csv')
+
+    eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio',
+                'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] # adaptamos trips como input al pp
+    trips_ez = trips_ez.drop(columns=eliminar)
+    print(trips_ez.columns)
+    trips_ez=pp.pp(8,trips_ez, root_dir+data_dir) # llamamos pp franja horaria 8-9, pasandole trips_ez
+    print(trips_ez)
+    #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
+    trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
+    prediction=prediction.predict(trips_ez, root_dir + model_dir) # llamamos predict y nos devuelve la prediccion
+    print(prediction)
+    unique_labels, counts = np.unique(prediction, return_counts=True)
+    labels = ['walk', 'PT', 'car']
+    colors = ['#99ff66','#00ffff','#ff3300']
+    #df = px.data.tips()
+    #plt.pie(counts, labels=labels, autopct='%1.1f%%', startangle=140, colors=colors)
+    fig = px.pie(counts, labels)
+    fig.update_layout(showlegend=False)
+    fig.update_layout(title_text='Transport share', title_x=0.5)
+    return 
+
+
+
+
 
 @callback([Output('worker_data', 'data'),Output('n_clusters','value')],
               [Input('upload-data', 'contents'),
