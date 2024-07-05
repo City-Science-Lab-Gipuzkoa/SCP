@@ -328,7 +328,8 @@ indicators = html.Div(
              label={'label':'CO2 emissions', 'style':{'font-size':'18px',"font-weight": "bold"}},
              style = {"margin-top": "20px","font-weight": "bold"},
              max=10,
-             min=0)
+             min=0,
+             id='CO2_gauge')
              ]),
           html.Div([
           dcc.Graph(figure=fig, id="graph",
@@ -408,6 +409,51 @@ def suggest_clusters(wdf):
            best_n_clusters = n_clusters
     return best_n_clusters    
 
+
+
+
+@callback([Output('CO2_gauge', 'value'),Output('graph','figure')],
+              [State('choose_remote_days', 'value'),
+              State('choose_remote_workers', 'value')],
+              Input('run_MCM', 'n_clicks'))
+def run_MCM(list_of_contents, list_of_names, list_of_dates):
+    import sys
+    import pp
+    import prediction
+    import pandas as pd
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    sys.path.append(root_dir + 'modules')
+
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    data_dir = 'data/input_data_MCM/'
+    model_dir = 'modules/models/'
+    #trips_ez = pd.read_csv(root_dir + data_dir + 'workers_eskuzaitzeta_2k.csv')
+    trips_ez = pd.read_csv(root_dir + data_dir + 'temp_workers_data.csv')
+
+    eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio',
+                'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] # adaptamos trips como input al pp
+    trips_ez = trips_ez.drop(columns=eliminar)
+    print(trips_ez.columns)
+    trips_ez=pp.pp(8,trips_ez, root_dir+data_dir) # llamamos pp franja horaria 8-9, pasandole trips_ez
+    print(trips_ez)
+    #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
+    trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
+    prediction=prediction.predict(trips_ez, root_dir + model_dir) # llamamos predict y nos devuelve la prediccion
+    print(prediction)
+    unique_labels, counts = np.unique(prediction, return_counts=True)
+    labels = ['walk', 'PT', 'car']
+    colors = ['#99ff66','#00ffff','#ff3300']
+    #df = px.data.tips()
+    #plt.pie(counts, labels=labels, autopct='%1.1f%%', startangle=140, colors=colors)
+    fig = px.pie(counts, unique_labels, names=labels)
+    fig.update_layout(showlegend=False)
+    fig.update_layout(title_text='Transport share', title_x=0.5)
+    return 
+
+
+
+
+
 @callback([Output('worker_data', 'data'),Output('n_clusters','value')],
               [Input('upload-data', 'contents'),
               Input('upload-data', 'filename'),
@@ -432,6 +478,57 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
         
         return [works_data,suggested_N_clusters]
 ############################################################################################
+
+#@app.callback([Output("clickdata", "children")],
+@app.callback([Output("outdata", "children"), Output('internal-value_stops','data',allow_duplicate=True),Output('internal-value_coworking','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
+              State("n_clusters", "value"),
+              Input("propose_stops", "n_clicks")
+              )
+def propose_stops(n_clusters,N):
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    sys.path.append(root_dir + 'modules')      
+    import find_stops_module   
+    n_clusters  = int(n_clusters)
+    cutoff = 0.8 # cutoff for maximum density: take maxima which are at least cutoff*max
+    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    #workers_DF = pd.read_csv(root_dir + "workers.csv", encoding='latin-1')
+    temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
+    workers_DF = pd.read_csv(temp_file)    
+    stops_DF = pd.read_csv(root_dir + 'data/'+ "all_bus_stops.csv", encoding='latin-1')
+    bus_stops_df,model,yhat = find_stops_module.FindStops(workers_DF, stops_DF, n_clusters, cutoff)
+    #df = pd.read_csv(filename)
+    #out=St.loc[:'Lat']
+    #for i in range(len(St)):
+    #    out = out + str(St.loc[i,['Lat']]) + ', ' + str(St.loc[i,['Lon']]) + '; '
+    out = ''
+    St = []
+    Cow = []
+    for ind in bus_stops_df.index:
+         out = out + str(bus_stops_df['Lat'][ind]) + ',' + str(bus_stops_df['Lon'][ind]) +';'
+         St.append((bus_stops_df['Lat'][ind],bus_stops_df['Lon'][ind]))
+         Cow.append(0)
+    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+                     center=center, zoom=12, id="map",
+                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+    #return [out,St,newMap]
+    return [out,St,Cow,newMap]
+
+@app.callback([Output('map','children',allow_duplicate=True)],
+               [Input("show_workers", "n_clicks")]
+              )
+def show_workers(N):
+    temp_file = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/temp_workers_data.csv'
+    workers_DF = pd.read_csv(temp_file)
+    St = []
+    for ind in workers_DF.index:
+         St.append((workers_DF['O_lat'][ind],workers_DF['O_long'][ind]))
+    markers = [dl.Marker(dl.Tooltip("Do something?"), position=pos, icon=custom_icon_worker, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+                     center=center, zoom=12, id="map",
+                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+    #return [out,St,newMap]
+    return [newMap]
 
 
 
@@ -631,59 +728,6 @@ def match_stops(St,Cow,Nclick):
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
       return [len(St),St,newMap]
-
-
-               
-#@app.callback([Output("clickdata", "children")],
-@app.callback([Output("outdata", "children"), Output('internal-value_stops','data',allow_duplicate=True),Output('internal-value_coworking','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
-              State("n_clusters", "value"),
-              Input("propose_stops", "n_clicks")
-              )
-def propose_stops(n_clusters,N):
-    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    sys.path.append(root_dir + 'modules')      
-    import find_stops_module   
-    n_clusters  = int(n_clusters)
-    cutoff = 0.8 # cutoff for maximum density: take maxima which are at least cutoff*max
-    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    #workers_DF = pd.read_csv(root_dir + "workers.csv", encoding='latin-1')
-    temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
-    workers_DF = pd.read_csv(temp_file)    
-    stops_DF = pd.read_csv(root_dir + 'data/'+ "all_bus_stops.csv", encoding='latin-1')
-    bus_stops_df,model,yhat = find_stops_module.FindStops(workers_DF, stops_DF, n_clusters, cutoff)
-    #df = pd.read_csv(filename)
-    #out=St.loc[:'Lat']
-    #for i in range(len(St)):
-    #    out = out + str(St.loc[i,['Lat']]) + ', ' + str(St.loc[i,['Lon']]) + '; '
-    out = ''
-    St = []
-    Cow = []
-    for ind in bus_stops_df.index:
-         out = out + str(bus_stops_df['Lat'][ind]) + ',' + str(bus_stops_df['Lon'][ind]) +';'
-         St.append((bus_stops_df['Lat'][ind],bus_stops_df['Lon'][ind]))
-         Cow.append(0)
-    markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-                     center=center, zoom=12, id="map",
-                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-    #return [out,St,newMap]
-    return [out,St,Cow,newMap]
-
-@app.callback([Output('map','children',allow_duplicate=True)],
-               [Input("show_workers", "n_clicks")]
-              )
-def show_workers(N):
-    temp_file = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/temp_workers_data.csv'
-    workers_DF = pd.read_csv(temp_file)
-    St = []
-    for ind in workers_DF.index:
-         St.append((workers_DF['O_lat'][ind],workers_DF['O_long'][ind]))
-    markers = [dl.Marker(dl.Tooltip("Do something?"), position=pos, icon=custom_icon_worker, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-                     center=center, zoom=12, id="map",
-                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-    #return [out,St,newMap]
-    return [newMap]
 
 
 @app.callback([Output("outdata", "children",allow_duplicate=True), 
