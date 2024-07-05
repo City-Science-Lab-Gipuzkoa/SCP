@@ -265,7 +265,6 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
         origin, destination = permut[i]
         if pi[0] != index_old:
            origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
-        #destination = permut[i][1]
         destination_node = ox.distance.nearest_nodes(G, [destination[1]], [destination[0]])[0]
         print('origin: ', origin[0],origin[1])
         print('destination: ', destination[0],destination[1])        
