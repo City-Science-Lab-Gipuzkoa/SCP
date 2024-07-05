@@ -210,7 +210,8 @@ stops_actions = [{'label': 'Delete marker', 'value': 'DM'},
 interventions = [{'label': 'Company transportation', 'value': 'CT'},
                  {'label': 'Remote working', 'value': 'RW'}                   
                 ]
- 
+
+choose_transp_hour = [{'label': "{:02d}".format(i) + ':00' + '-' + "{:02d}".format(i+1) + ':00', 'value': i} for i in range(24)] 
 
 sidebar =  html.Div(
        [
@@ -319,8 +320,23 @@ indicators = html.Div(
                id='choose_CO2_lt',
                marks=None,
                tooltip={"placement": "bottom", "always_visible": True}
-          ),  
-          dbc.Button("Run Mode Choice", id="run_MCM", n_clicks=0, disabled=True, style={"margin-top": "15px","font-weight": "bold"}),        
+          ),
+          dbc.Row(
+            [
+                dbc.Col(
+                    html.Div(dcc.Dropdown(choose_transp_hour, multi=False, id='choose_transp_hour')),
+                    style={"margin-top": "15px"}
+                ),
+                dbc.Col(
+                    html.Div(dcc.Loading(html.Div(id="running_MCM"), id="loading-component_MCM")),
+                    style={"margin-top": "15px"}
+                ),
+                dbc.Col(
+                    html.Div(dbc.Button("Run Mode Choice", id="run_MCM", n_clicks=0, disabled=True)),
+                    style={"margin-top": "15px"}
+                ),
+            ]
+          ),
           html.Div([
              daq.Gauge(
              color={"gradient":True,"ranges":{"green":[0,6],"yellow":[6,8],"red":[8,10]}},
@@ -333,7 +349,7 @@ indicators = html.Div(
              ]),
           html.Div([
           dcc.Graph(figure=fig, id="graph",
-                    style={'width': '40vh'})
+                    style={'width': '60vh'})
           ],style={'width': '100%'})
         ],
         style=INDICATORS_STYLE),
@@ -345,8 +361,8 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(sidebar, width=2, className='bg-light'),
-                dbc.Col(content, width=8),
-                dbc.Col(indicators, width=2)
+                dbc.Col(content, width=7),
+                dbc.Col(indicators, width=3)
                 ],
             style={"height": "100vh"}
             ),
@@ -410,11 +426,14 @@ def suggest_clusters(wdf):
     return best_n_clusters    
 
 
-@callback([Output('CO2_gauge', 'value'),Output('graph','figure')],
-              [State('choose_remote_days', 'value'),
-              State('choose_remote_workers', 'value')],
-              Input('run_MCM', 'n_clicks'))
-def run_MCM(NremDays, NremWork, Nclicks):
+@callback([Output('CO2_gauge', 'value'),
+           Output('graph','figure'),
+           Output('loading-component_MCM','children')],
+          [State('choose_remote_days', 'value'),
+          State('choose_remote_workers', 'value'),
+          State('choose_transp_hour','value')],
+          Input('run_MCM', 'n_clicks'))
+def run_MCM(NremDays, NremWork, TransH, Nclicks):
     import pandas as pd
     print('Inside run_MCM 0')
     import sys    
@@ -423,7 +442,8 @@ def run_MCM(NremDays, NremWork, Nclicks):
     import pp
     import prediction
     import pandas as pd
-    print('Inside run_MCM 0')
+
+    print('Chosen transport hour: ',TransH)
     def categorize(code):
         if code ==0:
            return 'walk'
@@ -438,32 +458,25 @@ def run_MCM(NremDays, NremWork, Nclicks):
     model_dir = 'modules/models/'
     #trips_ez = pd.read_csv(root_dir + data_dir + 'workers_eskuzaitzeta_2k.csv')
     trips_ez = pd.read_csv(root_dir + workers_data_dir + 'temp_workers_data.csv')
-    print('Inside run_MCM 1')
     eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio',
                 'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] # adaptamos trips como input al pp
     trips_ez = trips_ez.drop(columns=eliminar)
-    print(trips_ez.columns)
-    trips_ez=pp.pp(8,trips_ez, root_dir + MCM_data_dir) # llamamos pp franja horaria 8-9, pasandole trips_ez
-    print(trips_ez)
+    trips_ez=pp.pp(TransH,trips_ez, root_dir + MCM_data_dir) # llamamos pp franja horaria 8-9, pasandole trips_ez
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
     prediction=prediction.predict(trips_ez, root_dir + model_dir) # llamamos predict y nos devuelve la prediccion
-    print(prediction)
     unique_labels, counts = np.unique(prediction, return_counts=True)
     labels = ['walk', 'PT', 'car']
     colors = ['#99ff66','#00ffff','#ff3300']
     #df = px.data.tips()
     #plt.pie(counts, labels=labels, autopct='%1.1f%%', startangle=140, colors=colors)
-    #d = {'mode_code': prediction}
-    #df = pd.DataFrame(data=d)
-    #df['Mode'] = df['mode_code'].apply(categorize)
     d = {'unique_labels': unique_labels, 'counts':counts}
     df = pd.DataFrame(data=d)
     df['Mode'] = df['unique_labels'].apply(categorize)    
     fig = px.pie(df, values='counts', names='Mode')
     fig.update_layout(showlegend=False)
     fig.update_layout(title_text='Transport share', title_x=0.5)
-    return [6,fig]
+    return [6, fig,True]
 
 
 @callback([Output('worker_data', 'data'),Output('n_clusters','value')],
