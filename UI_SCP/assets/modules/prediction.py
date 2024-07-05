@@ -27,11 +27,11 @@ def predict(df, model_dir):
     df['Mode'] = df['mode_code'].apply(categorize)
     labels = ['walk', 'PT', 'car']
     colors = ['#99ff66','#00ffff','#ff3300']
-    print('Prediction')
-    print(y_pred)
-    print('Counts')
-    print(counts)
-    print(df.head(20))
+    #print('Prediction')
+    #print(y_pred)
+    #print('Counts')
+    #print(counts)
+    #print(df.head(20))
     #plt.figure(figsize=(8, 8))
     ##plt.pie(counts, labels=unique_labels, autopct='%1.1f%%', startangle=140)
     #plt.pie(counts, labels=labels, autopct='%1.1f%%', startangle=140, colors=colors)

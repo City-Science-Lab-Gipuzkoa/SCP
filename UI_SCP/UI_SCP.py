@@ -153,7 +153,7 @@ SIDEBAR_STYLE = {
     "top": 0,
     "left": 0,
     "bottom": 0,
-    "width": "20rem",
+    "width": "25rem",
     "padding": "2rem 1rem",
     "background-color": "#f8f9fa",
     "overflow": "scroll"           # scrollbar
@@ -348,20 +348,32 @@ indicators = html.Div(
              id='CO2_gauge')
              ]),
           html.Div([
+              dcc.Graph(
+                figure={
+                        'data': [{
+                                'labels': [1, 2, 3], 
+                                'values': [1, 2, 3], 
+                                'type': 'pie',
+                                }]
+                }, id='graph', 
+                style={'width':'60vh'})
+            ], style={'width':'100%'})
+        ],
+        style=INDICATORS_STYLE)
+"""
           dcc.Graph(figure=fig, id="graph",
                     style={'width': '60vh'})
           ],style={'width': '100%'})
         ],
-        style=INDICATORS_STYLE),
 
-
+"""
 #app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 app.layout = dbc.Container(
     [
         dbc.Row(
             [
-                dbc.Col(sidebar, width=2, className='bg-light'),
-                dbc.Col(content, width=7),
+                dbc.Col(sidebar, width=3, className='bg-light'),
+                dbc.Col(content, width=6),
                 dbc.Col(indicators, width=3)
                 ],
             style={"height": "100vh"}
@@ -442,8 +454,12 @@ def run_MCM(NremDays, NremWork, TransH, Nclicks):
     import pp
     import prediction
     import pandas as pd
-
-    print('Chosen transport hour: ',TransH)
+ 
+    if TransH == None:
+        TransH = 8
+        print('Transport hour not selected. Using default (08:00)')
+    else:
+        print('Chosen transport hour: ',TransH)
     def categorize(code):
         if code ==0:
            return 'walk'
@@ -473,9 +489,16 @@ def run_MCM(NremDays, NremWork, TransH, Nclicks):
     d = {'unique_labels': unique_labels, 'counts':counts}
     df = pd.DataFrame(data=d)
     df['Mode'] = df['unique_labels'].apply(categorize)    
-    fig = px.pie(df, values='counts', names='Mode')
-    fig.update_layout(showlegend=False)
-    fig.update_layout(title_text='Transport share', title_x=0.5)
+    #fig = px.pie(df, values='counts', names='Mode')
+    #fig.update_layout(showlegend=False)
+    #fig.update_layout(title_text='Transport share', title_x=0.5)
+    fig = {
+        'data':[{
+            'labels': df['Mode'],
+            'values': df['counts'],
+            'type': 'pie'
+        }]
+    }
     return [6, fig,True]
 
 
