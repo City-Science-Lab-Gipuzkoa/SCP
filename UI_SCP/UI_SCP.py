@@ -324,17 +324,25 @@ indicators = html.Div(
           dbc.Row(
             [
                 dbc.Col(
+                    html.Div(html.P(['Choose trip time'],style={"font-weight": "bold"})),
+                    style={"margin-top": "15px"},
+                    width="auto"
+                ),                
+                dbc.Col(
                     html.Div(dcc.Dropdown(choose_transp_hour, multi=False, id='choose_transp_hour')),
-                    style={"margin-top": "15px"}
+                    style={"margin-top": "15px"},
+                    width=4
                 ),
                 dbc.Col(
                     html.Div(dcc.Loading(html.Div(id="running_MCM"), id="loading-component_MCM")),
-                    style={"margin-top": "15px"}
+                    style={"margin-top": "15px"},
+                    width="auto"
                 ),
                 dbc.Col(
                     html.Div(dbc.Button("Run Mode Choice", id="run_MCM", n_clicks=0, disabled=True)),
-                    style={"margin-top": "15px"}
-                ),
+                    style={"margin-top": "15px"},
+                    width="auto"
+                )
             ]
           ),
           html.Div([
@@ -354,7 +362,10 @@ indicators = html.Div(
                                 'labels': [1, 2, 3], 
                                 'values': [1, 2, 3], 
                                 'type': 'pie',
-                                }]
+                                }],
+                        'layout': {
+                            'title': 'Transport share'
+                        }        
                 }, id='graph', 
                 style={'width':'60vh'})
             ], style={'width':'100%'})
