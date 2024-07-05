@@ -25,6 +25,7 @@ import networkx as nx
 import json
 
 import itertools
+from itertools import permutations
 
 import pandas as pd
 import geopandas
@@ -201,9 +202,9 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       """
       print('bbox:')
       rel_margins_north = 0.5
-      rel_margins_south = 0.5
-      rel_margins_east = 0.5
-      rel_margins_west = 0.5
+      rel_margins_south = 0.8
+      rel_margins_east = 0.6
+      rel_margins_west = 0.8
       north = max_lat + (max_lat - min_lat) * rel_margins_north
       south = min_lat - (max_lat - min_lat) * rel_margins_south
       east = max_lon + (max_lon - min_lon) * rel_margins_east
@@ -228,25 +229,53 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       print()
       print('Adding edge speeds, lengths and travelling speeds...')
       #hwy_speeds = {"residential": 30, "secondary": 30, "tertiary": 30}
-      hwy_speeds = {"residential": 20, "unclassified": 30, "maxspeed": 100 }
-      #hwy_speeds = {"primary": 20, "residential": 20, "unclassified": 30, "maxspeed": 50 }
+      #hwy_speeds = {"residential": 20, "unclassified": 30, "maxspeed": 100 }
+      #hwy_speeds = {"residential": 80, "unclassified": 60, "maxspeed": 100 }
+      #hwy_speeds = {"primary": 100, "residential": 60, "unclassified": 50, "maxspeed": 100 }
+      hwy_speeds = {"motorway": 100, "trunk": 100, "primary": 100, "residential": 60, "unclassified": 50, "maxspeed": 100 }
       G = ox.add_edge_speeds(G, hwy_speeds)
       #G = ox.add_edge_speeds(G)
       G = ox.add_edge_travel_times(G)
       G = ox.distance.add_edge_lengths(G)
       print('Adding edge speeds, lengths and travelling speeds completed!')
 
+      """
       print('Removing oneway ends...')
       G = remove_oneway_ends(G)
       print('Removing oneway ends done!')
       print('Adding missing connections...')
       G = check_conn_dirty_fix(G,puntos,[north,south,east,west])
       print('Adding missing connections done!')    
+      """
       n = len(puntos)
       C = np.zeros((n,n))
       
+      permut = list(permutations(puntos, 2))
+      permut_index = list(permutations(range(n), 2))
+
       print()
       print('Calculating distance matrix...')
+      t0=time.time()
+      #lista=[]
+      
+      # The following loop is somewhat faster than the old one (below) ##############################
+      index_old = 1
+      for i in range(len(permut)):
+        pi = permut_index[i]
+        origin, destination = permut[i]
+        if pi[0] != index_old:
+           origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
+        #destination = permut[i][1]
+        destination_node = ox.distance.nearest_nodes(G, [destination[1]], [destination[0]])[0]
+        print('origin: ', origin[0],origin[1])
+        print('destination: ', destination[0],destination[1])        
+        path_length = nx.shortest_path_length(G, origin_node, destination_node, weight='length')
+        C[pi[0]][pi[1]] = path_length/1000
+        #lista.append([origin_node,destination_node,pi[0],pi[1]])
+        index_old = pi[0]
+      ##################################################################################################  
+        
+      """
       for i in range(n):
         origin = puntos[i]
         origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
@@ -254,12 +283,21 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
           destination = puntos[j]
           destination_node = ox.distance.nearest_nodes(G, [destination[1]], [destination[0]])[0]
           #Get the shortest path
+          print('origin: ', origin[0],origin[1])
+          print('destination: ', destination[0],destination[1])
           path_length = nx.shortest_path_length(G, origin_node, destination_node, weight='length')
           C[i][j] = path_length/1000
-      print('Distance matrix calculated!')
+          #lista.append([origin_node,destination_node,i,j])
+      """
       
+      print('Distance matrix calculated!')
+      t1=time.time()
+      print('Total time: ', (t1-t0)/60)
+      print()
+      #df = pd.DataFrame(lista)
+      #df.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/test_0.csv',index=False)
       # Mostrando la matriz de distancias
-      print('La matriz de distancia es:\n')
+      print('Distance matrix is:\n')
       print(np.round(C,4))
       n = np.shape(C)[0]
 

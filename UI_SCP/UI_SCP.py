@@ -49,6 +49,9 @@ import pandas as pd
 import geopy.distance
 import numpy as np
 
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
 #from google.colab import drive
 #drive.mount('/content/drive',  force_remount=True)
 
@@ -374,32 +377,43 @@ def parse_contents(contents, filename, date):
         return html.Div([
             'There was an error processing this file.'
         ])
+    
     return df.to_csv(temp_file, index=False)  
-    """
-    return html.Div([
-        html.H5(filename),
-        html.H6(datetime.datetime.fromtimestamp(date)),
 
-        dash_table.DataTable(
-            df.to_dict('records'),
-            [{'name': i, 'id': i} for i in df.columns]
-        ),
+def suggest_clusters(wdf):
 
-        html.Hr(),  # horizontal line
+    #sil_score_max = -100 #this is the minimum possible score
+    dist_max = 100
+    wdf = wdf[['O_lat', 'O_long']].values.tolist()
+    alpha = 0.7 
+    n_max_clusters = int(19*len(wdf)/2000.)
+    #beta = (1-alpha)*19 + alpha*0.63
+    sil_score_max = 1
 
-        # For debugging, display the raw contents provided by the web browser
-        html.Div('Raw Content'),
-        html.Pre(contents[0:200] + '...', style={
-            'whiteSpace': 'pre-wrap',
-            'wordBreak': 'break-all'
-        })
-    ])
-    """
-@callback(Output('worker_data', 'data'),
-              Input('upload-data', 'contents'),
-              State('upload-data', 'filename'),
-              State('upload-data', 'last_modified'))
+    for n_clusters in range(2,31):
+        #model = KMeans(n_clusters = n_clusters, init='k-means++', max_iter=100, n_init=1)
+        model = KMeans(n_clusters = n_clusters)
+        labels = model.fit_predict(wdf)
+        sil_score = silhouette_score(wdf, labels, sample_size=800, random_state=5)
+        #aver_score = (1 - alpha)*n_clusters/n_max_clusters + alpha*sil_score
+        #x = (1-alpha)*n_clusters + alpha*sil_score    
+        #aver_score = - (x - beta)**2 + 1
+        d0 = (1-alpha)*(n_max_clusters - n_clusters)/n_max_clusters
+        d1 = alpha*(sil_score_max - sil_score) 
+        dist_to_max = (d0**2 + d1**2)**0.5
+        print("The average silhouette score for %i clusters is %0.2f; the average score is %0.2f" %(n_clusters,sil_score, dist_to_max))
+        #if sil_score > sil_score_max:
+        if dist_to_max < dist_max:   
+           dist_max = dist_to_max
+           best_n_clusters = n_clusters
+    return best_n_clusters    
+
+@callback([Output('worker_data', 'data'),Output('n_clusters','value')],
+              [Input('upload-data', 'contents'),
+              Input('upload-data', 'filename'),
+              Input('upload-data', 'last_modified')])
 def load_worker_data(list_of_contents, list_of_names, list_of_dates):
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'        
     if list_of_contents is not None:
         children = [
             parse_contents(c, n, d) for c, n, d in
@@ -411,8 +425,12 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
         #decoded = base64.b64decode(content_string)
         #filename = io.StringIO(decoded.decode('utf-8'))
         works_data = children
+        temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
+        df = pd.read_csv(temp_file) 
+        suggested_N_clusters = suggest_clusters(df)
         #print('workers dataframe?', works_data)
-        return works_data
+        
+        return [works_data,suggested_N_clusters]
 ############################################################################################
 
 
