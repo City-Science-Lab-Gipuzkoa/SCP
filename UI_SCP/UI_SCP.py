@@ -320,7 +320,7 @@ indicators = html.Div(
                marks=None,
                tooltip={"placement": "bottom", "always_visible": True}
           ),  
-          dbc.Button("Run Mode Choice", id="run_MCM", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),        
+          dbc.Button("Run Mode Choice", id="run_MCM", n_clicks=0, disabled=True, style={"margin-top": "15px","font-weight": "bold"}),        
           html.Div([
              daq.Gauge(
              color={"gradient":True,"ranges":{"green":[0,6],"yellow":[6,8],"red":[8,10]}},
@@ -358,7 +358,8 @@ app.layout = dbc.Container(
 # Folder navigator ###############################################################
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
-    temp_file = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/temp_workers_data.csv'
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    temp_file = root_dir + 'data/temp_workers_data.csv'
     decoded = base64.b64decode(content_string)
     try:
         if 'csv' in filename:
@@ -382,7 +383,6 @@ def parse_contents(contents, filename, date):
     return df.to_csv(temp_file, index=False)  
 
 def suggest_clusters(wdf):
-
     #sil_score_max = -100 #this is the minimum possible score
     dist_max = 100
     wdf = wdf[['O_lat', 'O_long']].values.tolist()
@@ -410,31 +410,40 @@ def suggest_clusters(wdf):
     return best_n_clusters    
 
 
-
-
 @callback([Output('CO2_gauge', 'value'),Output('graph','figure')],
               [State('choose_remote_days', 'value'),
               State('choose_remote_workers', 'value')],
               Input('run_MCM', 'n_clicks'))
-def run_MCM(list_of_contents, list_of_names, list_of_dates):
-    import sys
+def run_MCM(NremDays, NremWork, Nclicks):
+    import pandas as pd
+    print('Inside run_MCM 0')
+    import sys    
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    sys.path.append(root_dir + 'modules')
     import pp
     import prediction
     import pandas as pd
-    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    sys.path.append(root_dir + 'modules')
+    print('Inside run_MCM 0')
+    def categorize(code):
+        if code ==0:
+           return 'walk'
+        elif code ==1:
+           return 'PT'
+        else:
+           return 'car'
 
     root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    data_dir = 'data/input_data_MCM/'
+    workers_data_dir = 'data/'
+    MCM_data_dir = 'data/input_data_MCM/'    
     model_dir = 'modules/models/'
     #trips_ez = pd.read_csv(root_dir + data_dir + 'workers_eskuzaitzeta_2k.csv')
-    trips_ez = pd.read_csv(root_dir + data_dir + 'temp_workers_data.csv')
-
+    trips_ez = pd.read_csv(root_dir + workers_data_dir + 'temp_workers_data.csv')
+    print('Inside run_MCM 1')
     eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio',
                 'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] # adaptamos trips como input al pp
     trips_ez = trips_ez.drop(columns=eliminar)
     print(trips_ez.columns)
-    trips_ez=pp.pp(8,trips_ez, root_dir+data_dir) # llamamos pp franja horaria 8-9, pasandole trips_ez
+    trips_ez=pp.pp(8,trips_ez, root_dir + MCM_data_dir) # llamamos pp franja horaria 8-9, pasandole trips_ez
     print(trips_ez)
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
@@ -445,13 +454,16 @@ def run_MCM(list_of_contents, list_of_names, list_of_dates):
     colors = ['#99ff66','#00ffff','#ff3300']
     #df = px.data.tips()
     #plt.pie(counts, labels=labels, autopct='%1.1f%%', startangle=140, colors=colors)
-    fig = px.pie(counts, unique_labels, names=labels)
+    #d = {'mode_code': prediction}
+    #df = pd.DataFrame(data=d)
+    #df['Mode'] = df['mode_code'].apply(categorize)
+    d = {'unique_labels': unique_labels, 'counts':counts}
+    df = pd.DataFrame(data=d)
+    df['Mode'] = df['unique_labels'].apply(categorize)    
+    fig = px.pie(df, values='counts', names='Mode')
     fig.update_layout(showlegend=False)
     fig.update_layout(title_text='Transport share', title_x=0.5)
-    return 
-
-
-
+    return [6,fig]
 
 
 @callback([Output('worker_data', 'data'),Output('n_clusters','value')],
@@ -518,7 +530,8 @@ def propose_stops(n_clusters,N):
                [Input("show_workers", "n_clicks")]
               )
 def show_workers(N):
-    temp_file = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/temp_workers_data.csv'
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    temp_file = root_dir + 'data/temp_workers_data.csv'
     workers_DF = pd.read_csv(temp_file)
     St = []
     for ind in workers_DF.index:
@@ -531,8 +544,7 @@ def show_workers(N):
     return [newMap]
 
 
-
-@app.callback([Output('sidebar_intervention','children',allow_duplicate=True)],
+@app.callback([Output('sidebar_intervention','children',allow_duplicate=True), Output('run_MCM','disabled')],
               State('internal-value_stops','data'),
               State('internal-value_coworking','data'),
               Input('choose_intervention',"value")
@@ -565,7 +577,7 @@ def choose_intervention(St,Cow,interv):
             dcc.Store(id='internal-value_routes', data=[])
             ])       
         
-        return [sidebar_transport]
+        return [sidebar_transport,True]
 
     if interv == 'RW':         
         
@@ -593,7 +605,7 @@ def choose_intervention(St,Cow,interv):
                 ])        
 
         
-        return [sidebar_remote_work]
+        return [sidebar_remote_work,False]
 
 
 

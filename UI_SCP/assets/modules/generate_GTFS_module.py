@@ -6,8 +6,7 @@ import datetime
 from datetime import date
 import re
 
-directory = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/GTFS_routes/'
-
+directory = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/input_data_MCM/GTFS_feeds/routes_EZ_companies/'
 
 def gGTFS(ruta_EZ0, puntos, G):
     print()
