@@ -504,8 +504,10 @@ def calc_baseline(TransHour, Nclicks):
             color = '#2E86C1'
         else:
             color = "#E74C3C" 
+        text = i_pred.Mode
         marker_i = dl.CircleMarker(
                         id=str(i_pred),
+                        children=[dl.Tooltip(content=text)],
                         center=[i_pred.geometry.y, i_pred.geometry.x],
                         radius=10,
                         color=color,
