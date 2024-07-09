@@ -31,6 +31,8 @@ import pandana as pdn
 import matplotlib.pyplot as plt
 
 
+#APIkey = #"AIzaSyBZBaFIJg0HArAvIwc6PQp3rjVoUdeEKxQ"
+
 t0 = time.time()
 
 def pp(hour,X,root_dir):
@@ -211,9 +213,7 @@ def pp(hour,X,root_dir):
     X=X[X['Hora_Ini_E'] >= convertido]
     ##########################################################################
     
-
     # DRIVE
-
     networks = dict.fromkeys({
     "walk",
     "drive",
@@ -226,7 +226,6 @@ def pp(hour,X,root_dir):
         networks[k] = pdn.network.Network.from_hdf5(root_dir + f'networks/{k}_net.h5')
 
     # # TRANSIT
-
     transit = dict.fromkeys({
     "transit_0001",
     "transit_0102",
@@ -441,10 +440,11 @@ def pp(hour,X,root_dir):
     #aqui obtenemos los códigos  de cada pueblo 
     #pueblos = pd.read_excel("../input_data/data_towns.xlsx")
     pueblos = pd.read_excel(root_dir + "data_towns.xlsx")
-    eliminar = ['Region', 'Latitud', 'Longitud', 'Comarca',
-        'Altitud (m.s.n.m.)', 'Superficie (kmÂ²)', 'PoblaciÃ³n (2019)',
-        'Densidad (hab./kmÂ²)', 'Incluido']
-    pueblos = pueblos.drop(columns=eliminar)
+    
+    eliminar = ['Region', 'Latitud', 'Longitud', 'Comarca',            # -> original code
+        'Altitud (m.s.n.m.)', 'Superficie (kmÂ²)', 'PoblaciÃ³n (2019)', # -> original code
+        'Densidad (hab./kmÂ²)', 'Incluido']                            # -> original code
+    pueblos = pueblos.drop(columns=eliminar)    
 
     X = pd.merge(X, pueblos, left_on='Mun_Ori', right_on='Town')
     X = X.drop(columns=['Town', 'Mun_Ori'])

@@ -4,6 +4,7 @@ import numpy as np
 # Plot
 import matplotlib.pyplot as plt
 import pandas as pd
+import geopandas as gpd
 
 def categorize(code):
     if code ==0:
@@ -19,22 +20,19 @@ def predict(df, model_dir):
     #with open(file_path, 'rb') as file:
     with open(model_dir+f'{model_name}.pkl', 'rb') as file:
         model = pickle.load(file)
-    x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat']))
+    
+    gdf = gpd.GeoDataFrame(
+            df.copy(), geometry=gpd.points_from_xy(df.O_long, df.O_lat), crs="EPSG:4326"
+         )
+    x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat']))    
     y_pred = model.predict(x)
-    unique_labels, counts = np.unique(y_pred, return_counts=True)
-    d = {'mode_code': y_pred}
-    df = pd.DataFrame(data=d)
-    df['Mode'] = df['mode_code'].apply(categorize)
-    labels = ['walk', 'PT', 'car']
-    colors = ['#99ff66','#00ffff','#ff3300']
-    #print('Prediction')
-    #print(y_pred)
-    #print('Counts')
-    #print(counts)
-    #print(df.head(20))
-    #plt.figure(figsize=(8, 8))
-    ##plt.pie(counts, labels=unique_labels, autopct='%1.1f%%', startangle=140)
-    #plt.pie(counts, labels=labels, autopct='%1.1f%%', startangle=140, colors=colors)
-    #plt.title('Mode choice for commuters to Eskuzaitzeta')
-    #plt.show()
-    return y_pred
+    gdf['prediction'] = y_pred
+    #unique_labels, counts = np.unique(y_pred, return_counts=True)
+    #d = {'mode_code': y_pred}
+    #df = pd.DataFrame(data=d)
+    #df['Mode'] = df['mode_code'].apply(categorize)
+    gdf['Mode'] = gdf['prediction'].apply(categorize)
+    #labels = ['walk', 'PT', 'car']
+    #colors = ['#99ff66','#00ffff','#ff3300']
+    return gdf
+    #return y_pred
