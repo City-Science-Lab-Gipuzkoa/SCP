@@ -300,6 +300,7 @@ def pp(hour,X,root_dir):
                 networks['drive'].get_node_ids(X.D_long,X.D_lat),
                 imp_name='distance'
                 )
+    
 
     X["walk_tt"] = networks['walk'].shortest_path_lengths(
                 networks['walk'].get_node_ids(X.O_long,X.O_lat),
@@ -455,7 +456,7 @@ def pp(hour,X,root_dir):
     t1 = time.time()
     print()
     print('Total time:', (t1-t0)/60) 
-    print()     
+    print()    
     return X
 
 

@@ -468,7 +468,6 @@ def suggest_clusters(wdf):
 
 def generate_colors(n):
     import random
- 
     colors = []
     for i in range(n):
         r = random.randint(0, 255)
@@ -479,6 +478,78 @@ def generate_colors(n):
             colors.append(color)
     return colors 
 
+
+def interpolate_color(color_start_rgb, color_end_rgb, t):
+    """
+    Interpolate between two RGB colors.
+    
+    Parameters:
+    - color_start_rgb: Tuple of integers representing the starting RGB color.
+    - color_end_rgb: Tuple of integers representing the ending RGB color.
+    - t: Float representing the interpolation factor between 0 and 1.
+    
+    Returns:
+    - A tuple representing the interpolated RGB color.
+    """
+    #print(color_start_rgb)
+    #color_start_rgb = color_start_rgb.split('#')[1] 
+    #color_end_rgb = color_end_rgb.split('#')[1]
+    return tuple(int(start_val + (end_val - start_val) * t) for start_val, end_val in zip(color_start_rgb, color_end_rgb))
+
+def hex_to_rgb(hex_color):
+    """
+    Convert hex to RGB.
+    
+    Parameters:
+    - hex_color: String representing the hexadecimal color code.
+    
+    Returns:
+    - A tuple of integers representing the RGB values.
+    """
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+def generate_color_CO2(CO2max,CO2_i):
+    #from  matplotlib.colors import ListedColormap, Normalize, LogNorm
+    import matplotlib as mpl
+
+    """
+    cmap = mpl.colors.ListedColormap(['green', 'yellow', 'red'])
+     #norm = mpl.colors.Normalize(vmin=0, vmax=100)
+    norm = mpl.colors.LogNorm(vmin=0+1, vmax=CO2max+1) 
+    # create a scalarmappable from the colormap
+    #sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)  
+    sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
+    #color_hex= mpl.colors.to_hex(sm.to_rgba(idx), keep_alpha=False)
+    color_hex= mpl.colors.to_hex(sm.to_rgba(CO2_i))
+    """
+    ranges = [
+        {"start": "2ECC71", "end": "F7DC6F"},
+        {"start": "F7DC6F", "end": "E74C3C"}
+    ]
+
+    color_start_hex = ranges[0]["start"]
+    color_end_hex = ranges[0]["end"]
+    color_start_rgb = hex_to_rgb(color_start_hex)
+    color_end_rgb = hex_to_rgb(color_end_hex)
+    # Generate gradient
+    gradient1 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
+    color_start_hex = ranges[1]["start"]
+    color_end_hex = ranges[1]["end"]
+    color_start_rgb = hex_to_rgb(color_start_hex)
+    color_end_rgb = hex_to_rgb(color_end_hex)
+    # Generate gradient
+    gradient2 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
+    gradient = gradient1 + gradient2
+    N = len(gradient)
+
+    value = int((CO2_i/CO2max)*N)
+    idx = np.argmin(np.abs(np.array(range(N))-value))
+    color = [gradient[idx][0]/256,gradient[idx][1]/256,gradient[idx][2]/256]
+    color_hex = mpl.colors.to_hex(color)
+    #if value == N:
+    #print(value,idx,color)
+
+    return color_hex
 
 def run_MCM(Transh, NremDays=3, NremWork=30):
     import pandas as pd
@@ -502,6 +573,7 @@ def run_MCM(Transh, NremDays=3, NremWork=30):
     trips_ez = pd.read_csv(root_dir + workers_data_dir + 'temp_workers_data.csv')
     eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio',
                 'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] # adaptamos trips como input al pp
+
     trips_ez = trips_ez.drop(columns=eliminar)
     trips_ez=pp.pp(Transh,trips_ez, root_dir + MCM_data_dir) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
@@ -534,21 +606,19 @@ def calc_baseline(TransHour, Nclicks):
     #                hover_name="Mode",
     #                center = {'lat': 43.267237445097614, 'lon': -1.9937731483199466},
     #                color="Mode") 
-    coords_dict = []
-    print('coords dict.:')
-    for i in result.itertuples():
-        coords_dict.append({'lat': i.geometry.y,'lon': i.geometry.x})
-        print(i) 
+    #coords_dict = []
+    #print('coords dict.:')
+    #for i in result.itertuples():
+    #    coords_dict.append({'lat': i.geometry.y,'lon': i.geometry.x})
+    #    #print(i) 
           
     children = [dl.TileLayer()]
+    maxCO2 = result['CO2'].max()
     for i_pred in result.itertuples():
-        if i_pred.Mode == 'walk':
-            color = '#2ECC71'        
-        elif i_pred.Mode == 'PT':
-            color = '#2E86C1'
-        else:
-            color = "#E74C3C" 
-        text = i_pred.Mode
+        color = generate_color_CO2(maxCO2,i_pred.CO2) 
+        #print(color)
+        #text = i_pred.Mode
+        text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Tot. distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
         marker_i = dl.CircleMarker(
                         id=str(i_pred),
                         children=[dl.Tooltip(content=text)],
@@ -559,7 +629,7 @@ def calc_baseline(TransHour, Nclicks):
                         fillColor=color,
                         fillOpacity=1,
                         )
-        children.append(marker_i)    
+        children.append(marker_i)   
     #dl.GeoJSON(data=dlx.dicts_to_geojson(coords_dict), cluster=False),
     children.append(dl.ScaleControl(position="topright"))
     new_map = dl.Map(children, center=center, 
@@ -575,23 +645,21 @@ def calc_baseline(TransHour, Nclicks):
     return [8,new_map]
 
 
-@callback([Output('CO2_gauge', 'value'),
-           Output('graph','figure'),
+@callback([Output('CO2_gauge', 'value',allow_duplicate=True),
+           Output('graph','figure',allow_duplicate=True),
+           Output('map','children',allow_duplicate=True),
            Output('loading-component_MCM','children')],
           [State('choose_remote_days', 'value'),
           State('choose_remote_workers', 'value'),
           State('choose_transp_hour','value')],
-          Input('run_MCM', 'n_clicks'))
+          Input('run_MCM', 'n_clicks'),
+          prevent_initial_call=True)
 def run_MCM_callback(NremDays, NremWork, TransH, Nclicks):
-    def categorize(code):
-        if code ==0:
-           return 'walk'
-        elif code ==1:
-           return 'PT'
-        else:
-           return 'car'
-    predicted = run_MCM(TransH, NremDays, NremWork)
-    predicted = predicted['prediction']
+
+    result = run_MCM(TransH, NremDays, NremWork)
+    
+    """
+    predicted = result['prediction']
     unique_labels, counts = np.unique(predicted, return_counts=True)
     #labels = ['walk', 'PT', 'car']
     #colors = ['#99ff66','#00ffff','#ff3300']
@@ -610,7 +678,43 @@ def run_MCM_callback(NremDays, NremWork, TransH, Nclicks):
             'type': 'pie'
         }]
     }
-    return [6, fig,True]
+    """
+
+    predicted = result['prediction']
+    unique_labels, counts = np.unique(predicted, return_counts=True)
+    fig = {
+        'data':[{
+            'labels': result['Mode'],
+            'values': counts,
+            'type': 'pie'
+        }]
+    }
+
+    children = [dl.TileLayer()]
+    maxCO2 = result['CO2'].max()
+    for i_pred in result.itertuples():
+        color = generate_color_CO2(maxCO2,i_pred.CO2) 
+        #print(color)
+        #text = i_pred.Mode
+        text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Tot. distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
+        marker_i = dl.CircleMarker(
+                        id=str(i_pred),
+                        children=[dl.Tooltip(content=text)],
+                        center=[i_pred.geometry.y, i_pred.geometry.x],
+                        radius=10,
+                        color=color,
+                        fill=True,
+                        fillColor=color,
+                        fillOpacity=1,
+                        )
+        children.append(marker_i)    
+    #dl.GeoJSON(data=dlx.dicts_to_geojson(coords_dict), cluster=False),
+    children.append(dl.ScaleControl(position="topright"))
+    new_map = dl.Map(children, center=center, 
+                                     zoom=12,
+                                     id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+
+    return [6, fig, new_map,True]
 
 
 @callback([Output('worker_data', 'data'),Output('n_clusters','value')],
