@@ -217,6 +217,7 @@ choose_transp_hour = [{'label': "{:02d}".format(i) + ':00' + '-' + "{:02d}".form
 
 sidebar =  html.Div(
        [
+        html.P(['Import worker file'],id='import_text',style={"margin-top": "15px","font-weight": "bold"}),
         dcc.Upload(
              id='upload-data',
              children=html.Div([
@@ -236,6 +237,21 @@ sidebar =  html.Div(
              multiple=True
         ),
         dcc.Store(id='worker_data', data=[]),
+        html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
+        dbc.Popover(
+                  dbc.PopoverBody(mouse_over_mess_clusters), 
+                  target="n_clusters",
+                  body=True,
+                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'},
+                  placement= 'right',
+                  is_open=False),
+        #dcc.Input(id="n_clusters", type="text", value='19'),
+        dcc.Slider(1, 30, 1,
+               value=19,
+               id='n_clusters',
+               marks=None,
+               tooltip={"placement": "bottom", "always_visible": True}
+            ) , 
 
         dbc.Button("Visualize workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
@@ -404,6 +420,21 @@ def parse_contents(contents, filename, date):
     
     return df.to_csv(temp_file, index=False)  
 
+def drawclusters(workers_df,n_clusters):
+    from sklearn.cluster import KMeans
+    from scipy.spatial import ConvexHull
+
+    workers_lat_lon = workers_df[['O_lat', 'O_long']].values.tolist()
+    workers_lat_lon = np.array(workers_lat_lon)
+    model = KMeans(n_clusters=n_clusters, max_iter=500).fit(workers_lat_lon)
+    clusters_poly = []
+    for i in range(n_clusters):
+        points = workers_lat_lon[model.labels_ == i]
+        hull = ConvexHull(points)
+        vert = np.append(hull.vertices, hull.vertices[0])  # close the polygon by appending the first point at the end
+        clusters_poly.append(points[vert])
+    return clusters_poly
+
 def suggest_clusters(wdf):
     #sil_score_max = -100 #this is the minimum possible score
     dist_max = 100
@@ -434,6 +465,19 @@ def suggest_clusters(wdf):
            dist_max = dist_to_max
            best_n_clusters = n_clusters
     return best_n_clusters    
+
+def generate_colors(n):
+    import random
+ 
+    colors = []
+    for i in range(n):
+        r = random.randint(0, 255)
+        g = random.randint(0, 255)
+        b = random.randint(0, 255)
+        color = '#%02x%02x%02x'%(r, g, b)
+        if color not in colors:
+            colors.append(color)
+    return colors 
 
 
 def run_MCM(Transh, NremDays=3, NremWork=30):
@@ -631,14 +675,14 @@ def propose_stops(n_clusters,Nclick):
         return [out,St,Cow,newMap]
 
 @app.callback([Output('map','children',allow_duplicate=True)],
+                State("n_clusters", "value"),
                [Input("show_workers", "n_clicks")]
               )
-def show_workers(N):
-    print()
-    print('inside show workers...')
+def show_workers(n_clusters,N):
     root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
     temp_file = root_dir + 'data/temp_workers_data.csv'
     workers_DF = pd.read_csv(temp_file)
+    """
     St = []
     for ind in workers_DF.index:
          St.append((workers_DF['O_lat'][ind],workers_DF['O_long'][ind]))
@@ -646,7 +690,14 @@ def show_workers(N):
     newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-    #return [out,St,newMap]
+    """ 
+    clusters = drawclusters(workers_DF,n_clusters)
+    colors = generate_colors(n_clusters)
+    cluster_shapes = [dl.Polygon(children = dl.Tooltip('Number of workers: '+str(len(clusters[i]))), positions=clusters[i], fill=True, fillColor = colors[i], fillOpacity=0.6) for i in range(n_clusters)]
+    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + cluster_shapes,
+                     center=center, zoom=12, id="map",
+                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+
     return [newMap]
 
 
@@ -660,23 +711,7 @@ def choose_intervention(St,Cow,interv):
            
     if interv == 'CT':
         sidebar_transport = html.Div(
-            [
-            html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
-            dbc.Popover(
-                  dbc.PopoverBody(mouse_over_mess_clusters), 
-                  target="n_clusters",
-                  body=True,
-                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'},
-                  placement= 'right',
-                  is_open=False),
-            #dcc.Input(id="n_clusters", type="text", value='19'),
-            dcc.Slider(1, 30, 1,
-               value=19,
-               id='n_clusters',
-               marks=None,
-               tooltip={"placement": "bottom", "always_visible": True}
-            ) ,       
-            html.Br(),        
+            [           
             dbc.Button("Propose stops", id="propose_stops", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
             html.Br(),
             dbc.Popover(dcc.Markdown(mouse_over_mess_stops, dangerously_allow_html=True),
