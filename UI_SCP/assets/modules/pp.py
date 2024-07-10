@@ -31,8 +31,6 @@ import pandana as pdn
 import matplotlib.pyplot as plt
 
 
-#APIkey = #"AIzaSyBZBaFIJg0HArAvIwc6PQp3rjVoUdeEKxQ"
-
 t0 = time.time()
 
 def pp(hour,X,root_dir):
