@@ -551,7 +551,7 @@ def generate_color_CO2(CO2max,CO2_i):
 
     return color_hex
 
-def run_MCM(Transh, NremDays=3, NremWork=30):
+def run_MCM(Transh, NremDays=3, NremWork=30, CowCoords=None):
     import pandas as pd
     print('Inside run_MCM 0')
     import sys    
@@ -575,7 +575,7 @@ def run_MCM(Transh, NremDays=3, NremWork=30):
                 'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] # adaptamos trips como input al pp
 
     trips_ez = trips_ez.drop(columns=eliminar)
-    trips_ez=pp.pp(Transh,trips_ez, root_dir + MCM_data_dir) 
+    trips_ez=pp.pp(Transh,trips_ez, CowCoords, root_dir + MCM_data_dir) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
     prediction=prediction.predict(trips_ez, root_dir + model_dir)  
@@ -586,7 +586,7 @@ def run_MCM(Transh, NremDays=3, NremWork=30):
 
 
 @callback([Output('CO2_gauge', 'value',allow_duplicate=True),
-           Output('map','children',allow_duplicate=True)],
+          Output('map','children',allow_duplicate=True)],
           State('choose_transp_hour','value'),
           Input('calc_baseline', 'n_clicks'),
           prevent_initial_call = True)
@@ -651,44 +651,40 @@ def calc_baseline(TransHour, Nclicks):
            Output('loading-component_MCM','children')],
           [State('choose_remote_days', 'value'),
           State('choose_remote_workers', 'value'),
+          State('internal-value_stops','data'),
+          State('internal-value_coworking','data'),
           State('choose_transp_hour','value')],
           Input('run_MCM', 'n_clicks'),
           prevent_initial_call=True)
-def run_MCM_callback(NremDays, NremWork, TransH, Nclicks):
+def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, Nclicks):
 
-    result = run_MCM(TransH, NremDays, NremWork)
+    print('Cow. Flags:')
+    print(CowoFlags)
+    CowoIn = np.nonzero(CowoFlags)[0]
+    print('Indices:')
+    print(CowoIn)
+    print('All coords:')
+    print(StopsCoords)
+    #CowoCoords = np.take(StopsCoords, CowoIn)
+    CowoCoords = np.array(StopsCoords)[CowoIn]
+    print('Cow coords:')
+    print(CowoCoords)
     
-    """
+    result = run_MCM(TransH, NremDays, NremWork, CowoCoords)
+    
     predicted = result['prediction']
     unique_labels, counts = np.unique(predicted, return_counts=True)
-    #labels = ['walk', 'PT', 'car']
-    #colors = ['#99ff66','#00ffff','#ff3300']
-    #df = px.data.tips()
-    #plt.pie(counts, labels=labels, autopct='%1.1f%%', startangle=140, colors=colors)
     d = {'unique_labels': unique_labels, 'counts':counts}
-    df = pd.DataFrame(data=d)
-    df['Mode'] = df['unique_labels'].apply(categorize)    
-    #fig = px.pie(df, values='counts', names='Mode')
-    #fig.update_layout(showlegend=False)
-    #fig.update_layout(title_text='Transport share', title_x=0.5)
+    df = pd.DataFrame(data=d)    
+    #        'labels': df['unique_labels'],
     fig = {
         'data':[{
-            'labels': df['Mode'],
+            'labels': ['Walk','PT','Car'],
             'values': df['counts'],
             'type': 'pie'
         }]
     }
-    """
 
-    predicted = result['prediction']
-    unique_labels, counts = np.unique(predicted, return_counts=True)
-    fig = {
-        'data':[{
-            'labels': result['Mode'],
-            'values': counts,
-            'type': 'pie'
-        }]
-    }
 
     children = [dl.TileLayer()]
     maxCO2 = result['CO2'].max()
@@ -707,7 +703,7 @@ def run_MCM_callback(NremDays, NremWork, TransH, Nclicks):
                         fillColor=color,
                         fillOpacity=1,
                         )
-        children.append(marker_i)    
+        children.append(marker_i)   
     #dl.GeoJSON(data=dlx.dicts_to_geojson(coords_dict), cluster=False),
     children.append(dl.ScaleControl(position="topright"))
     new_map = dl.Map(children, center=center, 

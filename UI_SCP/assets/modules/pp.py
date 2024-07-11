@@ -25,6 +25,8 @@ import pandas as pd
 from datetime import datetime
 import pandana as pdn
 
+import geopy.distance
+
 
 
 # Plot
@@ -33,7 +35,7 @@ import matplotlib.pyplot as plt
 
 t0 = time.time()
 
-def pp(hour,X,root_dir):
+def pp(hour,X,CowCoords,root_dir):
 
     """
     feeds.add_feed(add_dict={'dbus': 'https://www.geo.euskadi.eus/cartografia/DatosDescarga/Transporte/Moveuskadi/ATTG/dbus/google_transit.zip'})
@@ -301,6 +303,36 @@ def pp(hour,X,root_dir):
                 imp_name='distance'
                 )
     
+    # calculate distance to coworking hubs #####################################################
+    cowhub_i = 0
+    for cowhub in CowCoords:
+        d = {'CowH_lat': [cowhub[0]], 'CowH_lon': [cowhub[1]]}
+        # generate dataframe with replicas of the previous coordinates ###########
+        temp_df = pd.DataFrame(data=d)
+        temp_df = pd.DataFrame(np.repeat(temp_df.values, len(X.index), axis=0))
+        temp_df.columns = ['CowH_lat','CowH_lon'] 
+        ##########################################################################
+        X["distance_CowHub_"+str(cowhub_i)] = networks['drive'].shortest_path_lengths(
+                networks['drive'].get_node_ids(X.O_long,X.O_lat),
+                networks['drive'].get_node_ids(temp_df.CowH_lon,temp_df.CowH_lat),
+                imp_name='distance'
+                )
+        cowhub_i+=1
+    ############################################################################################
+    # keep minimum distance among work destinations ############################################
+    filter_cols = [col for col in X if col.startswith('distance_CowHub_')]
+    compare_cols = ['distance'] + filter_cols   
+    print()  
+    print('check distances before comparison')
+    print(X[compare_cols].head(50))
+    print()    
+    X['distance'] = X[compare_cols].min(axis=1)
+    X.drop(columns=filter_cols, inplace=True)
+    print()  
+    print('check distances after comparison')
+    print(X['distance'].head(50))
+    print()      
+    ############################################################################################
 
     X["walk_tt"] = networks['walk'].shortest_path_lengths(
                 networks['walk'].get_node_ids(X.O_long,X.O_lat),
