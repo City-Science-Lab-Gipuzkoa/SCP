@@ -94,8 +94,8 @@ print('Console cleared!')
 #im1 = '/home/beppe23/mysite/assets/CSL_logo.PNG'
 #im2 = '/home/beppe23/mysite/assets/DFG_logo.png'
 im1 = root_dir +'images/CSL_logo.PNG'
-im2 = root_dir +'images/DFG_logo.png'
-im3 = root_dir +'images/MUBIL_logo.png'
+#im2 = root_dir +'images/DFG_logo.png'
+#im3 = root_dir +'images/MUBIL_logo.png'
 
 #stops_file = "/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/GTFS_files_bus_stops_12_02_2024/all_stops_12_02_2024.csv"
 #stops_file = "/home/beppe23/mysite/assets/all_stops_12_02_2024.csv"
@@ -105,8 +105,8 @@ stops_file = root_dir +'data/all_bus_stops.csv'
 
 from PIL import Image
 image1 = Image.open(im1)
-image2 = Image.open(im2)
-image3 = Image.open(im3)
+#image2 = Image.open(im2)
+#image3 = Image.open(im3)
 
 
 stops_df = pd.read_csv(stops_file, encoding='latin-1')
@@ -169,7 +169,7 @@ SIDEBAR_STYLE = {
 # add some padding.
 
 CONTENT_STYLE = {
-    "margin-left": "0rem",
+    "margin-left": "5rem",
     "margin-right": "0rem",
 }
 
@@ -278,8 +278,8 @@ content = html.Div(
        [
           html.Div([
              html.Img(src=image1,style={'width':'40%', "display": "inlineBlock", "verticalAlign": "top"}),
-             html.Img(src=image2,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"}),
-             html.Img(src=image3,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"})
+             #html.Img(src=image2,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"}),
+             #html.Img(src=image3,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"})
 
              ],style= {'verticalAlign': 'top'}),
           dls.Clock(
