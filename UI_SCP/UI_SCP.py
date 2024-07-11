@@ -346,11 +346,11 @@ indicators = html.Div(
           ),
           html.Div([
              daq.Gauge(
-             color={"gradient":True,"ranges":{"green":[0,6],"yellow":[6,8],"red":[8,10]}},
-             value=2,
+             color={"gradient":True,"ranges":{"green":[0,0.333],"yellow":[0.333,0.666],"red":[0.666,1.0]}},
+             value=0.3,
              label={'label':'CO2 emissions', 'style':{'font-size':'18px',"font-weight": "bold"}},
              style = {"margin-top": "20px","font-weight": "bold"},
-             max=10,
+             max=1,
              min=0,
              id='CO2_gauge')
              ]),
@@ -614,6 +614,7 @@ def calc_baseline(TransHour, Nclicks):
           
     children = [dl.TileLayer()]
     maxCO2 = result['CO2'].max()
+    Total_CO2 = result['CO2'].sum()
     for i_pred in result.itertuples():
         color = generate_color_CO2(maxCO2,i_pred.CO2) 
         #print(color)
@@ -688,6 +689,8 @@ def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, Nclicks
 
     children = [dl.TileLayer()]
     maxCO2 = result['CO2'].max()
+    Total_CO2 = result['CO2'].sum()
+    Total_CO2_worst_case = result['CO2_worst_case'].sum()
     for i_pred in result.itertuples():
         color = generate_color_CO2(maxCO2,i_pred.CO2) 
         #print(color)
@@ -710,7 +713,7 @@ def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, Nclicks
                                      zoom=12,
                                      id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
-    return [6, fig, new_map,True]
+    return [Total_CO2/Total_CO2_worst_case, fig, new_map,True]
 
 
 @callback([Output('worker_data', 'data'),Output('n_clusters','value')],

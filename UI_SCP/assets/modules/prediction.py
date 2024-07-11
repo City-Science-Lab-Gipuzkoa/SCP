@@ -42,6 +42,7 @@ def predict(df, model_dir):
     #df['Mode'] = df['mode_code'].apply(categorize)
     gdf['Mode'] = gdf['prediction'].apply(categorize)
     gdf['CO2']  = gdf.apply(estimate_emissions, axis=1)
+    gdf['CO2_worst_case']  = (1./12)*2.3*df['distance']/1000
     #labels = ['walk', 'PT', 'car']
     #colors = ['#99ff66','#00ffff','#ff3300']
     return gdf
