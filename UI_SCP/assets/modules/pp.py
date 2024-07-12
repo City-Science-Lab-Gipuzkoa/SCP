@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 
 t0 = time.time()
 
-def pp(hour,X,CowCoords,root_dir):
+def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
 
     """
     feeds.add_feed(add_dict={'dbus': 'https://www.geo.euskadi.eus/cartografia/DatosDescarga/Transporte/Moveuskadi/ATTG/dbus/google_transit.zip'})
@@ -303,7 +303,7 @@ def pp(hour,X,CowCoords,root_dir):
                 imp_name='distance'
                 )
     
-    # calculate distance to coworking hubs #####################################################
+    # Coworking hubs #############################################################
     cowhub_i = 0
     for cowhub in CowCoords:
         d = {'CowH_lat': [cowhub[0]], 'CowH_lon': [cowhub[1]]}
@@ -319,19 +319,28 @@ def pp(hour,X,CowCoords,root_dir):
                 )
         cowhub_i+=1
     ############################################################################################
-    # keep minimum distance among work destinations ############################################
+    
     filter_cols = [col for col in X if col.startswith('distance_CowHub_')]
-    compare_cols = ['distance'] + filter_cols   
-    print()  
-    print('check distances before comparison')
-    print(X[compare_cols].head(50))
-    print()    
+    compare_cols = ['distance'] + filter_cols     
+
+    # Keep track of whether coworking hub is closer than original distance #####################
+    t = X[compare_cols].idxmin(axis=1) # for each row, get names of the column with min dist
+    t = pd.DataFrame(t).values
+    t = [1 if p[0] != 'distance' else 0 for p in t] # set to 1 if coworking
+    X['Coworking'] = t
+    ############################################################################################
+
+    # keep minimum distance among work destinations ############################################
     X['distance'] = X[compare_cols].min(axis=1)
-    X.drop(columns=filter_cols, inplace=True)
-    print()  
-    print('check distances after comparison')
-    print(X['distance'].head(50))
-    print()      
+    X.drop(columns=filter_cols, inplace=True)     
+    ############################################################################################
+
+    # Remote working ###########################################################################
+    n_rw = int(len(X.index)*RemWoPer/100) # number of workers doing remote work
+    X["Rem_work"] = 0
+    X_to_set = X.sample(n_rw)
+    X_to_set["Rem_work"] = RemWoDays
+    X.update(X_to_set)
     ############################################################################################
 
     X["walk_tt"] = networks['walk'].shortest_path_lengths(

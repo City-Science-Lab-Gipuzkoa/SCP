@@ -551,7 +551,7 @@ def generate_color_CO2(CO2max,CO2_i):
 
     return color_hex
 
-def run_MCM(Transh, NremDays=3, NremWork=30, CowCoords=None):
+def run_MCM(Transh, NremDays=0, NremWork=30, CowCoords=None):
     import pandas as pd
     print('Inside run_MCM 0')
     import sys    
@@ -575,7 +575,8 @@ def run_MCM(Transh, NremDays=3, NremWork=30, CowCoords=None):
                 'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] # adaptamos trips como input al pp
 
     trips_ez = trips_ez.drop(columns=eliminar)
-    trips_ez=pp.pp(Transh,trips_ez, CowCoords, root_dir + MCM_data_dir) 
+    trips_ez.head(10).to_csv(root_dir + workers_data_dir + 'example_workers_data.csv',index=False)
+    trips_ez=pp.pp(Transh,trips_ez, CowCoords, NremDays, NremWork, root_dir + MCM_data_dir) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
     prediction=prediction.predict(trips_ez, root_dir + model_dir)  
@@ -695,7 +696,12 @@ def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, Nclicks
         color = generate_color_CO2(maxCO2,i_pred.CO2) 
         #print(color)
         #text = i_pred.Mode
-        text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Tot. distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
+        text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
+        #text = text + '<br>' + 'Remote working: ' + str(i_pred.Rem_work)
+        n_cw = int(i_pred.Rem_work)
+        text = text + '<br>' + 'Remote working: ' + (['Yes']*n_cw + ['No'])[n_cw-1]
+        n_cw = int(i_pred.Coworking)    
+        text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]          
         marker_i = dl.CircleMarker(
                         id=str(i_pred),
                         children=[dl.Tooltip(content=text)],

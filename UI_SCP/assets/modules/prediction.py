@@ -19,9 +19,9 @@ def estimate_emissions(df):
         if df['Mode']=='Walk':
             return 0.0
         elif df['Mode']=='PT':
-            return (1.1*2.3*df['distance']/1000/aver_N_passengers)*0.5 + (35.1*10**-3*df['distance']/1000/aver_N_passengers)*0.5
+            return (5-df['Rem_work'])*(1.1*2.3*df['distance']/1000/aver_N_passengers)*0.5 + (5-df['Rem_work'])*(35.1*10**-3*df['distance']/1000/aver_N_passengers)*0.5
         else:
-            return (1./12)*2.3*df['distance']/1000
+            return (5-df['Rem_work'])*(1./12)*2.3*df['distance']/1000
 
 def predict(df, model_dir):
     model_name = "rf"  # El nombre del modelo que guardaste anteriormente
@@ -33,7 +33,8 @@ def predict(df, model_dir):
     gdf = gpd.GeoDataFrame(
             df.copy(), geometry=gpd.points_from_xy(df.O_long, df.O_lat), crs="EPSG:4326"
          )
-    x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat']))  
+    #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat'])) 
+    x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking']))      
     y_pred = model.predict(x)
     gdf['prediction'] = y_pred
     #unique_labels, counts = np.unique(y_pred, return_counts=True)
@@ -42,7 +43,8 @@ def predict(df, model_dir):
     #df['Mode'] = df['mode_code'].apply(categorize)
     gdf['Mode'] = gdf['prediction'].apply(categorize)
     gdf['CO2']  = gdf.apply(estimate_emissions, axis=1)
-    gdf['CO2_worst_case']  = (1./12)*2.3*df['distance']/1000
+    gdf['CO2_worst_case']  = 5*(1./12)*2.3*df['distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    gdf['distance']  = gdf['distance']*(5-gdf['Rem_work']) # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     #labels = ['walk', 'PT', 'car']
     #colors = ['#99ff66','#00ffff','#ff3300']
     return gdf
