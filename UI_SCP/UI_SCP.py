@@ -266,7 +266,8 @@ sidebar =  html.Div(
                  html.Div(id='outdata', style={"margin-top": "15px"}),
                  dcc.Store(id='internal-value_stops', data=[]),
                  dcc.Store(id='internal-value_coworking', data=[]),        
-                 dcc.Store(id='internal-value_routes', data=[])
+                 dcc.Store(id='internal-value_routes', data=[]),        
+                 dcc.Store(id='internal-value_scenario', data=[])
                  ],
                  id='sidebar_intervention', style={"margin-top": "15px"})
         ],
@@ -303,15 +304,21 @@ fig = px.pie(df, values='tip', names='day')
 fig.update_layout(showlegend=False)
 fig.update_layout(title_text='Transport share', title_x=0.5)
 indicators = html.Div(
-        [           
-          html.P([ html.Br(),'Liters of gasoline per kilometer'],id='gas_km',style={"margin-top": "15px","font-weight": "bold"}),
-          #dcc.Input(id="choose_gas_km", type="text", value='1.12'),
-          dcc.Slider(0, 10,0.05,
-               value=1.12,
-               id='choose_gas_km',
+        [     
+          html.P([ html.Br(),'Liters of gasoline per kilometer (car)'],id='gas_km_car',style={"margin-top": "15px","font-weight": "bold"}),
+          dcc.Slider(0, 5,0.02,
+               value=1./12,
+               id='choose_gas_km_car',
                marks=None,
                tooltip={"placement": "bottom", "always_visible": True}
-          ) ,          
+          ) ,                   
+          html.P([ html.Br(),'Liters of gasoline per kilometer (bus)'],id='gas_km_bus',style={"margin-top": "15px","font-weight": "bold"}),
+          dcc.Slider(0, 10,0.05,
+               value=1.12,
+               id='choose_gas_km_bus',
+               marks=None,
+               tooltip={"placement": "bottom", "always_visible": True}
+          ) ,                    
           html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt',style={"margin-top": "15px","font-weight": "bold"}),
           #dcc.Input(id="choose_CO2_lt", type="text", value='2.3', style={"margin-bottom": "15px"}),             
           dcc.Slider(0, 10,0.05,
@@ -344,6 +351,26 @@ indicators = html.Div(
                 )
             ]
           ),
+
+          dcc.Upload(
+             id='upload-scenario',
+             children=html.Div([
+                       html.A('Load scenario')
+                       ]),
+             style={
+                  'width': '100%',
+                  'height': '60px',
+                  'lineHeight': '60px',
+                  'borderWidth': '1px',
+                  'borderStyle': 'dashed',
+                  'borderRadius': '5px',
+                  'textAlign': 'center',
+                  'margin': '10px'
+                  },
+             # Allow multiple files to be uploaded
+             multiple=True
+          ),
+          dbc.Button("Save scenario", id='save_scenario', n_clicks=0),
           html.Div([
              daq.Gauge(
              color={"gradient":True,"ranges":{"green":[0,0.333],"yellow":[0.333,0.666],"red":[0.666,1.0]}},
@@ -404,11 +431,6 @@ def parse_contents(contents, filename, date):
             # Assume that the user uploaded a CSV file
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')))
-            #tmp = io.StringIO(decoded.decode('utf-8'))
-            #print(dir(tmp))
-            #print(decoded)
-            #print(decoded.decode('utf-8'))
-            #print(io.StringIO(decoded.decode('utf-8')))
         elif 'xls' in filename:
             # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
@@ -419,6 +441,26 @@ def parse_contents(contents, filename, date):
         ])
     
     return df.to_csv(temp_file, index=False)  
+
+
+def parse_contents_load_scenario(contents, filename, date):
+    content_type, content_string = contents.split(',')    
+    decoded = base64.b64decode(content_string)
+    try:
+        if 'csv' in filename:
+            # Assume that the user uploaded a CSV file
+            df = pd.read_csv(
+                io.StringIO(decoded.decode('utf-8')))
+        elif 'xls' in filename:
+            # Assume that the user uploaded an excel file
+            df = pd.read_excel(io.BytesIO(decoded))
+    except Exception as e:
+        print(e)
+        return html.Div([
+            'There was an error processing this file.'
+        ])
+    out = plot_result(df)
+    return [out]  
 
 def drawclusters(workers_df,n_clusters):
     from sklearn.cluster import KMeans
@@ -551,7 +593,63 @@ def generate_color_CO2(CO2max,CO2_i):
 
     return color_hex
 
-def run_MCM(Transh, NremDays=0, NremWork=30, CowCoords=None):
+def plot_result(result):
+    predicted = result['prediction']
+    unique_labels, counts = np.unique(predicted, return_counts=True)
+    d = {'unique_labels': unique_labels, 'counts':counts}
+    df = pd.DataFrame(data=d)    
+    #        'labels': df['unique_labels'],
+    fig = {
+        'data':[{
+            'labels': ['Walk','PT','Car'],
+            'values': df['counts'],
+            'type': 'pie'
+        }]
+    }
+
+
+    children = [dl.TileLayer()]
+    maxCO2 = result['CO2'].max()
+    Total_CO2 = result['CO2'].sum()
+    Total_CO2_worst_case = result['CO2_worst_case'].sum()
+    for i_pred in result.itertuples():
+        color = generate_color_CO2(maxCO2,i_pred.CO2) 
+        #print(color)
+        #text = i_pred.Mode
+        text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
+        #text = text + '<br>' + 'Remote working: ' + str(i_pred.Rem_work)
+        n_cw = int(i_pred.Rem_work)
+        text = text + '<br>' + 'Remote working: ' + (['Yes']*n_cw + ['No'])[n_cw-1]
+        n_cw = int(i_pred.Coworking)    
+        text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]          
+        marker_i = dl.CircleMarker(
+                        id=str(i_pred),
+                        children=[dl.Tooltip(content=text)],
+                        center=[i_pred.geometry.y, i_pred.geometry.x],
+                        radius=10,
+                        color=color,
+                        fill=True,
+                        fillColor=color,
+                        fillOpacity=1,
+                        )
+        children.append(marker_i)   
+    #dl.GeoJSON(data=dlx.dicts_to_geojson(coords_dict), cluster=False),
+    children.append(dl.ScaleControl(position="topright"))
+    new_map = dl.Map(children, center=center, 
+                                     zoom=12,
+                                     id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+
+    return [Total_CO2/Total_CO2_worst_case, fig, new_map]
+
+def categorize_Mode(code):
+    if 'Andando' in code:
+        return 'Walk'
+    elif 'Coche' in code:
+        return 'Car'
+    else:
+        return 'PT'
+    
+def run_MCM(Transh, gkm_car, gkm_bus, co2lt, baseline=0, NremDays=0, NremWork=30, CowCoords=None):
     import pandas as pd
     print('Inside run_MCM 0')
     import sys    
@@ -571,18 +669,18 @@ def run_MCM(Transh, NremDays=0, NremWork=30, CowCoords=None):
     model_dir = 'modules/models/'
     #trips_ez = pd.read_csv(root_dir + data_dir + 'workers_eskuzaitzeta_2k.csv')
     trips_ez = pd.read_csv(root_dir + workers_data_dir + 'temp_workers_data.csv')
+    if baseline == 1:    
+        trips_ez['Modo'].apply(categorize_Mode)    
+        trips_ez['Mode'] = trips_ez['Modo']
+  
     eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio',
-                'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] # adaptamos trips como input al pp
-
+                'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] 
     trips_ez = trips_ez.drop(columns=eliminar)
     trips_ez.head(10).to_csv(root_dir + workers_data_dir + 'example_workers_data.csv',index=False)
-    trips_ez=pp.pp(Transh,trips_ez, CowCoords, NremDays, NremWork, root_dir + MCM_data_dir) 
+    trips_ez=pp.pp(Transh,trips_ez, CowCoords, NremDays, NremWork, root_dir + MCM_data_dir, baseline) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
-    prediction=prediction.predict(trips_ez, root_dir + model_dir)  
-    print() 
-    print('result:')
-    print(prediction.head())
+    prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir, baseline)  
     return prediction
 
 
@@ -598,7 +696,6 @@ def calc_baseline(TransHour, Nclicks):
     root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
     sys.path.append(root_dir + 'modules')
 
-    #selected_workers = select_workers(hours,origin(Municipio), destination(lat,lon))
     result = run_MCM(TransHour)
     #fig=show_MCM_results(result)
     #fig = px.scatter_geo(result,
@@ -646,20 +743,23 @@ def calc_baseline(TransHour, Nclicks):
     """
     return [8,new_map]
 
-
+#           Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([Output('CO2_gauge', 'value',allow_duplicate=True),
            Output('graph','figure',allow_duplicate=True),
            Output('map','children',allow_duplicate=True),
+           Output('internal-value_scenario','data',allow_duplicate=True),
            Output('loading-component_MCM','children')],
           [State('choose_remote_days', 'value'),
           State('choose_remote_workers', 'value'),
           State('internal-value_stops','data'),
           State('internal-value_coworking','data'),
-          State('choose_transp_hour','value')],
+          State('choose_transp_hour','value'),
+          State('choose_gas_km_car','value'),
+          State('choose_gas_km_bus','value'),
+          State('choose_CO2_lt','value')],
           Input('run_MCM', 'n_clicks'),
           prevent_initial_call=True)
-def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, Nclicks):
-
+def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
     print('Cow. Flags:')
     print(CowoFlags)
     CowoIn = np.nonzero(CowoFlags)[0]
@@ -667,60 +767,46 @@ def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, Nclicks
     print(CowoIn)
     print('All coords:')
     print(StopsCoords)
-    #CowoCoords = np.take(StopsCoords, CowoIn)
     CowoCoords = np.array(StopsCoords)[CowoIn]
     print('Cow coords:')
     print(CowoCoords)
     
-    result = run_MCM(TransH, NremDays, NremWork, CowoCoords)
-    
-    predicted = result['prediction']
-    unique_labels, counts = np.unique(predicted, return_counts=True)
-    d = {'unique_labels': unique_labels, 'counts':counts}
-    df = pd.DataFrame(data=d)    
-    #        'labels': df['unique_labels'],
-    fig = {
-        'data':[{
-            'labels': ['Walk','PT','Car'],
-            'values': df['counts'],
-            'type': 'pie'
-        }]
-    }
+    baseline = 0
+    result = run_MCM(TransH, gkm_car, gkm_bus, co2lt, baseline, NremDays, NremWork, CowoCoords)    
+    out = plot_result(result)
+
+    scenario = pd.DataFrame(result.drop(columns='geometry'))
+    scenario_json = scenario.to_dict('records') # not working?
+    #scenario_json = result.to_dict('series') # not working?
+    #scenario_json = result.to_json(orient='records')
+    #return [out[0],out[1],out[2], scenario_json, True]
+    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/saved_scenarios/'
+    #temp_file = root_dir + 'scenario.csv'
+    #result.to_csv(temp_file)
+    return [out[0],out[1],out[2], scenario_json, True]
 
 
-    children = [dl.TileLayer()]
-    maxCO2 = result['CO2'].max()
-    Total_CO2 = result['CO2'].sum()
-    Total_CO2_worst_case = result['CO2_worst_case'].sum()
-    for i_pred in result.itertuples():
-        color = generate_color_CO2(maxCO2,i_pred.CO2) 
-        #print(color)
-        #text = i_pred.Mode
-        text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
-        #text = text + '<br>' + 'Remote working: ' + str(i_pred.Rem_work)
-        n_cw = int(i_pred.Rem_work)
-        text = text + '<br>' + 'Remote working: ' + (['Yes']*n_cw + ['No'])[n_cw-1]
-        n_cw = int(i_pred.Coworking)    
-        text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]          
-        marker_i = dl.CircleMarker(
-                        id=str(i_pred),
-                        children=[dl.Tooltip(content=text)],
-                        center=[i_pred.geometry.y, i_pred.geometry.x],
-                        radius=10,
-                        color=color,
-                        fill=True,
-                        fillColor=color,
-                        fillOpacity=1,
-                        )
-        children.append(marker_i)   
-    #dl.GeoJSON(data=dlx.dicts_to_geojson(coords_dict), cluster=False),
-    children.append(dl.ScaleControl(position="topright"))
-    new_map = dl.Map(children, center=center, 
-                                     zoom=12,
-                                     id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-
-    return [Total_CO2/Total_CO2_worst_case, fig, new_map,True]
-
+@callback([
+           Output('loading-component_MCM','children',allow_duplicate=True)],
+          [State('choose_remote_days', 'value'),
+          State('choose_remote_workers', 'value'),
+          State('internal-value_stops','data'),
+          State('internal-value_coworking','data'),
+          State('internal-value_scenario','data'),
+          State('choose_transp_hour','value'),
+          State('choose_gas_km_car','value'),
+          State('choose_gas_km_bus','value'),
+          State('choose_CO2_lt','value')],
+          Input('save_scenario', 'n_clicks'),
+          prevent_initial_call=True)
+def save_scenario(NremDays, NremWork, StopsCoords, CowoFlags, Scen, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/saved_scenarios/'
+    temp_file = root_dir + 'scenario.csv'
+    print(Nclicks)
+    df = pd.DataFrame(Scen)
+    print(df.head())
+    df.to_csv(temp_file)
+    return [True] 
 
 @callback([Output('worker_data', 'data'),Output('n_clusters','value')],
               [Input('upload-data', 'contents'),
@@ -732,12 +818,6 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
         children = [
             parse_contents(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates)]
-        #[print(c, n, d) for c, n, d in
-        #    zip(list_of_contents, list_of_names, list_of_dates)]
-        #return children
-        #content_type, content_string = list_of_contents[0].split(',')
-        #decoded = base64.b64decode(content_string)
-        #filename = io.StringIO(decoded.decode('utf-8'))
         works_data = children
         temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
         df = pd.read_csv(temp_file) 
@@ -746,6 +826,26 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
         
         return [works_data,suggested_N_clusters]
 ############################################################################################
+
+
+"""
+@callback([Output('CO2_gauge', 'value',allow_duplicate=True),
+           Output('graph','figure',allow_duplicate=True),
+           Output('map','children',allow_duplicate=True),
+           Output('loading-component_MCM','children')],
+            [Input('load-scenario', 'contents'),
+            Input('load-scenario', 'filename'),
+            Input('load-scenario', 'last_modified')],
+            prevent_initial_call=True)
+def load_scenario(list_of_contents, list_of_names, list_of_dates):
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'        
+    if list_of_contents is not None:
+        children = [
+            parse_contents_load_scenario(c, n, d) for c, n, d in
+            zip(list_of_contents, list_of_names, list_of_dates)]
+        
+        return [children[0],children[1],children[2],True]
+"""
 
 #@app.callback([Output("clickdata", "children")],
 @app.callback([Output("outdata", "children"), Output('internal-value_stops','data',allow_duplicate=True),Output('internal-value_coworking','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
@@ -848,7 +948,8 @@ def choose_intervention(St,Cow,interv):
             html.Div(id='outdata', style={"margin-top": "15px"}),
             dcc.Store(id='internal-value_stops', data=St),
             dcc.Store(id='internal-value_coworking', data=Cow),        
-            dcc.Store(id='internal-value_routes', data=[])
+            dcc.Store(id='internal-value_routes', data=[]),        
+            dcc.Store(id='internal-value_scenario', data=[])
             ])       
         
         return [sidebar_transport,True]
@@ -875,7 +976,8 @@ def choose_intervention(St,Cow,interv):
                 html.Div(id='outdata', style={"margin-top": "15px"}),
                 dcc.Store(id='internal-value_stops', data=St),
                 dcc.Store(id='internal-value_coworking', data=Cow),        
-                dcc.Store(id='internal-value_routes', data=[])
+                dcc.Store(id='internal-value_routes', data=[]),        
+                dcc.Store(id='internal-value_scenario', data=[])
                 ])        
 
         

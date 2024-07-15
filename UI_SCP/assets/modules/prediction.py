@@ -14,16 +14,16 @@ def categorize(code):
     else:
         return 'Car'
 
-def estimate_emissions(df):  
+def estimate_emissions(df, GasKm_car, GasKm_bus, CO2lt):  
         aver_N_passengers =29
         if df['Mode']=='Walk':
             return 0.0
         elif df['Mode']=='PT':
-            return (5-df['Rem_work'])*(1.1*2.3*df['distance']/1000/aver_N_passengers)*0.5 + (5-df['Rem_work'])*(35.1*10**-3*df['distance']/1000/aver_N_passengers)*0.5
+            return (5-df['Rem_work'])*(GasKm_bus*CO2lt*df['distance']/1000/aver_N_passengers)*0.5 + (5-df['Rem_work'])*(35.1*10**-3*df['distance']/1000/aver_N_passengers)*0.5
         else:
-            return (5-df['Rem_work'])*(1./12)*2.3*df['distance']/1000
+            return (5-df['Rem_work'])*GasKm_car*CO2lt*df['distance']/1000
 
-def predict(df, model_dir):
+def predict(df, gkm_car, gkm_bus, co2lt, model_dir, baseline=0):
     model_name = "rf"  # El nombre del modelo que guardaste anteriormente
     #file_path = os.path.join("models", f'{model_name}.pkl')
     #with open(file_path, 'rb') as file:
@@ -33,17 +33,17 @@ def predict(df, model_dir):
     gdf = gpd.GeoDataFrame(
             df.copy(), geometry=gpd.points_from_xy(df.O_long, df.O_lat), crs="EPSG:4326"
          )
-    #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat'])) 
-    x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking']))      
-    y_pred = model.predict(x)
-    gdf['prediction'] = y_pred
-    #unique_labels, counts = np.unique(y_pred, return_counts=True)
-    #d = {'mode_code': y_pred}
-    #df = pd.DataFrame(data=d)
-    #df['Mode'] = df['mode_code'].apply(categorize)
-    gdf['Mode'] = gdf['prediction'].apply(categorize)
-    gdf['CO2']  = gdf.apply(estimate_emissions, axis=1)
-    gdf['CO2_worst_case']  = 5*(1./12)*2.3*df['distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    if baseline == 0:
+        #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat'])) 
+        #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking']))      
+        x = np.array(df.drop(columns = ['original_distance','Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking']))      
+
+        y_pred = model.predict(x)
+        gdf['prediction'] = y_pred
+        gdf['Mode'] = gdf['prediction'].apply(categorize)
+ 
+    gdf['CO2']  = gdf.apply(estimate_emissions, args=(gkm_car, gkm_bus, co2lt), axis=1)
+    gdf['CO2_worst_case']  = 5*gkm_car*co2lt*df['original_distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     gdf['distance']  = gdf['distance']*(5-gdf['Rem_work']) # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     #labels = ['walk', 'PT', 'car']
     #colors = ['#99ff66','#00ffff','#ff3300']

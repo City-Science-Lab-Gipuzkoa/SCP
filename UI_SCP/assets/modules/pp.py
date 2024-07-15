@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 
 t0 = time.time()
 
-def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
+def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, baseline):
 
     """
     feeds.add_feed(add_dict={'dbus': 'https://www.geo.euskadi.eus/cartografia/DatosDescarga/Transporte/Moveuskadi/ATTG/dbus/google_transit.zip'})
@@ -304,44 +304,49 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
                 )
     
     # Coworking hubs #############################################################
-    cowhub_i = 0
-    for cowhub in CowCoords:
-        d = {'CowH_lat': [cowhub[0]], 'CowH_lon': [cowhub[1]]}
-        # generate dataframe with replicas of the previous coordinates ###########
-        temp_df = pd.DataFrame(data=d)
-        temp_df = pd.DataFrame(np.repeat(temp_df.values, len(X.index), axis=0))
-        temp_df.columns = ['CowH_lat','CowH_lon'] 
-        ##########################################################################
-        X["distance_CowHub_"+str(cowhub_i)] = networks['drive'].shortest_path_lengths(
-                networks['drive'].get_node_ids(X.O_long,X.O_lat),
-                networks['drive'].get_node_ids(temp_df.CowH_lon,temp_df.CowH_lat),
-                imp_name='distance'
-                )
-        cowhub_i+=1
-    ############################################################################################
-    
-    filter_cols = [col for col in X if col.startswith('distance_CowHub_')]
-    compare_cols = ['distance'] + filter_cols     
+    X["original_distance"] = X["distance"] # save original distance to calculte worst case scenario
+    if baseline == 0:
+        cowhub_i = 0
+        for cowhub in CowCoords:
+            d = {'CowH_lat': [cowhub[0]], 'CowH_lon': [cowhub[1]]}
+            # generate dataframe with replicas of the previous coordinates ###########
+            temp_df = pd.DataFrame(data=d)
+            temp_df = pd.DataFrame(np.repeat(temp_df.values, len(X.index), axis=0))
+            temp_df.columns = ['CowH_lat','CowH_lon'] 
+            ##########################################################################
+            X["distance_CowHub_"+str(cowhub_i)] = networks['drive'].shortest_path_lengths(
+                    networks['drive'].get_node_ids(X.O_long,X.O_lat),
+                    networks['drive'].get_node_ids(temp_df.CowH_lon,temp_df.CowH_lat),
+                    imp_name='distance'
+                    )
+            cowhub_i+=1
+        ############################################################################################
+        
+        filter_cols = [col for col in X if col.startswith('distance_CowHub_')]
+        compare_cols = ['distance'] + filter_cols     
 
-    # Keep track of whether coworking hub is closer than original distance #####################
-    t = X[compare_cols].idxmin(axis=1) # for each row, get names of the column with min dist
-    t = pd.DataFrame(t).values
-    t = [1 if p[0] != 'distance' else 0 for p in t] # set to 1 if coworking
-    X['Coworking'] = t
-    ############################################################################################
+        # Keep track of whether coworking hub is closer than original distance #####################
+        t = X[compare_cols].idxmin(axis=1) # for each row, get names of the column with min dist
+        t = pd.DataFrame(t).values
+        t = [1 if p[0] != 'distance' else 0 for p in t] # set to 1 if coworking hub is at a minimum distance
+        X['Coworking'] = t
+        ############################################################################################
+        # keep minimum distance among work destinations ############################################
+        X['distance'] = X[compare_cols].min(axis=1)
+        X.drop(columns=filter_cols, inplace=True)     
+        ############################################################################################
 
-    # keep minimum distance among work destinations ############################################
-    X['distance'] = X[compare_cols].min(axis=1)
-    X.drop(columns=filter_cols, inplace=True)     
-    ############################################################################################
-
-    # Remote working ###########################################################################
-    n_rw = int(len(X.index)*RemWoPer/100) # number of workers doing remote work
-    X["Rem_work"] = 0
-    X_to_set = X.sample(n_rw)
-    X_to_set["Rem_work"] = RemWoDays
-    X.update(X_to_set)
-    ############################################################################################
+        # Remote working ###########################################################################
+        n_rw = int(len(X.index)*RemWoPer/100) # number of workers doing remote work
+        X["Rem_work"] = 0
+        X_to_set = X.sample(n_rw)
+        X_to_set["Rem_work"] = RemWoDays
+        X.update(X_to_set)
+        ############################################################################################
+    else:
+        X['Coworking'] = 0
+        X["Rem_work"] = 0
+        
 
     X["walk_tt"] = networks['walk'].shortest_path_lengths(
                 networks['walk'].get_node_ids(X.O_long,X.O_lat),
