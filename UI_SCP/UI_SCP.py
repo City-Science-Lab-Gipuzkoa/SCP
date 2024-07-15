@@ -960,14 +960,14 @@ def choose_intervention(St,Cow,interv):
                 [
                 html.P([ html.Br(),'Choose number of days of remote working'],id='remote_days_num',style={"margin-top": "15px","font-weight": "bold"}),
                 #dcc.Input(id="choose_buses", type="text", value='3'),
-                dcc.Slider(1, 7, 1,
-                       value=3,
+                dcc.Slider(0, 5, 1,
+                       value=0,
                        id='choose_remote_days'
                 ),
                 html.P([ html.Br(),'Choose "%" of remote workers'],id='remote_workers_num',style={"margin-top": "15px","font-weight": "bold"}),
                 #dcc.Input(id="choose_buses", type="text", value='3'),
                 dcc.Slider(0, 100, 5,
-                       value=30,
+                       value=0,
                        id='choose_remote_workers',
                        marks=None,
                        tooltip={"placement": "bottom", "always_visible": True}                       
