@@ -50,6 +50,7 @@ import json
 import pandas as pd
 import geopy.distance
 import numpy as np
+import geopandas
 
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, adjusted_rand_score
@@ -237,6 +238,8 @@ sidebar =  html.Div(
              multiple=True
         ),
         dcc.Store(id='worker_data', data=[]),
+        dbc.Button("Visualize workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
+        html.Br(),        
         html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
         dbc.Popover(
                   dbc.PopoverBody(mouse_over_mess_clusters), 
@@ -252,13 +255,10 @@ sidebar =  html.Div(
                marks=None,
                tooltip={"placement": "bottom", "always_visible": True}
             ) , 
-
-        dbc.Button("Visualize workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
-        html.Br(),
         dbc.Button("Calculate baseline scenario", id="calc_baseline", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
-        dbc.Button("Visualize scenarios", id="visualize_scenarios", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),          
         html.P([ html.Br(),'Select type of interventions'],id='intervention_select',style={"margin-top": "15px", "font-weight": "bold"}),
+        html.Br(),
         dcc.Dropdown(interventions, multi=False,style={"margin-top": "15px"}, id='choose_intervention'),
         html.P([ html.Br(),'Select action for markers'],id='action_select',style={"margin-top": "15px", "font-weight": "bold"}),
         dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action'),           
@@ -327,6 +327,8 @@ indicators = html.Div(
                marks=None,
                tooltip={"placement": "bottom", "always_visible": True}
           ),
+          html.Br(),          
+          dbc.Button("Reset internal variables", id='reset_variables', n_clicks=0),
           dbc.Row(
             [
                 dbc.Col(
@@ -345,32 +347,34 @@ indicators = html.Div(
                     width="auto"
                 ),
                 dbc.Col(
-                    html.Div(dbc.Button("Run Mode Choice", id="run_MCM", n_clicks=0, disabled=True)),
+                    html.Div(dbc.Button("Run simulation", id="run_MCM", n_clicks=0, disabled=True)),
                     style={"margin-top": "15px"},
                     width="auto"
                 )
             ]
           ),
-
-          dcc.Upload(
-             id='upload-scenario',
-             children=html.Div([
-                       html.A('Load scenario')
-                       ]),
-             style={
-                  'width': '100%',
-                  'height': '60px',
-                  'lineHeight': '60px',
-                  'borderWidth': '1px',
-                  'borderStyle': 'dashed',
-                  'borderRadius': '5px',
-                  'textAlign': 'center',
-                  'margin': '10px'
-                  },
-             # Allow multiple files to be uploaded
-             multiple=True
+          dbc.Row(
+            [
+                dbc.Col(
+                    html.Div(dbc.Button("Save scenario", id='save_scenario', n_clicks=0)),
+                    style={"margin-top": "15px"},
+                    width="auto"
+                ),                
+                dbc.Col(
+                    html.Div(
+                              dcc.Upload(id='load-scenario',
+                                         children=html.Div([
+                                         dbc.Button('Load scenario')
+                                        ]),
+                                        # Allow multiple files to be uploaded
+                                        multiple=True
+                                        )
+                    ),
+                    style={"margin-top": "15px"},
+                    width=4
+                )
+            ]
           ),
-          dbc.Button("Save scenario", id='save_scenario', n_clicks=0),
           html.Div([
              daq.Gauge(
              color={"gradient":True,"ranges":{"green":[0,0.333],"yellow":[0.333,0.666],"red":[0.666,1.0]}},
@@ -459,8 +463,12 @@ def parse_contents_load_scenario(contents, filename, date):
         return html.Div([
             'There was an error processing this file.'
         ])
-    out = plot_result(df)
-    return [out]  
+    gdf = geopandas.GeoDataFrame(df, 
+                                 geometry = geopandas.points_from_xy(df.O_long, df.O_lat), 
+                                 crs="EPSG:4326"
+    )
+    out = plot_result(gdf)
+    return out 
 
 def drawclusters(workers_df,n_clusters):
     from sklearn.cluster import KMeans
@@ -801,11 +809,49 @@ def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, gkm_car
           prevent_initial_call=True)
 def save_scenario(NremDays, NremWork, StopsCoords, CowoFlags, Scen, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
     root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/saved_scenarios/'
-    temp_file = root_dir + 'scenario.csv'
-    print(Nclicks)
-    df = pd.DataFrame(Scen)
-    print(df.head())
-    df.to_csv(temp_file)
+    
+    scen_label = 'scenario_'
+    inputs_label = 'inputs_'
+    stops_and_cow_label = 'stops_CowHubs_'
+
+    scen_df = pd.DataFrame(Scen)
+
+    inputs_dict = {'NremDays': NremDays, 'NremWork':NremWork, 
+                   'TransH': TransH, 'gkm_car': gkm_car, 
+                   'gkm_bus': gkm_bus, 'co2lt': co2lt
+                   }
+    columns = ['NremDays','NremWork', 
+               'TransH', 'gkm_car', 
+               'gkm_bus', 'co2lt']
+    print('dictionary:')
+    print(inputs_dict.items())
+    inputs_df = pd.DataFrame(inputs_dict, index=[0])
+    #inputs_df = pd.DataFrame.from_dict(inputs_dict, index=[0])
+
+    lats, lons = map(list, zip(*StopsCoords))
+    stops_and_cow_df = pd.DataFrame(np.column_stack([lats, lons, CowoFlags]), 
+                               columns=['lat', 'lon', 'CowHub'])
+    print()
+    print('test df:')
+    print(stops_and_cow_df.head())
+
+    try:
+        files = os.listdir(root_dir)
+        versions = [name.split('.csv')[0].split('_')[-1] for name in files]
+        print('versions:')
+        print(versions)
+        last_version = max(list(map(int,versions))) + 1
+    except:
+        last_version = 0
+    
+    scen_file = root_dir + scen_label + str(last_version) + '.csv'
+    inputs_file = root_dir + inputs_label + str(last_version) + '.csv'
+    stops_and_cow_file = root_dir + stops_and_cow_label + str(last_version) + '.csv'
+
+    scen_df.to_csv(scen_file)
+    inputs_df.to_csv(inputs_file, index=False)
+    stops_and_cow_df.to_csv(stops_and_cow_file)
+
     return [True] 
 
 @callback([Output('worker_data', 'data'),Output('n_clusters','value')],
@@ -828,11 +874,10 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
 ############################################################################################
 
 
-"""
 @callback([Output('CO2_gauge', 'value',allow_duplicate=True),
            Output('graph','figure',allow_duplicate=True),
            Output('map','children',allow_duplicate=True),
-           Output('loading-component_MCM','children')],
+           Output('loading-component_MCM','children',allow_duplicate=True)],
             [Input('load-scenario', 'contents'),
             Input('load-scenario', 'filename'),
             Input('load-scenario', 'last_modified')],
@@ -844,8 +889,8 @@ def load_scenario(list_of_contents, list_of_names, list_of_dates):
             parse_contents_load_scenario(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates)]
         
-        return [children[0],children[1],children[2],True]
-"""
+        return [children[0][0],children[0][1],children[0][2],True]
+
 
 #@app.callback([Output("clickdata", "children")],
 @app.callback([Output("outdata", "children"), Output('internal-value_stops','data',allow_duplicate=True),Output('internal-value_coworking','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
