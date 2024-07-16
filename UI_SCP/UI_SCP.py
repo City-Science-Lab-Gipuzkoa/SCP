@@ -793,6 +793,45 @@ def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, gkm_car
     #result.to_csv(temp_file)
     return [out[0],out[1],out[2], scenario_json, True]
 
+@callback([
+          Output('choose_remote_days', 'value',allow_duplicate=True),
+          Output('choose_remote_workers', 'value',allow_duplicate=True),
+          Output('worker_data', 'data',allow_duplicate=True),
+          Output('internal-value_stops','data',allow_duplicate=True),
+          Output('internal-value_coworking','data',allow_duplicate=True),
+          Output('internal-value_scenario','data',allow_duplicate=True),
+          Output('choose_transp_hour','value',allow_duplicate=True),
+          Output('choose_gas_km_car','value',allow_duplicate=True),
+          Output('choose_gas_km_bus','value',allow_duplicate=True),
+          Output('choose_CO2_lt','value',allow_duplicate=True)
+           ],
+          [State('choose_remote_days', 'value'),
+          State('choose_remote_workers', 'value'),
+          State('worker_data', 'data'),
+          State('internal-value_stops','data'),
+          State('internal-value_coworking','data'),
+          State('internal-value_scenario','data'),
+          State('choose_transp_hour','value'),
+          State('choose_gas_km_car','value'),
+          State('choose_gas_km_bus','value'),
+          State('choose_CO2_lt','value')],
+          Input('reset_variables', 'n_clicks'),
+          prevent_initial_call=True)
+def reset_variables(NremDays, NremWork, WorkerFile, StopsCoords, CowoFlags, Scen, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
+          print('resetting variables...')
+          print(Nclicks)
+          NremDays = 0 
+          NremWork = 0
+          WorkerFile = [] 
+          StopsCoords = [] 
+          CowoFlags = []
+          Scen = [] 
+          TransH = 8
+          gkm_car = 1./12
+          gkm_bus = 1.1
+          co2lt = 2.3
+          return [NremDays, NremWork, WorkerFile, StopsCoords, CowoFlags, Scen, TransH, gkm_car, gkm_bus, co2lt]
+
 
 @callback([
            Output('loading-component_MCM','children',allow_duplicate=True)],
@@ -828,12 +867,6 @@ def save_scenario(NremDays, NremWork, StopsCoords, CowoFlags, Scen, TransH, gkm_
     inputs_df = pd.DataFrame(inputs_dict, index=[0])
     #inputs_df = pd.DataFrame.from_dict(inputs_dict, index=[0])
 
-    lats, lons = map(list, zip(*StopsCoords))
-    stops_and_cow_df = pd.DataFrame(np.column_stack([lats, lons, CowoFlags]), 
-                               columns=['lat', 'lon', 'CowHub'])
-    print()
-    print('test df:')
-    print(stops_and_cow_df.head())
 
     try:
         files = os.listdir(root_dir)
@@ -850,7 +883,11 @@ def save_scenario(NremDays, NremWork, StopsCoords, CowoFlags, Scen, TransH, gkm_
 
     scen_df.to_csv(scen_file)
     inputs_df.to_csv(inputs_file, index=False)
-    stops_and_cow_df.to_csv(stops_and_cow_file)
+    if len(StopsCoords)>0:
+        lats, lons = map(list, zip(*StopsCoords))
+        stops_and_cow_df = pd.DataFrame(np.column_stack([lats, lons, CowoFlags]), 
+                               columns=['lat', 'lon', 'CowHub'])
+        stops_and_cow_df.to_csv(stops_and_cow_file)
 
     return [True] 
 
@@ -885,10 +922,13 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
 def load_scenario(list_of_contents, list_of_names, list_of_dates):
     root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'        
     if list_of_contents is not None:
+        print()
+        print('list of names:')
+        print(list_of_names)        
         children = [
             parse_contents_load_scenario(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates)]
-        
+            zip(list_of_contents, list_of_names, list_of_dates) if 'scenario' in n]
+
         return [children[0][0],children[0][1],children[0][2],True]
 
 
