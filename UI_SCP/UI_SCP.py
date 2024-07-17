@@ -463,13 +463,19 @@ def parse_contents_load_scenario(contents, filename, date):
         return html.Div([
             'There was an error processing this file.'
         ])
-    gdf = geopandas.GeoDataFrame(df, 
+    
+    print('test name:')
+    print(filename)
+    if 'scenario' in filename:
+        gdf = geopandas.GeoDataFrame(df, 
                                  geometry = geopandas.points_from_xy(df.O_long, df.O_lat), 
                                  crs="EPSG:4326"
-    )
-    out = plot_result(gdf)
-    return out 
+        )
+        out = plot_result(gdf)
+    else:
+        out =  df
 
+    return out
 def drawclusters(workers_df,n_clusters):
     from sklearn.cluster import KMeans
     from scipy.spatial import ConvexHull
@@ -891,10 +897,12 @@ def save_scenario(NremDays, NremWork, StopsCoords, CowoFlags, Scen, TransH, gkm_
 
     return [True] 
 
-@callback([Output('worker_data', 'data'),Output('n_clusters','value')],
-              [Input('upload-data', 'contents'),
-              Input('upload-data', 'filename'),
-              Input('upload-data', 'last_modified')])
+@callback([Output('worker_data', 'data',allow_duplicate=True),
+           Output('n_clusters','value',allow_duplicate=True)],
+            [Input('upload-data', 'contents'),
+            State('upload-data', 'filename'),
+            State('upload-data', 'last_modified')],
+            prevent_initial_call=True)
 def load_worker_data(list_of_contents, list_of_names, list_of_dates):
     root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'        
     if list_of_contents is not None:
@@ -910,30 +918,69 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
         return [works_data,suggested_N_clusters]
 ############################################################################################
 
-
+#           Output('internal-value_stops','data',allow_duplicate=True),
 @callback([Output('CO2_gauge', 'value',allow_duplicate=True),
            Output('graph','figure',allow_duplicate=True),
            Output('map','children',allow_duplicate=True),
+           Output('choose_remote_days', 'value',allow_duplicate=True),           
+           Output('choose_remote_workers', 'value',allow_duplicate=True),
+           Output('choose_transp_hour','value',allow_duplicate=True),
+           Output('choose_gas_km_car','value',allow_duplicate=True),
+           Output('choose_gas_km_bus','value',allow_duplicate=True),
+           Output('choose_CO2_lt','value',allow_duplicate=True),
+           Output('internal-value_stops','data',allow_duplicate=True),           
+           Output('internal-value_coworking','data',allow_duplicate=True),           
            Output('loading-component_MCM','children',allow_duplicate=True)],
             [Input('load-scenario', 'contents'),
-            Input('load-scenario', 'filename'),
-            Input('load-scenario', 'last_modified')],
+            State('load-scenario', 'filename'),
+            State('load-scenario', 'last_modified')],
             prevent_initial_call=True)
 def load_scenario(list_of_contents, list_of_names, list_of_dates):
     root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'        
     if list_of_contents is not None:
         print()
         print('list of names:')
-        print(list_of_names)        
-        children = [
+        print(list_of_names)
+        inputs = [
+            parse_contents_load_scenario(c, n, d) for c, n, d in
+            zip(list_of_contents, list_of_names, list_of_dates) if 'inputs' in n]
+        stops_CowHubs = [
+            parse_contents_load_scenario(c, n, d) for c, n, d in
+            zip(list_of_contents, list_of_names, list_of_dates) if 'stops_CowHubs' in n]
+        #scenario = []
+        scenario = [
             parse_contents_load_scenario(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates) if 'scenario' in n]
-
-        return [children[0][0],children[0][1],children[0][2],True]
+        print('inputs:')
+        print(inputs)    
+        inputs = np.array(inputs[0][:])[0]
+        print(inputs)    
+        print()
+        #print(inputs[int(len(inputs)/2):])
+        print('Stops:')
+        print(stops_CowHubs)
+        stops_CowHubs = np.array(stops_CowHubs[0][:])[:]
+        print(stops_CowHubs)
+        print(stops_CowHubs[:,1],stops_CowHubs[:,2],stops_CowHubs[:,3])
+        lats = stops_CowHubs[:,1]
+        lons = stops_CowHubs[:,2]
+        #StopsCoords = map(list, zip(lats,lons))
+        StopsCoords = list(zip(lats,lons))
+        print('Stops:')
+        print(StopsCoords)
+        CowHubs_flags = stops_CowHubs[:,3]
+        #StopsCoords,CowHubs_flags,
+        #return [scenario[0][0],scenario[0][1],scenario[0][2],inputs[0],inputs[1],inputs[2],inputs[3],inputs[4],inputs[5], StopsCoords, CowHubs_flags, True]
+        return [scenario[0][0],scenario[0][1],scenario[0][2],*inputs, StopsCoords, CowHubs_flags, True]
+    
+        #return [scenario[0][0],scenario[0][1],scenario[0][2],inputs[0], True]
 
 
 #@app.callback([Output("clickdata", "children")],
-@app.callback([Output("outdata", "children"), Output('internal-value_stops','data',allow_duplicate=True),Output('internal-value_coworking','data',allow_duplicate=True),Output('map','children',allow_duplicate=True)],
+@app.callback([Output("outdata", "children"), 
+               Output('internal-value_stops','data',allow_duplicate=True),
+               Output('internal-value_coworking','data',allow_duplicate=True),
+               Output('map','children',allow_duplicate=True)],
               State("n_clusters", "value"),
               Input("propose_stops", "n_clicks")
               )
