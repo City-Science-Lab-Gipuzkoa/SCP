@@ -443,8 +443,13 @@ def parse_contents(contents, filename, date):
         return html.Div([
             'There was an error processing this file.'
         ])
-    
-    return df.to_csv(temp_file, index=False)  
+    df.to_csv(temp_file, index=False)
+    gdf = geopandas.GeoDataFrame(df, 
+                                 geometry = geopandas.points_from_xy(df.O_long, df.O_lat), 
+                                 crs="EPSG:4326"
+        )
+      
+    return gdf  
 
 
 def parse_contents_load_scenario(contents, filename, date):
@@ -909,13 +914,16 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
         children = [
             parse_contents(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates)]
-        works_data = children
-        temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
-        df = pd.read_csv(temp_file) 
-        suggested_N_clusters = suggest_clusters(df)
+        works_data = children[0]
+        #temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
+        #df = pd.read_csv(temp_file) 
+        #suggested_N_clusters = suggest_clusters(df)
+        suggested_N_clusters = suggest_clusters(works_data)
         #print('workers dataframe?', works_data)
+        workers = pd.DataFrame(works_data.drop(columns='geometry'))
+        workers_dict = workers.to_dict('records') 
         
-        return [works_data,suggested_N_clusters]
+        return [workers_dict,suggested_N_clusters]
 ############################################################################################
 
 #           Output('internal-value_stops','data',allow_duplicate=True),
@@ -972,8 +980,6 @@ def load_scenario(list_of_contents, list_of_names, list_of_dates):
         #StopsCoords,CowHubs_flags,
         #return [scenario[0][0],scenario[0][1],scenario[0][2],inputs[0],inputs[1],inputs[2],inputs[3],inputs[4],inputs[5], StopsCoords, CowHubs_flags, True]
         return [scenario[0][0],scenario[0][1],scenario[0][2],*inputs, StopsCoords, CowHubs_flags, True]
-    
-        #return [scenario[0][0],scenario[0][1],scenario[0][2],inputs[0], True]
 
 
 #@app.callback([Output("clickdata", "children")],
