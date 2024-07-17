@@ -427,8 +427,8 @@ app.layout = dbc.Container(
 # Folder navigator ###############################################################
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
-    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    temp_file = root_dir + 'data/temp_workers_data.csv'
+    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    #temp_file = root_dir + 'data/temp_workers_data.csv'
     decoded = base64.b64decode(content_string)
     try:
         if 'csv' in filename:
@@ -443,7 +443,7 @@ def parse_contents(contents, filename, date):
         return html.Div([
             'There was an error processing this file.'
         ])
-    df.to_csv(temp_file, index=False)
+    #df.to_csv(temp_file, index=False)
     gdf = geopandas.GeoDataFrame(df, 
                                  geometry = geopandas.points_from_xy(df.O_long, df.O_lat), 
                                  crs="EPSG:4326"
@@ -668,7 +668,7 @@ def categorize_Mode(code):
     else:
         return 'PT'
     
-def run_MCM(Transh, gkm_car, gkm_bus, co2lt, baseline=0, NremDays=0, NremWork=30, CowCoords=None):
+def run_MCM(trips_ez, Transh, gkm_car, gkm_bus, co2lt, baseline=0, NremDays=0, NremWork=30, CowCoords=None):
     import pandas as pd
     print('Inside run_MCM 0')
     import sys    
@@ -687,7 +687,7 @@ def run_MCM(Transh, gkm_car, gkm_bus, co2lt, baseline=0, NremDays=0, NremWork=30
     MCM_data_dir = 'data/input_data_MCM/'    
     model_dir = 'modules/models/'
     #trips_ez = pd.read_csv(root_dir + data_dir + 'workers_eskuzaitzeta_2k.csv')
-    trips_ez = pd.read_csv(root_dir + workers_data_dir + 'temp_workers_data.csv')
+    #trips_ez = pd.read_csv(root_dir + workers_data_dir + 'temp_workers_data.csv')    
     if baseline == 1:    
         trips_ez['Modo'].apply(categorize_Mode)    
         trips_ez['Mode'] = trips_ez['Modo']
@@ -695,7 +695,7 @@ def run_MCM(Transh, gkm_car, gkm_bus, co2lt, baseline=0, NremDays=0, NremWork=30
     eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio',
                 'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] 
     trips_ez = trips_ez.drop(columns=eliminar)
-    trips_ez.head(10).to_csv(root_dir + workers_data_dir + 'example_workers_data.csv',index=False)
+    #trips_ez.head(10).to_csv(root_dir + workers_data_dir + 'example_workers_data.csv',index=False)
     trips_ez=pp.pp(Transh,trips_ez, CowCoords, NremDays, NremWork, root_dir + MCM_data_dir, baseline) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
@@ -768,7 +768,8 @@ def calc_baseline(TransHour, Nclicks):
            Output('map','children',allow_duplicate=True),
            Output('internal-value_scenario','data',allow_duplicate=True),
            Output('loading-component_MCM','children')],
-          [State('choose_remote_days', 'value'),
+          [State('worker_data', 'data'),
+          State('choose_remote_days', 'value'),
           State('choose_remote_workers', 'value'),
           State('internal-value_stops','data'),
           State('internal-value_coworking','data'),
@@ -778,7 +779,7 @@ def calc_baseline(TransHour, Nclicks):
           State('choose_CO2_lt','value')],
           Input('run_MCM', 'n_clicks'),
           prevent_initial_call=True)
-def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
+def run_MCM_callback(workerData, NremDays, NremWork, StopsCoords, CowoFlags, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
     print('Cow. Flags:')
     print(CowoFlags)
     CowoIn = np.nonzero(CowoFlags)[0]
@@ -791,17 +792,12 @@ def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, gkm_car
     print(CowoCoords)
     
     baseline = 0
-    result = run_MCM(TransH, gkm_car, gkm_bus, co2lt, baseline, NremDays, NremWork, CowoCoords)    
+    df = pd.DataFrame.from_dict(workerData)    
+    result = run_MCM(df, TransH, gkm_car, gkm_bus, co2lt, baseline, NremDays, NremWork, CowoCoords)    
     out = plot_result(result)
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
-    #scenario_json = result.to_dict('series') # not working?
-    #scenario_json = result.to_json(orient='records')
-    #return [out[0],out[1],out[2], scenario_json, True]
-    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/saved_scenarios/'
-    #temp_file = root_dir + 'scenario.csv'
-    #result.to_csv(temp_file)
     return [out[0],out[1],out[2], scenario_json, True]
 
 @callback([
@@ -830,7 +826,6 @@ def run_MCM_callback(NremDays, NremWork, StopsCoords, CowoFlags, TransH, gkm_car
           prevent_initial_call=True)
 def reset_variables(NremDays, NremWork, WorkerFile, StopsCoords, CowoFlags, Scen, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
           print('resetting variables...')
-          print(Nclicks)
           NremDays = 0 
           NremWork = 0
           WorkerFile = [] 
@@ -909,7 +904,7 @@ def save_scenario(NremDays, NremWork, StopsCoords, CowoFlags, Scen, TransH, gkm_
             State('upload-data', 'last_modified')],
             prevent_initial_call=True)
 def load_worker_data(list_of_contents, list_of_names, list_of_dates):
-    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'        
+    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'        
     if list_of_contents is not None:
         children = [
             parse_contents(c, n, d) for c, n, d in
@@ -988,9 +983,10 @@ def load_scenario(list_of_contents, list_of_names, list_of_dates):
                Output('internal-value_coworking','data',allow_duplicate=True),
                Output('map','children',allow_duplicate=True)],
               State("n_clusters", "value"),
+              State('worker_data', 'data'),
               Input("propose_stops", "n_clicks")
               )
-def propose_stops(n_clusters,Nclick):
+def propose_stops(n_clusters,workerData, Nclick):
     if Nclick > 0:  
         root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
         sys.path.append(root_dir + 'modules')      
@@ -999,8 +995,9 @@ def propose_stops(n_clusters,Nclick):
         cutoff = 0.8 # cutoff for maximum density: take maxima which are at least cutoff*max
         #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
         #workers_DF = pd.read_csv(root_dir + "workers.csv", encoding='latin-1')
-        temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
-        workers_DF = pd.read_csv(temp_file)    
+        #temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
+        #workers_DF = pd.read_csv(temp_file)    
+        workers_DF = pd.DataFrame.from_dict(workerData)
         stops_DF = pd.read_csv(root_dir + 'data/'+ "all_bus_stops.csv", encoding='latin-1')
         bus_stops_df,model,yhat = find_stops_module.FindStops(workers_DF, stops_DF, n_clusters, cutoff)
         #df = pd.read_csv(filename)
@@ -1023,12 +1020,14 @@ def propose_stops(n_clusters,Nclick):
 
 @app.callback([Output('map','children',allow_duplicate=True)],
                 State("n_clusters", "value"),
+                State('worker_data', 'data'),
                [Input("show_workers", "n_clicks")]
               )
-def show_workers(n_clusters,N):
-    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    temp_file = root_dir + 'data/temp_workers_data.csv'
-    workers_DF = pd.read_csv(temp_file)
+def show_workers(n_clusters,workerData, N):
+    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    #temp_file = root_dir + 'data/temp_workers_data.csv'
+    #workers_DF = pd.read_csv(temp_file)
+    workers_DF = pd.DataFrame.from_dict(workerData)
     """
     St = []
     for ind in workers_DF.index:
