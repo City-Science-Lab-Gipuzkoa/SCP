@@ -238,7 +238,7 @@ sidebar =  html.Div(
              multiple=True
         ),
         dcc.Store(id='worker_data', data=[]),
-        dbc.Button("Visualize workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
+        dbc.Button("Visualize clusters of workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),        
         html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
         dbc.Popover(
@@ -255,7 +255,6 @@ sidebar =  html.Div(
                marks=None,
                tooltip={"placement": "bottom", "always_visible": True}
             ) , 
-        dbc.Button("Calculate baseline scenario", id="calc_baseline", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),
         html.P([ html.Br(),'Select type of interventions'],id='intervention_select',style={"margin-top": "15px", "font-weight": "bold"}),
         html.Br(),
@@ -354,7 +353,7 @@ indicators = html.Div(
             ]
           ),
           dbc.Row(
-            [
+            [ 
                 dbc.Col(
                     html.Div(dbc.Button("Save scenario", id='save_scenario', n_clicks=0)),
                     style={"margin-top": "15px"},
@@ -371,7 +370,7 @@ indicators = html.Div(
                                         )
                     ),
                     style={"margin-top": "15px"},
-                    width=4
+                    width='auto'
                 )
             ]
           ),
@@ -701,66 +700,6 @@ def run_MCM(trips_ez, Transh, gkm_car, gkm_bus, co2lt, baseline=0, NremDays=0, N
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
     prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir, baseline)  
     return prediction
-
-
-@callback([Output('CO2_gauge', 'value',allow_duplicate=True),
-          Output('map','children',allow_duplicate=True)],
-          State('choose_transp_hour','value'),
-          Input('calc_baseline', 'n_clicks'),
-          prevent_initial_call = True)
-def calc_baseline(TransHour, Nclicks):
-    import pandas as pd
-    print('Inside run_MCM 0')
-    import sys    
-    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    sys.path.append(root_dir + 'modules')
-
-    result = run_MCM(TransHour)
-    #fig=show_MCM_results(result)
-    #fig = px.scatter_geo(result,
-    #                lat=result.geometry.y,
-    #                lon=result.geometry.x,
-    #                hover_name="Mode",
-    #                center = {'lat': 43.267237445097614, 'lon': -1.9937731483199466},
-    #                color="Mode") 
-    #coords_dict = []
-    #print('coords dict.:')
-    #for i in result.itertuples():
-    #    coords_dict.append({'lat': i.geometry.y,'lon': i.geometry.x})
-    #    #print(i) 
-          
-    children = [dl.TileLayer()]
-    maxCO2 = result['CO2'].max()
-    Total_CO2 = result['CO2'].sum()
-    for i_pred in result.itertuples():
-        color = generate_color_CO2(maxCO2,i_pred.CO2) 
-        #print(color)
-        #text = i_pred.Mode
-        text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Tot. distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
-        marker_i = dl.CircleMarker(
-                        id=str(i_pred),
-                        children=[dl.Tooltip(content=text)],
-                        center=[i_pred.geometry.y, i_pred.geometry.x],
-                        radius=10,
-                        color=color,
-                        fill=True,
-                        fillColor=color,
-                        fillOpacity=1,
-                        )
-        children.append(marker_i)   
-    #dl.GeoJSON(data=dlx.dicts_to_geojson(coords_dict), cluster=False),
-    children.append(dl.ScaleControl(position="topright"))
-    new_map = dl.Map(children, center=center, 
-                                     zoom=12,
-                                     id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-
-    """
-    new_map = dl.Map([dl.TileLayer(), 
-                    dl.ScaleControl(position="topright")], center=center, 
-                                     zoom=12,
-                                     id="map",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-    """
-    return [8,new_map]
 
 #           Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([Output('CO2_gauge', 'value',allow_duplicate=True),
