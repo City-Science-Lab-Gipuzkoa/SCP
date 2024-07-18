@@ -60,7 +60,7 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, baseline):
     feeds.add_feed(add_dict={'Euskotren': 'https://www.geo.euskadi.eus/cartografia/DatosDescarga/Transporte/Moveuskadi/Euskotren/google_transit.zip'})
     feeds.add_feed(add_dict={'Renfe': 'https://www.geo.euskadi.eus/cartografia/DatosDescarga/Transporte/Moveuskadi/Renfe/google_transit.zip'})
     feeds.add_feed(add_dict={'Renfe_cercanias': 'https://www.geo.euskadi.eus/cartografia/DatosDescarga/Transporte/Moveuskadi/Renfe_Cercanias/google_transit.zip'})
-    #feeds.add_feed(add_dict={'SCP_routes': '.\data\gtfsfeed_zips\routes.zip'})
+    #feeds.add_feed(add_dict={'SCP_routes': '.\data\gtfsfeed_zips\routes_EZ_companies.zip'})
     # I download all these feeds, 70sg
     gtfsfeeds.download()
     #feeds.add_feed(add_dict={'SCP_routes': '..model\data\gtfsfeed_zips'})

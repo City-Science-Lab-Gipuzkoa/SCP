@@ -5,12 +5,21 @@ from geopy.point import Point
 import datetime
 from datetime import date
 import re
+import os
 
-directory = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/input_data_MCM/GTFS_feeds/routes_EZ_companies/'
+#directory = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/input_data_MCM/GTFS_feeds/routes_EZ_companies/'
 
-def gGTFS(ruta_EZ0, puntos, G):
+def gGTFS(ruta_EZ0, puntos, G, root_dir):
     print()
     print('start generating GTFS file...')
+    directory = root_dir + 'data/input_data_MCM/GTFS_feeds/routes_EZ_companies/'
+    isExist = os.path.exists(directory)
+    print('routes directory:')
+    print(directory)
+    if not isExist:
+       # Create a new directory because it does not exist
+       os.makedirs(directory)
+
     cont_stops = 0
     cont_all_stops = 0
     trip_num = '0'

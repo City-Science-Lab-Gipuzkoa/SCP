@@ -1,2 +1,0 @@
-agency_id,agency_name,agency_url,agency_timezone
-CSL_01,CSL@Gipuzkoa, https://www.media.mit.edu/groups/city-science/overview/, CET

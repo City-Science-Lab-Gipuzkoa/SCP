@@ -1,3 +1,5 @@
+###!/home/cslgipuzkoa/virtual_machine_disk/anaconda3/envs/SCP_test/bin/python #-> on server
+
 ## In Colab install the following packages: ###################################
 #%pip install osmnx
 #%pip install dash
@@ -35,7 +37,6 @@ from dash import html, callback_context, ALL
 from dash import dcc, Output, Input, State, callback, dash_table
 import dash_leaflet as dl
 import dash_leaflet.express as dlx
-from dash_extensions.javascript import assign
 import dash_daq as daq
 
 import plotly.express as px
@@ -61,6 +62,7 @@ from sklearn.metrics import silhouette_score, davies_bouldin_score, adjusted_ran
 import sys
 import os
 from os import listdir
+import shutil
 
 root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
 #sys.path.append('/content/drive/MyDrive/Colab Notebooks')
@@ -238,6 +240,7 @@ sidebar =  html.Div(
              multiple=True
         ),
         dcc.Store(id='worker_data', data=[]),
+        dcc.Store(id='root_dir', data = root_dir),
         dbc.Button("Visualize clusters of workers", id="show_workers", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
         html.Br(),        
         html.P([ html.Br(),'Choose number of clusters'],id='cluster_num',style={"margin-top": "15px","font-weight": "bold"}),        
@@ -262,7 +265,7 @@ sidebar =  html.Div(
         html.P([ html.Br(),'Select action for markers'],id='action_select',style={"margin-top": "15px", "font-weight": "bold"}),
         dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action'),           
         html.Div([
-                 html.Div(id='outdata', style={"margin-top": "15px"}),
+                 html.Div(id='outdata', style={"margin-top": "15px"}),   
                  dcc.Store(id='internal-value_stops', data=[]),
                  dcc.Store(id='internal-value_coworking', data=[]),        
                  dcc.Store(id='internal-value_routes', data=[]),        
@@ -327,7 +330,7 @@ indicators = html.Div(
                tooltip={"placement": "bottom", "always_visible": True}
           ),
           html.Br(),          
-          dbc.Button("Reset internal variables", id='reset_variables', n_clicks=0),
+          dbc.Button("Reset scenario (variables and files)", id='reset_scenario', n_clicks=0),
           dbc.Row(
             [
                 dbc.Col(
@@ -667,11 +670,12 @@ def categorize_Mode(code):
     else:
         return 'PT'
     
-def run_MCM(trips_ez, Transh, gkm_car, gkm_bus, co2lt, baseline=0, NremDays=0, NremWork=30, CowCoords=None):
+def run_MCM(trips_ez, root_Dir, Transh, gkm_car, gkm_bus, co2lt, baseline=0, NremDays=0, NremWork=30, CowCoords=None):
     import pandas as pd
     print('Inside run_MCM 0')
     import sys    
-    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    root_dir = root_Dir
     sys.path.append(root_dir + 'modules')
     import pp
     import prediction
@@ -701,13 +705,16 @@ def run_MCM(trips_ez, Transh, gkm_car, gkm_bus, co2lt, baseline=0, NremDays=0, N
     prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir, baseline)  
     return prediction
 
+
 #           Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([Output('CO2_gauge', 'value',allow_duplicate=True),
            Output('graph','figure',allow_duplicate=True),
            Output('map','children',allow_duplicate=True),
            Output('internal-value_scenario','data',allow_duplicate=True),
            Output('loading-component_MCM','children')],
-          [State('worker_data', 'data'),
+          [
+          State('root_dir', 'data'),
+          State('worker_data', 'data'),
           State('choose_remote_days', 'value'),
           State('choose_remote_workers', 'value'),
           State('internal-value_stops','data'),
@@ -715,10 +722,11 @@ def run_MCM(trips_ez, Transh, gkm_car, gkm_bus, co2lt, baseline=0, NremDays=0, N
           State('choose_transp_hour','value'),
           State('choose_gas_km_car','value'),
           State('choose_gas_km_bus','value'),
-          State('choose_CO2_lt','value')],
+          State('choose_CO2_lt','value')
+          ],
           Input('run_MCM', 'n_clicks'),
           prevent_initial_call=True)
-def run_MCM_callback(workerData, NremDays, NremWork, StopsCoords, CowoFlags, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
+def run_MCM_callback(root_dir, workerData, NremDays, NremWork, StopsCoords, CowoFlags, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
     print('Cow. Flags:')
     print(CowoFlags)
     CowoIn = np.nonzero(CowoFlags)[0]
@@ -732,7 +740,7 @@ def run_MCM_callback(workerData, NremDays, NremWork, StopsCoords, CowoFlags, Tra
     
     baseline = 0
     df = pd.DataFrame.from_dict(workerData)    
-    result = run_MCM(df, TransH, gkm_car, gkm_bus, co2lt, baseline, NremDays, NremWork, CowoCoords)    
+    result = run_MCM(df, root_dir, TransH, gkm_car, gkm_bus, co2lt, baseline, NremDays, NremWork, CowoCoords)    
     out = plot_result(result)
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
@@ -751,7 +759,9 @@ def run_MCM_callback(workerData, NremDays, NremWork, StopsCoords, CowoFlags, Tra
           Output('choose_gas_km_bus','value',allow_duplicate=True),
           Output('choose_CO2_lt','value',allow_duplicate=True)
            ],
-          [State('choose_remote_days', 'value'),
+          [
+          State('root_dir','data'),
+          State('choose_remote_days', 'value'),
           State('choose_remote_workers', 'value'),
           State('worker_data', 'data'),
           State('internal-value_stops','data'),
@@ -761,9 +771,9 @@ def run_MCM_callback(workerData, NremDays, NremWork, StopsCoords, CowoFlags, Tra
           State('choose_gas_km_car','value'),
           State('choose_gas_km_bus','value'),
           State('choose_CO2_lt','value')],
-          Input('reset_variables', 'n_clicks'),
+          Input('reset_scenario', 'n_clicks'),
           prevent_initial_call=True)
-def reset_variables(NremDays, NremWork, WorkerFile, StopsCoords, CowoFlags, Scen, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
+def reset_scenario(root_Dir, NremDays, NremWork, WorkerFile, StopsCoords, CowoFlags, Scen, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
           print('resetting variables...')
           NremDays = 0 
           NremWork = 0
@@ -775,12 +785,18 @@ def reset_variables(NremDays, NremWork, WorkerFile, StopsCoords, CowoFlags, Scen
           gkm_car = 1./12
           gkm_bus = 1.1
           co2lt = 2.3
+          try:
+              shutil.rmtree(root_Dir+'data/input_data_MCM/GTFS_feeds/routes_EZ_companies/', ignore_errors=True)
+          except:
+              pass
           return [NremDays, NremWork, WorkerFile, StopsCoords, CowoFlags, Scen, TransH, gkm_car, gkm_bus, co2lt]
 
 
 @callback([
            Output('loading-component_MCM','children',allow_duplicate=True)],
-          [State('choose_remote_days', 'value'),
+          [
+          State('root_dir', 'data'),
+          State('choose_remote_days', 'value'),
           State('choose_remote_workers', 'value'),
           State('internal-value_stops','data'),
           State('internal-value_coworking','data'),
@@ -791,8 +807,8 @@ def reset_variables(NremDays, NremWork, WorkerFile, StopsCoords, CowoFlags, Scen
           State('choose_CO2_lt','value')],
           Input('save_scenario', 'n_clicks'),
           prevent_initial_call=True)
-def save_scenario(NremDays, NremWork, StopsCoords, CowoFlags, Scen, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
-    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/saved_scenarios/'
+def save_scenario(root_dir, NremDays, NremWork, StopsCoords, CowoFlags, Scen, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
+    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/saved_scenarios/'
     
     scen_label = 'scenario_'
     inputs_label = 'inputs_'
@@ -877,8 +893,7 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
             State('load-scenario', 'filename'),
             State('load-scenario', 'last_modified')],
             prevent_initial_call=True)
-def load_scenario(list_of_contents, list_of_names, list_of_dates):
-    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'        
+def load_scenario(list_of_contents, list_of_names, list_of_dates):        
     if list_of_contents is not None:
         print()
         print('list of names:')
@@ -923,11 +938,13 @@ def load_scenario(list_of_contents, list_of_names, list_of_dates):
                Output('map','children',allow_duplicate=True)],
               State("n_clusters", "value"),
               State('worker_data', 'data'),
+              State('root_dir','data'),
               Input("propose_stops", "n_clicks")
               )
-def propose_stops(n_clusters,workerData, Nclick):
+def propose_stops(n_clusters,workerData, root_dir, Nclick):
     if Nclick > 0:  
-        root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+        #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+        #root_dir = json.loads(root_dir)['root_dir']
         sys.path.append(root_dir + 'modules')      
         import find_stops_module   
         n_clusters  = int(n_clusters)
@@ -1065,16 +1082,20 @@ def choose_intervention(St,Cow,interv):
                Output('internal-value_routes','data',allow_duplicate=True),
                Output("choose_route", "options",allow_duplicate=True),
                Output('map','children',allow_duplicate=True)],
-              [State('choose_buses',"value"),
-              State('internal-value_stops','data'),
-              State('internal-value_coworking','data'),
-              State('choose_CO2_lt','value')],
-              [Input("calc_routes", "n_clicks")],
-              manager=long_callback_manager
+               State('choose_buses',"value"),
+               State('internal-value_stops','data'),
+               State('internal-value_coworking','data'),
+               State('choose_CO2_lt','value'),
+               State('root_dir','data'),
+               Input("calc_routes", "n_clicks"),
+               manager=long_callback_manager
               )
-def calc_routes(Nroutes,St,Cow,CO2km,Nclick):
+def calc_routes(Nroutes,St,Cow,CO2km, root_Dir, Nclick):
+    print()
+    print('inside calc_routes!')
     if Nclick > 0:
-      root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+      #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+      root_dir = root_Dir
       sys.path.append(root_dir + 'modules')  
       import calcroutes_module
       import dash_leaflet as dl
@@ -1115,7 +1136,7 @@ def calc_routes(Nroutes,St,Cow,CO2km,Nclick):
       routes, routes_points_coords, Graph = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),float(CO2km))
       print('Routes calculated!')
       #print(routes_points_coords)
-      gGTFS.gGTFS(routes, Stops, Graph)
+      gGTFS.gGTFS(routes, Stops, Graph, root_dir)
       # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
       newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
