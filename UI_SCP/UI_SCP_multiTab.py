@@ -1,9 +1,15 @@
+## #!/home/cslgipuzkoa/virtual_machine_disk/anaconda3/envs/SCP_test/bin/python
 import dash
 from dash import Dash
 import dash_bootstrap_components as dbc
 import dash_loading_spinners as dls
 from dash import html, callback_context, ALL
 from dash import dcc, Output, Input, State, callback, dash_table
+
+from dash_extensions import Download
+from dash_extensions.snippets import send_file
+from dash_extensions.snippets import send_data_frame
+
 import dash_leaflet as dl
 import dash_leaflet.express as dlx
 import dash_daq as daq
@@ -36,6 +42,7 @@ from os import listdir
 import shutil
 
 root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+#root_dir = '/home/cslgipuzkoa/virtual_machine_disk/UI_SCP/assets/'
 #sys.path.append('/content/drive/MyDrive/Colab Notebooks')
 sys.path.append(root_dir + 'modules')
 #"/content/drive/MyDrive/Colab Notebooks/calcroutes_module.py"
@@ -381,7 +388,19 @@ indicators_1 = html.Div(
                     ),
                     style={"margin-top": "15px"},
                     width='auto'
-                )
+                ),
+
+                dbc.Col(
+                    html.Div([
+                            dbc.Button("Download scenario", id='button_download_scenario_1', n_clicks=0),
+                            Download(id="download_scenario_1"),
+                            Download(id="download_inputs_1"),
+                            Download(id="download_StopsCowHubs_1")
+                            ]),
+                            style={"margin-top": "15px"},
+                            width="auto"
+                ),  
+
             ]
           ),
           html.Div([
@@ -921,8 +940,6 @@ def run_MCM(trips_ez, root_Dir, Transh, gkm_car, gkm_bus, co2lt, baseline=0, Nre
     return prediction
 
 
-
-
 # Left sidebar subpanels #############################################
 @callback(
     Output("Load_data_panel_1", "is_open"),
@@ -1106,6 +1123,52 @@ def save_scenario(root_dir, NremDays, NremWork, StopsCoords, CowoFlags, Scen, Tr
         stops_and_cow_df.to_csv(stops_and_cow_file)
 
     return [True] 
+
+# Download files callbacks ###########################################
+@callback([Output("download_scenario_1", "data")],
+          [
+          State('internal-value_scenario_1','data')],
+          Input('button_download_scenario_1', 'n_clicks'),
+          prevent_initial_call=True)
+def download_scenario(Scen, Nclicks):
+    scen_df = pd.DataFrame(Scen)
+    return [send_data_frame(scen_df.to_csv, "scenario.csv", index=False)]
+
+@callback([Output("download_inputs_1", "data")],
+          [
+          State('choose_remote_days_1', 'value'),
+          State('choose_remote_workers_1', 'value'),
+          State('choose_transp_hour_1','value'),
+          State('choose_gas_km_car_1','value'),
+          State('choose_gas_km_bus_1','value'),
+          State('choose_CO2_lt_1','value')],
+          Input('button_download_scenario_1', 'n_clicks'),
+          prevent_initial_call=True)
+def download_scenario(NremDays, NremWork, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
+    inputs_dict = {'NremDays': NremDays, 'NremWork':NremWork, 
+                   'TransH': TransH, 'gkm_car': gkm_car, 
+                   'gkm_bus': gkm_bus, 'co2lt': co2lt
+                   }
+    columns = ['NremDays','NremWork', 
+               'TransH', 'gkm_car', 
+               'gkm_bus', 'co2lt']
+    inputs_df = pd.DataFrame(inputs_dict, index=[0])
+    return [send_data_frame(inputs_df.to_csv, "inputs.csv", index=False)]
+
+@callback([Output("download_StopsCowHubs_1", "data")],
+          [
+          State('internal-value_stops_1','data'),
+          State('internal-value_coworking_1','data')],
+          Input('button_download_scenario_1', 'n_clicks'),
+          prevent_initial_call=True)
+def download_scenario(StopsCoords, CowoFlags, Nclicks):
+    if len(StopsCoords)>0:
+        lats, lons = map(list, zip(*StopsCoords))
+        stops_and_cow_df = pd.DataFrame(np.column_stack([lats, lons, CowoFlags]), 
+                               columns=['lat', 'lon', 'CowHub'])
+        return [send_data_frame(stops_and_cow_df.to_csv, "StopsCowHubs.csv", index=False)]
+
+
 
 
 @callback([Output('worker_data_1', 'data',allow_duplicate=True),
@@ -1596,4 +1659,5 @@ def change_marker(St, Cow, stop_operation, *args):
 
 
 if __name__ == '__main__':
-    app.run(debug=True,port=8050)
+    #app.run(debug=True,port=80)
+    app.run_server(host='0.0.0.0', port=80)
