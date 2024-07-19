@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 
 t0 = time.time()
 
-def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, baseline):
+def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
 
     """
     feeds.add_feed(add_dict={'dbus': 'https://www.geo.euskadi.eus/cartografia/DatosDescarga/Transporte/Moveuskadi/ATTG/dbus/google_transit.zip'})
@@ -63,7 +63,6 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, baseline):
     #feeds.add_feed(add_dict={'SCP_routes': '.\data\gtfsfeed_zips\routes_EZ_companies.zip'})
     # I download all these feeds, 70sg
     gtfsfeeds.download()
-    #feeds.add_feed(add_dict={'SCP_routes': '..model\data\gtfsfeed_zips'})
     """
 
     # Load GTFS data into an UrbanAcess transit data object
@@ -305,8 +304,9 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, baseline):
     
     # Coworking hubs #############################################################
     X["original_distance"] = X["distance"] # save original distance to calculte worst case scenario
-    if baseline == 0:
-        cowhub_i = 0
+
+    cowhub_i = 0
+    if len(CowCoords) > 0:
         for cowhub in CowCoords:
             d = {'CowH_lat': [cowhub[0]], 'CowH_lon': [cowhub[1]]}
             # generate dataframe with replicas of the previous coordinates ###########
@@ -321,7 +321,6 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, baseline):
                     )
             cowhub_i+=1
         ############################################################################################
-        
         filter_cols = [col for col in X if col.startswith('distance_CowHub_')]
         compare_cols = ['distance'] + filter_cols     
 
@@ -336,16 +335,16 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, baseline):
         X.drop(columns=filter_cols, inplace=True)     
         ############################################################################################
 
-        # Remote working ###########################################################################
-        n_rw = int(len(X.index)*RemWoPer/100) # number of workers doing remote work
-        X["Rem_work"] = 0
-        X_to_set = X.sample(n_rw)
-        X_to_set["Rem_work"] = RemWoDays
-        X.update(X_to_set)
-        ############################################################################################
-    else:
-        X['Coworking'] = 0
-        X["Rem_work"] = 0
+    # Remote working ###########################################################################
+    n_rw = int(len(X.index)*RemWoPer/100) # number of workers doing remote work
+    X["Rem_work"] = 0
+    X_to_set = X.sample(n_rw)
+    X_to_set["Rem_work"] = RemWoDays
+    X.update(X_to_set)
+    ############################################################################################
+    #else:
+    #    X['Coworking'] = 0
+    #    X["Rem_work"] = 0
         
 
     X["walk_tt"] = networks['walk'].shortest_path_lengths(

@@ -207,6 +207,7 @@ sidebar_1 =  html.Div(
             id="Load_data_button_1",
             className="mb-3",
             color="primary",
+            size="lg",
             n_clicks=0,
         ),
         dbc.Collapse([
@@ -256,6 +257,7 @@ sidebar_1 =  html.Div(
             id="Intervention_type_button_1",
             className="mb-3",
             color="primary",
+            size="lg",
             n_clicks=0,
         ),
         dbc.Collapse([
@@ -273,6 +275,7 @@ sidebar_1 =  html.Div(
             id="Advanced_settings_button_1",
             className="mb-3",
             color="primary",
+            size="lg",
             n_clicks=0,
         ),
         dbc.Collapse([
@@ -344,7 +347,8 @@ fig.update_layout(showlegend=False)
 fig.update_layout(title_text='Transport share', title_x=0.5)
 indicators_1 = html.Div(
         [              
-          dbc.Button("Reset scenario (variables and files)", id='reset_scenario_1', n_clicks=0, style={"margin-top": "15px"}),
+          #dbc.Button("Reset scenario (variables and files)", id='reset_scenario_1', n_clicks=0, style={"margin-top": "15px"}),
+          dbc.Button("Run baseline scenario", id='run_MCM_baseline_1', n_clicks=0, color="secondary", style={"margin-top": "15px"}),
           dbc.Row(
             [
                 dbc.Col(
@@ -363,7 +367,7 @@ indicators_1 = html.Div(
                     width="auto"
                 ),
                 dbc.Col(
-                    html.Div(dbc.Button("Run simulation", id="run_MCM_1", n_clicks=0, disabled=True)),
+                    html.Div(dbc.Button("Run new scenario", id="run_MCM_1", n_clicks=0, disabled=False)),
                     style={"margin-top": "15px"},
                     width="auto"
                 )
@@ -371,11 +375,11 @@ indicators_1 = html.Div(
           ),
           dbc.Row(
             [ 
-                dbc.Col(
-                    html.Div(dbc.Button("Save scenario", id='save_scenario_1', n_clicks=0)),
-                    style={"margin-top": "15px"},
-                    width="auto"
-                ),                
+                #dbc.Col(
+                #    html.Div(dbc.Button("Save scenario", id='save_scenario_1', n_clicks=0)),
+                #    style={"margin-top": "15px"},
+                #    width="auto"
+                #),                
                 dbc.Col(
                     html.Div(
                               dcc.Upload(id='load-scenario_1',
@@ -562,7 +566,7 @@ indicators2 = html.Div(
                     width="auto"
                 ),
                 dbc.Col(
-                    html.Div(dbc.Button("Run simulation", id="run_MCM2", n_clicks=0, disabled=True)),
+                    html.Div(dbc.Button("Run simulation", id="run_MCM2", n_clicks=0, disabled=False)),
                     style={"margin-top": "15px"},
                     width="auto"
                 )
@@ -875,7 +879,10 @@ def plot_result(result):
         #text = text + '<br>' + 'Remote working: ' + str(i_pred.Rem_work)
         n_cw = int(i_pred.Rem_work)
         text = text + '<br>' + 'Remote working: ' + (['Yes']*n_cw + ['No'])[n_cw-1]
-        n_cw = int(i_pred.Coworking)    
+        try:
+            n_cw = int(i_pred.Coworking)
+        except:
+            n_cw = 0    
         text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]          
         marker_i = dl.CircleMarker(
                         id=str(i_pred),
@@ -892,7 +899,7 @@ def plot_result(result):
     children.append(dl.ScaleControl(position="topright"))
     new_map = dl.Map(children, center=center, 
                                      zoom=12,
-                                     id="map1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+                                     id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
     return [Total_CO2/Total_CO2_worst_case, fig, new_map]
 
@@ -904,11 +911,9 @@ def categorize_Mode(code):
     else:
         return 'PT'
     
-def run_MCM(trips_ez, root_Dir, Transh, gkm_car, gkm_bus, co2lt, baseline=0, NremDays=0, NremWork=30, CowCoords=None):
+def run_MCM(trips_ez, root_Dir, Transh, gkm_car=1./12, gkm_bus=1.1, co2lt=2.3, NremDays=0, NremWork=0, CowCoords=None):
     import pandas as pd
-    print('Inside run_MCM 0')
     import sys    
-    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
     root_dir = root_Dir
     sys.path.append(root_dir + 'modules')
     import pp
@@ -925,18 +930,18 @@ def run_MCM(trips_ez, root_Dir, Transh, gkm_car, gkm_bus, co2lt, baseline=0, Nre
     model_dir = 'modules/models/'
     #trips_ez = pd.read_csv(root_dir + data_dir + 'workers_eskuzaitzeta_2k.csv')
     #trips_ez = pd.read_csv(root_dir + workers_data_dir + 'temp_workers_data.csv')    
-    if baseline == 1:    
-        trips_ez['Modo'].apply(categorize_Mode)    
-        trips_ez['Mode'] = trips_ez['Modo']
+    #if baseline == 1:    
+    #    trips_ez['Modo'].apply(categorize_Mode)    
+    #    trips_ez['Mode'] = trips_ez['Modo']
   
     eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio',
                 'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] 
     trips_ez = trips_ez.drop(columns=eliminar)
     #trips_ez.head(10).to_csv(root_dir + workers_data_dir + 'example_workers_data.csv',index=False)
-    trips_ez=pp.pp(Transh,trips_ez, CowCoords, NremDays, NremWork, root_dir + MCM_data_dir, baseline) 
+    trips_ez=pp.pp(Transh,trips_ez, CowCoords, NremDays, NremWork, root_dir + MCM_data_dir) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
-    prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir, baseline)  
+    prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir)  
     return prediction
 
 
@@ -980,7 +985,7 @@ def toggle_collapse(n, is_open):
            Output('graph_1','figure',allow_duplicate=True),
            Output('map_1','children',allow_duplicate=True),
            Output('internal-value_scenario_1','data',allow_duplicate=True),
-           Output('loading-component_MCM_1','children')],
+           Output('loading-component_MCM_1','children',allow_duplicate=True)],
           [
           State('root_dir_1', 'data'),
           State('worker_data_1', 'data'),
@@ -1009,12 +1014,45 @@ def run_MCM_callback(root_dir, workerData, NremDays, NremWork, StopsCoords, Cowo
     
     baseline = 0
     df = pd.DataFrame.from_dict(workerData)    
-    result = run_MCM(df, root_dir, TransH, gkm_car, gkm_bus, co2lt, baseline, NremDays, NremWork, CowoCoords)    
+    result = run_MCM(df, root_dir, TransH, gkm_car, gkm_bus, co2lt, NremDays, NremWork, CowoCoords)    
     out = plot_result(result)
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
     return [out[0],out[1],out[2], scenario_json, True]
+
+
+@callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
+           Output('graph_1','figure',allow_duplicate=True),
+           Output('map_1','children',allow_duplicate=True),
+           Output('internal-value_scenario_1','data',allow_duplicate=True),
+           Output('loading-component_MCM_1','children',allow_duplicate=True)],
+          [
+          State('root_dir_1', 'data'),
+          State('worker_data_1', 'data'),
+          State('choose_transp_hour_1','value')
+          ],
+          Input('run_MCM_baseline_1', 'n_clicks'),
+          prevent_initial_call=True)
+def run_MCM_baseline_callback(root_dir, workerData, TransH, Nclicks):
+    df = pd.DataFrame.from_dict(workerData)    
+    result = run_MCM(df, root_dir, TransH)    
+    out = plot_result(result)
+    scenario = pd.DataFrame(result.drop(columns='geometry'))
+    scenario_json = scenario.to_dict('records')
+    
+    #default_remote_days = 0
+    #default_remote_workers = 0
+    #default__transp_hour = 8
+    #default_gas_km_car = 1./12
+    #default_gas_km_bus = 1.1
+    #default__CO2_lt = 2.3
+    #default_internal_value_stops = []
+    #default_internal_value_coworking = []
+    default_values = [0,0,8,1./12,1.1,2.3,[],[]]
+    #*default_values
+    return [out[0],out[1],out[2], scenario_json, True]
+
 
 @callback([
           Output('choose_remote_days_1', 'value',allow_duplicate=True),
@@ -1132,6 +1170,8 @@ def save_scenario(root_dir, NremDays, NremWork, StopsCoords, CowoFlags, Scen, Tr
           prevent_initial_call=True)
 def download_scenario(Scen, Nclicks):
     scen_df = pd.DataFrame(Scen)
+    print('data to download:')
+    print(scen_df.head())
     return [send_data_frame(scen_df.to_csv, "scenario.csv", index=False)]
 
 @callback([Output("download_inputs_1", "data")],
@@ -1153,6 +1193,7 @@ def download_scenario(NremDays, NremWork, TransH, gkm_car, gkm_bus, co2lt, Nclic
                'TransH', 'gkm_car', 
                'gkm_bus', 'co2lt']
     inputs_df = pd.DataFrame(inputs_dict, index=[0])
+    print('trying to save inputs...')
     return [send_data_frame(inputs_df.to_csv, "inputs.csv", index=False)]
 
 @callback([Output("download_StopsCowHubs_1", "data")],
@@ -1227,15 +1268,24 @@ def load_scenario(list_of_contents, list_of_names, list_of_dates):
         scenario = [
             parse_contents_load_scenario(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates) if 'scenario' in n]
-        print('inputs:')
-        print(inputs)    
-        inputs = np.array(inputs[0][:])[0]
-        print(inputs)    
-        print()
-        #print(inputs[int(len(inputs)/2):])
-        print('Stops:')
-        print(stops_CowHubs)
-        #print(stops_CowHubs[:,1],stops_CowHubs[:,2],stops_CowHubs[:,3])
+        
+        try:
+            print('inputs:')
+            print(inputs)    
+            inputs = np.array(inputs[0][:])[0]
+            print(inputs)    
+            print()
+        except:
+            pass
+
+        try:
+            #print(inputs[int(len(inputs)/2):])
+            print('Stops:')
+            print(stops_CowHubs)
+            #print(stops_CowHubs[:,1],stops_CowHubs[:,2],stops_CowHubs[:,3])
+        except:
+            pass
+
         try:
             stops_CowHubs = np.array(stops_CowHubs[0][:])[:]
             print(stops_CowHubs)            
@@ -1507,14 +1557,16 @@ def visualize_route(Route,St,Cow,RoutesCoords,Nclick):
 
 @app.callback([Output("outdata_1", "children",allow_duplicate=True), 
                Output('internal-value_stops_1','data',allow_duplicate=True),
-               Output('map1','children',allow_duplicate=True)],
+               Output('map_1','children',allow_duplicate=True)],
               [State('internal-value_stops_1','data'),
                State('internal-value_coworking_1','data')],
-              [Input("match_stops_1", "n_clicks")],
+              Input("match_stops_1", "n_clicks"),
               prevent_initial_call=True
               )
 def match_stops(St,Cow,Nclick):
+    print('inside callback')
     if Nclick > 0:
+      print('inside if...')
       print('matching stops...')  
       bus_stops = []
       out = ''
@@ -1660,4 +1712,4 @@ def change_marker(St, Cow, stop_operation, *args):
 
 if __name__ == '__main__':
     #app.run(debug=True,port=80)
-    app.run_server(host='0.0.0.0', port=80)
+    app.run_server(debug=True, host='0.0.0.0', port=80)

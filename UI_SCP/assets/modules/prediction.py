@@ -23,7 +23,7 @@ def estimate_emissions(df, GasKm_car, GasKm_bus, CO2lt):
         else:
             return (5-df['Rem_work'])*GasKm_car*CO2lt*df['distance']/1000
 
-def predict(df, gkm_car, gkm_bus, co2lt, model_dir, baseline=0):
+def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
     model_name = "rf"  # El nombre del modelo que guardaste anteriormente
     #file_path = os.path.join("models", f'{model_name}.pkl')
     #with open(file_path, 'rb') as file:
@@ -33,14 +33,14 @@ def predict(df, gkm_car, gkm_bus, co2lt, model_dir, baseline=0):
     gdf = gpd.GeoDataFrame(
             df.copy(), geometry=gpd.points_from_xy(df.O_long, df.O_lat), crs="EPSG:4326"
          )
-    if baseline == 0:
-        #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat'])) 
-        #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking']))      
-        x = np.array(df.drop(columns = ['original_distance','Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking']))      
+    #if baseline == 0:
+    #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat'])) 
+    #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking']))      
+    x = np.array(df.drop(columns = ['original_distance','Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking'], errors='ignore')) # errors='ignore' only for the Baseline scenario where we do not have the 'Coworking' column      
 
-        y_pred = model.predict(x)
-        gdf['prediction'] = y_pred
-        gdf['Mode'] = gdf['prediction'].apply(categorize)
+    y_pred = model.predict(x)
+    gdf['prediction'] = y_pred
+    gdf['Mode'] = gdf['prediction'].apply(categorize)
  
     gdf['CO2']  = gdf.apply(estimate_emissions, args=(gkm_car, gkm_bus, co2lt), axis=1)
     gdf['CO2_worst_case']  = 5*gkm_car*co2lt*df['original_distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
