@@ -317,7 +317,9 @@ sidebar_1 =  html.Div(
         style=SIDEBAR_STYLE)
 
 
-
+markers_all_1 = []
+markers_remote_1 = []
+markers_cow_1 = []
 central_panel_1 = html.Div(
        [
           html.Div([
@@ -327,10 +329,19 @@ central_panel_1 = html.Div(
 
              ],style= {'verticalAlign': 'top'}),
           dls.Clock(
-                    children=[dl.Map([dl.TileLayer(),
-                    dl.ScaleControl(position="topright")], center=center, 
-                                     zoom=12,
-                                     id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+                    children=[ dl.Map(
+                                [dl.ScaleControl(position="topright"),
+                                 dl.LayersControl(
+                                        [dl.BaseLayer(dl.TileLayer(), name='base_map',checked='base_map')] +
+                                        [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", checked=False),
+                                         dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote", checked=False),
+                                         dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking", checked=False)], 
+                                        id="lc_1"
+                                        )
+                                ], 
+                                center=center, 
+                                zoom=12,
+                                id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
                     ],
                     color="#435278",
                     speed_multiplier=1.5,
@@ -894,11 +905,14 @@ def plot_result(result):
     #temp['original_distance'] = temp['original_distance']/1000.
     fig2 = px.bar(temp, x='distance_km', y='Mode', orientation='h', labels={'distance_km':'Total distance (km)'}, color = 'distance_km', title="Total distance share (km)")
 
-    children = [dl.TileLayer()]
+    #children = [dl.TileLayer()]
     maxCO2 = result['CO2'].max()
     maxCO2_worst_case = result['CO2_worst_case'].max()
     Total_CO2 = result['CO2'].sum()
     Total_CO2_worst_case = result['CO2_worst_case'].sum()
+    markers_all_1 = []
+    markers_remote_1 = []
+    markers_cow_1 = []
     for i_pred in result.itertuples():
         #print(i_pred.geometry.y, i_pred.geometry.x)
         #color = generate_color_gradient(maxCO2,i_pred.CO2) 
@@ -925,11 +939,37 @@ def plot_result(result):
                         fillColor=color,
                         fillOpacity=1,
                         )
-        children.append(marker_i)   
-    #dl.GeoJSON(data=dlx.dicts_to_geojson(coords_dict), cluster=False),
-    children.append(dl.ScaleControl(position="topright"))
+        #children.append(marker_i)
+        markers_all_1.append(marker_i)  
+        #print('remote_work_i: ', i_pred.Rem_work)
+        try:
+            if  i_pred.Rem_work > 0.0:
+                markers_remote_1.append(marker_i)
+        except:
+            pass
+        try:
+            if  i_pred.Coworking > 0.0:
+                markers_cow_1.append(marker_i)
+        except:
+            pass
+    #children.append(dl.ScaleControl(position="topright"))
+    children = [
+                dl.ScaleControl(position="topright"),
+                dl.LayersControl(
+                                [dl.BaseLayer(dl.TileLayer(), name='base_map', checked='base_map')] +
+                                [dl.Overlay(dl.LayerGroup(markers_all_1), name="all_1", checked=True),
+                                 dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote_1", checked=True),
+                                 dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking_1", checked=True)], 
+                                id="lc_1"
+                                )
+                ]
+
     new_map = dl.Map(children, center=center, 
                                      zoom=12,
+                                     id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+
+    new_map = dl.Map(children, center=center,
+                                     zoom=12,                        
                                      id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
     return [Total_CO2/Total_CO2_worst_case, fig1,fig2, new_map]

@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 
 t0 = time.time()
 
-def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
+def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
 
     """
     feeds.add_feed(add_dict={'dbus': 'https://www.geo.euskadi.eus/cartografia/DatosDescarga/Transporte/Moveuskadi/ATTG/dbus/google_transit.zip'})
@@ -78,7 +78,10 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
     append_definitions = True
 
     #filen = 'transit_ped_net.h5'
-    gtfsfeed_path = root_dir + 'GTFS_feeds/'
+    gtfsfeed_path = root_dir + MCM_dir + 'GTFS_feeds/'
+    networks_path = root_dir + 'data/input_data_MCM/networks/'
+    transit_together_path = root_dir + 'data/input_data_MCM/transit_together_24h/'
+    towns_path = root_dir + 'data/input_data_MCM/'
 
     # Definir los valores dados
     timeranges = [
@@ -126,12 +129,12 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
         print('Transit network:')
         print(urbanaccess_net.transit_edges.head())
 
-        if (os.path.isfile(root_dir + 'networks/' + 'pedestrian_net.h5')):
+        if (os.path.isfile(networks_path + 'pedestrian_net.h5')):
 
            print('\nLoading saved networks...') 
            #transit_ped_net = ua.network.load_network(dir=root_dir + 'transit_together_24h/', filename=filen)
            #ped_net = ua.network.load_network(dir=root_dir + 'networks/', filename='pedestrian_net.h5')
-           ped_net = pdn.Network.from_hdf5(root_dir + 'networks/' + 'pedestrian_net.h5')
+           ped_net = pdn.Network.from_hdf5(networks_path + 'pedestrian_net.h5')
            print('done!\n')
            
            # The following sh... is really important!!! Pandana messes up data types (floats instead oif int64!) ####################
@@ -154,7 +157,7 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
                                     edges["to"],
                                     edges[["weight","distance"]])
 
-            ped_net_pdn.save_hdf5(root_dir + 'networks/' + 'pedestrian_net.h5')
+            ped_net_pdn.save_hdf5(networks_path + 'pedestrian_net.h5')
             #print(urbanaccess_net.osm_nodes.head())
             #print(urbanaccess_net.osm_edges.head()) 
 
@@ -184,7 +187,7 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
                                 urbanaccess_net.net_edges[["weight"]])
                                 #urbanaccess_net.net_edges[["weight","distance"]])
 
-        transit_ped_net_pdn.save_hdf5(root_dir + 'transit_together_24h/' + filen)
+        transit_ped_net_pdn.save_hdf5(transit_together_path + filen)
   
     #eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio', 'Motos','Actividad','Año']
     #X = X.drop(columns=eliminar)
@@ -222,7 +225,7 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
         print(k)
         print(root_dir + f'networks/{k}_net.h5')
         #networks[k] = pdn.network.Network.from_hdf5(f'../input_data/networks/{k}_net.h5')
-        networks[k] = pdn.network.Network.from_hdf5(root_dir + f'networks/{k}_net.h5')
+        networks[k] = pdn.network.Network.from_hdf5(root_dir + 'data/input_data_MCM/' + f'networks/{k}_net.h5')
 
     # # TRANSIT
     transit = dict.fromkeys({
@@ -282,7 +285,7 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
         if hour==cont:
             print(k)
             #transit[k] = pdn.network.Network.from_hdf5(f'../input_data/transit_together_24h/{k}.h5')
-            transit[k] = pdn.network.Network.from_hdf5(root_dir + f'/transit_together_24h/{k}.h5')
+            transit[k] = pdn.network.Network.from_hdf5(root_dir + 'data/input_data_MCM/' + f'/transit_together_24h/{k}.h5')
             break
         else:
             cont=cont+1
@@ -306,7 +309,7 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
     X["original_distance"] = X["distance"] # save original distance to calculte worst case scenario
 
     cowhub_i = 0
-    if len(CowCoords) > 0:
+    if np.any(CowCoords):
         for cowhub in CowCoords:
             d = {'CowH_lat': [cowhub[0]], 'CowH_lon': [cowhub[1]]}
             # generate dataframe with replicas of the previous coordinates ###########
@@ -320,9 +323,11 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
                     imp_name='distance'
                     )
             cowhub_i+=1
+        #
         ############################################################################################
         filter_cols = [col for col in X if col.startswith('distance_CowHub_')]
         compare_cols = ['distance'] + filter_cols     
+
 
         # Keep track of whether coworking hub is closer than original distance #####################
         t = X[compare_cols].idxmin(axis=1) # for each row, get names of the column with min dist
@@ -341,6 +346,7 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
     X_to_set = X.sample(n_rw)
     X_to_set["Rem_work"] = RemWoDays
     X.update(X_to_set)
+    #X.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/temp_pp_file.csv')
     ############################################################################################
     #else:
     #    X['Coworking'] = 0
@@ -352,6 +358,131 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
                 networks['walk'].get_node_ids(X.D_long,X.D_lat)
                 )
     X["walk_tt"] = X["walk_tt"] / 60
+ 
+    """
+    from pandana.loaders import osm
+    bbox = [min(X.O_lat), min(X.O_long), max(X.O_lat), max(X.O_long)]
+    print()
+    print('generating pois graph...')
+    pois = osm.node_query(bbox[0], bbox[1], bbox[2], bbox[3], tags='"amenity"="bus_station"')  
+
+    poi_node_ids = networks['walk'].get_node_ids(pois.lon, pois.lat).values
+    print()
+    print('start calculating distances...')
+    ori_node_ids = networks['walk'].get_node_ids(X.O_long,X.O_lat).values
+    print()
+    print('lengths before:')  
+    print(len(ori_node_ids), len(poi_node_ids))
+
+    origins = [[ori_node_ids[i]]*len(poi_node_ids) for i in range(len(ori_node_ids))]
+    dest = list([poi_node_ids[:]]*len(ori_node_ids))
+
+    import itertools
+    origins = list(itertools.chain.from_iterable(origins)) #flatten and merge list of lists
+    dest = list(itertools.chain.from_iterable(dest)) #flatten and merge list of lists 
+
+    distances_to_pt = networks['walk'].shortest_path_lengths(origins, dest)
+    #print('distance:')
+    #print(distances_to_pt)
+
+    #temp_df = pd.DataFrame(np.column_stack([origins, dest, distances_to_pt]), 
+    #                           columns=['ori_node', 'dest_node', 'dist'])
+    temp_df = pd.DataFrame(distances_to_pt, 
+                               columns=['dist'])    
+    closest_POIs = temp_df.groupby(np.arange(len(temp_df))//len(poi_node_ids)).min() #group by number of origins and keep the min for each origin node
+    #print(closest_POIs.drop(columns=['ori_node'], inplace=True).head()) 
+    X["closest_PT"] = closest_POIs.values
+    """
+
+    """
+    stops_file = root_dir +'data/all_bus_stops.csv'
+    stops_df = pd.read_csv(stops_file, encoding='latin-1')
+    stops_lat_lon = stops_df[['stop_lat','stop_lon']].to_numpy()
+    all_distances = []
+    for index, row in X.iterrows():
+        ref = np.array([row.O_lat, row.O_long])
+        ref = np.tile(ref,(len(stops_lat_lon),1)) # generate replicas of ref point
+        #d = [sum((p-q)**2)**0.5 for p, q in zip(ref, stops_lat_lon)] # calculate distance of each bus stop to ref point
+        d = [geopy.distance.geodesic((p[0],p[1]), (q[0],q[1])).km for p, q in zip(ref, stops_lat_lon)] # calculate distance of each bus stop to ref point
+        all_distances.append(d)
+    
+    distances_df = pd.DataFrame(all_distances, columns = ['distance_to_stop_' + str(i) for i in range(len(all_distances[0]))])
+    distances_df_sorted = distances_df.apply(np.sort, axis = 1)
+    cols = range(5,len(distances_df_sorted.columns)) #keep first 5 smaller distances
+    distances_df_sorted.drop(distances_df_sorted.columns[cols],axis=1,inplace=True) 
+    X = pd.concat([X, distances_df_sorted], axis=1)
+    """
+
+    #bbox = [min(X.O_lat), min(X.O_long), max(X.O_lat), max(X.O_long)]
+    stops_file = root_dir +'data/all_bus_stops.csv'
+    stops_df = pd.read_csv(stops_file, encoding='latin-1')
+    #stops_lat_lon = stops_df[['stop_lat','stop_lon']].to_numpy()
+
+    #box1_cond = (bottom <= stops_df.lat) & (stops_df.lat <= top) & (left <= stops_df.lng) & (stops_df.lng <= right)
+    bbox_stops = (min(X.O_lat) <= stops_df.stop_lat) & (stops_df.stop_lat <= max(X.O_lat)) & (min(X.O_long) <= stops_df.stop_lon) & (stops_df.stop_lon <= max(X.O_long))
+    stops_df = stops_df[bbox_stops]
+
+    #network_name = nombre_archivo.split('.h5')[0]
+    #print(network_name)
+    #transit_network = pdn.network.Network.from_hdf5(root_dir + 'data/input_data_MCM/' + f'/transit_together_24h/{nombres_archivos[0]}')
+    #poi_node_ids = transit_network.get_node_ids(stops_df.stop_lon, stops_df.stop_lat).values
+    poi_node_ids = networks['walk'].get_node_ids(stops_df.stop_lon, stops_df.stop_lat).values
+    print()
+    print('start calculating distances...')
+    ori_node_ids = networks['walk'].get_node_ids(X.O_long,X.O_lat).values
+    print()
+    print('lengths before:')  
+    print(len(ori_node_ids), len(poi_node_ids))
+
+    origins = [[ori_node_ids[i]]*len(poi_node_ids) for i in range(len(ori_node_ids))]
+    dest = list([poi_node_ids[:]]*len(ori_node_ids))
+
+    import itertools
+    origins = list(itertools.chain.from_iterable(origins)) #flatten and merge list of lists
+    dest = list(itertools.chain.from_iterable(dest)) #flatten and merge list of lists 
+
+    distances_to_pt = networks['walk'].shortest_path_lengths(origins, dest)
+    #print('distance:')
+    #print(distances_to_pt)
+
+    #temp_df = pd.DataFrame(np.column_stack([origins, dest, distances_to_pt]), 
+    #                           columns=['ori_node', 'dest_node', 'dist'])
+    temp_df = pd.DataFrame(distances_to_pt, 
+                               columns=['dist'])    
+    #closest_POI = temp_df.groupby(np.arange(len(temp_df))//len(poi_node_ids)).min() #group by number of destinations and keep the min for each origin node
+    closest_POIs = temp_df.groupby(np.arange(len(temp_df))//len(poi_node_ids))
+    distances_df = closest_POIs['dist'].apply(lambda x: pd.Series(x.values)).unstack()
+    #distances_df = distances_df.to_frame()
+    distances_df_sorted = distances_df.apply(np.sort, axis = 1)
+    #distances_df_sorted = distances_df_sorted.to_frame()
+
+    print()
+    print('distances:')
+    print(distances_df_sorted.head())
+    #distances_df_sorted = pd.DataFrame.from_items(zip(distances_df_sorted.index, distances_df_sorted.values)).T
+    distances_df_sorted = pd.DataFrame(np.vstack(distances_df_sorted.T))
+
+    cols = range(5,len(distances_df_sorted.columns)) #keep first 5 smaller distances
+    distances_df_sorted.drop(distances_df_sorted.columns[cols],axis=1,inplace=True) 
+    distances_df_sorted.columns = ['distance_stop_' + str(i) for i in range(len(distances_df_sorted.columns))]
+    print('distances dataframe:')
+    print(distances_df_sorted.head())
+    print()
+    print('size of distance_df:')
+    print(len(distances_df_sorted.index))
+    print('size of X:')
+    print(len(X.index))
+
+    #print()
+    #print('first check')
+    #print(X['O_long'].isnull().values.any(),X['O_lat'].isnull().values.any(),X['D_long'].isnull().values.any(),X['D_lat'].isnull().values.any())
+    X = pd.merge(X, distances_df_sorted, on=X.index, how='outer')
+    X.drop(['key_0'], axis=1, inplace=True) # key_0 is added automatically by "merge", we need to drop it
+    pd.set_option('display.max_columns', None)
+    #print()
+    #print('second check')
+    #print(X['O_long'].isnull().values.any(),X['O_lat'].isnull().values.any(),X['D_long'].isnull().values.any(),X['D_lat'].isnull().values.any())
+    print(X)
 
     # Add TRANSIT
 
@@ -400,7 +531,6 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
             break
         else:
             cont=cont+1
-    print(X)
 
     def asignar_valor(row):
         if 1 <= row['Hora_Ini_E'] <= 12:
@@ -482,8 +612,7 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir):
 
     # Codify Mun_Ori y Mun_Des
     #aqui obtenemos los códigos  de cada pueblo 
-    #pueblos = pd.read_excel("../input_data/data_towns.xlsx")
-    pueblos = pd.read_excel(root_dir + "data_towns.xlsx")
+    pueblos = pd.read_excel(towns_path + "data_towns.xlsx")
     
     eliminar = ['Region', 'Latitud', 'Longitud', 'Comarca',            # -> original code
         'Altitud (m.s.n.m.)', 'Superficie (kmÂ²)', 'PoblaciÃ³n (2019)', # -> original code

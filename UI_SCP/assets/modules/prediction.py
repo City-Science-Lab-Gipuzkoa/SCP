@@ -36,14 +36,24 @@ def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
     #if baseline == 0:
     #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat'])) 
     #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking']))      
-    x = np.array(df.drop(columns = ['original_distance','Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking'], errors='ignore')) # errors='ignore' only for the Baseline scenario where we do not have the 'Coworking' column      
+    cols_to_drop = df.columns[df.columns.str.contains('distance_stop')]
+    # Drop the columns containing the string "Email"
+    df.drop(cols_to_drop, axis=1, inplace=True)
+    print()
+    print('inside predict')
+    print(df.head())  
+    print()
+    df = df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'original_distance','Rem_work','Coworking'], errors='ignore') # errors='ignore' only for the Baseline scenario where we do not have the 'Coworking' column      
+    print('After second dopr:')
+    print(df.head())
+    x = np.array(df) 
 
     y_pred = model.predict(x)
     gdf['prediction'] = y_pred
     gdf['Mode'] = gdf['prediction'].apply(categorize)
  
     gdf['CO2']  = gdf.apply(estimate_emissions, args=(gkm_car, gkm_bus, co2lt), axis=1)
-    gdf['CO2_worst_case']  = 5*gkm_car*co2lt*df['original_distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    gdf['CO2_worst_case']  = 5*gkm_car*co2lt*gdf['original_distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     gdf['distance']  = gdf['distance']*(5-gdf['Rem_work']) # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     #labels = ['walk', 'PT', 'car']
     #colors = ['#99ff66','#00ffff','#ff3300']
