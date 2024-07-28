@@ -134,7 +134,7 @@ app.layout = html.Div([
 """
 SIDEBAR_STYLE = {
     "position": "fixed",
-    "top": 50,
+    "top": 60,
     "left": 0,
     "bottom": 0,
     "width": "25rem",
@@ -151,14 +151,15 @@ SIDEBAR_STYLE = {
 # add some padding.
 
 CONTENT_STYLE = {
-    "margin-left": "5rem",
+    "margin-left": "10rem",
     "margin-right": "5rem",
 }
+
 
 INDICATORS_STYLE = {
     "background-color": "#f8f9fa",
     "position": "fixed",
-    "top": 50,
+    "top": 60,
     "right": 20,
     "bottom": 0,
     "width": "30rem",
@@ -332,10 +333,13 @@ central_panel_1 = html.Div(
                     children=[ dl.Map(
                                 [dl.ScaleControl(position="topright"),
                                  dl.LayersControl(
-                                        [dl.BaseLayer(dl.TileLayer(), name='base_map',checked='base_map')] +
-                                        [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", checked=False),
-                                         dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote", checked=False),
-                                         dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking", checked=False)], 
+                                        [dl.BaseLayer(dl.TileLayer(), name='CO2', checked='base_map'),
+                                         dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
+                                         dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
+                                         dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False)]  +
+                                        [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", id='markers_all_1', checked=False),
+                                         dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote", id='markers_remote_1', checked=False),
+                                         dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking", id='markers_cow_1', checked=False)], 
                                         id="lc_1"
                                         )
                                 ], 
@@ -441,7 +445,7 @@ indicators_1 = html.Div(
           html.Div([
               dcc.Graph(
                     #figure=px.bar(df, x='Km', y='Mode', orientation='h'), 
-                    figure=px.bar(df, x='distance', y='Mode', orientation='h', labels={'distance':'Total distance (km)'}, color = 'distance', title="Total distance share (km)"),
+                    figure=px.bar(df, x='distance', y='Mode', orientation='h', labels={'distance':'Max distance (km)'}, color = 'distance', title="Weekly distance share (km)"),
                     id="Km_share")         
               ])
 
@@ -903,7 +907,7 @@ def plot_result(result):
     temp = result.copy()
     temp['distance_km'] = temp['distance']/1000.
     #temp['original_distance'] = temp['original_distance']/1000.
-    fig2 = px.bar(temp, x='distance_km', y='Mode', orientation='h', labels={'distance_km':'Total distance (km)'}, color = 'distance_km', title="Total distance share (km)")
+    fig2 = px.bar(temp, x='distance_km', y='Mode', orientation='h', labels={'distance_km':'Max distance (km)'}, color = 'distance_km', title="Weekly distance share (km)")
 
     #children = [dl.TileLayer()]
     maxCO2 = result['CO2'].max()
@@ -953,20 +957,19 @@ def plot_result(result):
         except:
             pass
     #children.append(dl.ScaleControl(position="topright"))
-    children = [
+    children = [ dl.TileLayer(),
                 dl.ScaleControl(position="topright"),
                 dl.LayersControl(
-                                [dl.BaseLayer(dl.TileLayer(), name='base_map', checked='base_map')] +
-                                [dl.Overlay(dl.LayerGroup(markers_all_1), name="all_1", checked=True),
-                                 dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote_1", checked=True),
-                                 dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking_1", checked=True)], 
+                                [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
+                                 dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
+                                 dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
+                                 dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False)] +
+                                [dl.Overlay(dl.LayerGroup(markers_all_1), name="all_1", id= 'markers_all_1', checked=True),
+                                 dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote_1",id= 'markers_remote_1', checked=True),
+                                 dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking_1",id= 'markers_cow_1', checked=True)], 
                                 id="lc_1"
                                 )
                 ]
-
-    new_map = dl.Map(children, center=center, 
-                                     zoom=12,
-                                     id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
     new_map = dl.Map(children, center=center,
                                      zoom=12,                        
@@ -1127,6 +1130,8 @@ def run_MCM_baseline_callback(root_dir, workerData, TransH, Nclicks):
     return [out[0],out[1],out[2],out[3], scenario_json, True]
 
 
+
+
 @callback([
           Output('choose_remote_days_1', 'value',allow_duplicate=True),
           Output('choose_remote_workers_1', 'value',allow_duplicate=True),
@@ -1234,6 +1239,125 @@ def save_scenario(root_dir, NremDays, NremWork, StopsCoords, CowoFlags, Scen, Tr
         stops_and_cow_df.to_csv(stops_and_cow_file)
 
     return [True] 
+
+
+@callback([
+           Output('map_1','children',allow_duplicate=True)],
+           State('internal-value_scenario_1','data'),
+           Input('lc_1', "baseLayer"),
+           prevent_initial_call=True)
+def switch_layer(Scen, layer):
+
+    markers_all_1 = []
+    markers_remote_1 = []
+    markers_cow_1 = []
+    print('inside switch layer!')
+    if Scen:
+        print('inside if!')
+        print('layer ', layer)
+        scen_df = pd.DataFrame(Scen)
+        scen_df = geopandas.GeoDataFrame(
+                scen_df, geometry=geopandas.points_from_xy(scen_df.O_long, scen_df.O_lat), crs="EPSG:4326"
+                )
+
+        cont = 0
+        for i_pred in scen_df.itertuples():
+
+            if layer == "CO2":
+                maxCO2 = scen_df['CO2'].max()
+                maxCO2_worst_case = scen_df['CO2_worst_case'].max()
+                Total_CO2 = scen_df['CO2'].sum()
+                Total_CO2_worst_case = scen_df['CO2_worst_case'].sum()
+
+                color = generate_color_gradient(maxCO2_worst_case,i_pred.CO2) 
+                text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
+
+
+            elif layer == "CO2/CO2_aver":
+                maxCO2 = scen_df['CO2'].max()
+                maxCO2_worst_case = scen_df['CO2_worst_case'].max()
+                Total_CO2 = scen_df['CO2'].sum()
+                Total_CO2_worst_case = scen_df['CO2_worst_case'].sum()
+
+                color = generate_color_gradient(maxCO2_worst_case,2*i_pred.CO2) 
+                text = 'CO2: ' + '{0:.2f}'.format(2*i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
+
+            elif layer == "weighted_d":
+                maxCO2 = scen_df['CO2'].max()
+                maxCO2_worst_case = scen_df['CO2_worst_case'].max()
+                Total_CO2 = scen_df['CO2'].sum()
+                Total_CO2_worst_case = scen_df['CO2_worst_case'].sum()
+                color = generate_color_gradient(maxCO2_worst_case,3*i_pred.CO2) 
+                text = 'CO2: ' + '{0:.2f}'.format(3*i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
+
+            else:
+                maxCO2 = scen_df['CO2'].max()
+                maxCO2_worst_case = scen_df['CO2_worst_case'].max()
+                Total_CO2 = scen_df['CO2'].sum()
+                Total_CO2_worst_case = scen_df['CO2_worst_case'].sum()
+                color = generate_color_gradient(maxCO2_worst_case,3*i_pred.CO2) 
+                text = 'CO2: ' + '{0:.2f}'.format(3*i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
+
+
+            n_rw = int(i_pred.Rem_work)
+            text = text + '<br>' + 'Remote working: ' + (['Yes']*n_rw + ['No'])[n_rw-1]
+            try:
+                n_cw = int(i_pred.Coworking)
+            except:
+                n_cw = 0    
+            text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]  
+       
+            marker_i = dl.CircleMarker(
+                            id=str(i_pred.Index),
+                            children=[dl.Tooltip(content=text)],
+                            center=[i_pred.geometry.y, i_pred.geometry.x],
+                            radius=10,
+                            color=color,
+                            fill=True,
+                            fillColor=color,
+                            fillOpacity=1,
+                            )
+            #children.append(marker_i)
+            markers_all_1.append(marker_i)  
+            
+            try:
+                if  i_pred.Rem_work > 0.0:
+                    markers_remote_1.append(marker_i)
+            except:
+                pass
+    
+            try:
+                if  i_pred.Coworking > 0.0:
+                    markers_cow_1.append(marker_i)
+            except:
+                pass
+
+    Baselayer = [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
+                 dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
+                 dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
+                 dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False)]
+
+    OL1 = dl.LayerGroup(markers_all_1)
+    OL2 = dl.LayerGroup(markers_remote_1)
+    OL3 = dl.LayerGroup(markers_cow_1)
+  
+    children = [ dl.TileLayer(),
+                    dl.ScaleControl(position="topright"),
+                    dl.LayersControl(Baselayer +
+                                    [dl.Overlay(OL1, name="all", checked=True),
+                                     dl.Overlay(OL2, name="remote", checked=False),
+                                     dl.Overlay(OL3, name="coworking", checked=False)], 
+                                     id="lc_1"
+                                    )
+                    ]
+    new_map = dl.Map(children, center=center,
+                                        zoom=12,                        
+                                        id="map_1",
+                                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+        
+    return [new_map]
+    
+
 
 # Download files callbacks ###########################################
 @callback([Output("download_scenario_1", "data")],
