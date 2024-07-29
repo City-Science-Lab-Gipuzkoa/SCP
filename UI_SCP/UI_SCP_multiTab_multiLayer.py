@@ -333,7 +333,7 @@ central_panel_1 = html.Div(
                     children=[ dl.Map(
                                 [dl.ScaleControl(position="topright"),
                                  dl.LayersControl(
-                                        [dl.BaseLayer(dl.TileLayer(), name='CO2', checked='base_map'),
+                                        [dl.BaseLayer(dl.TileLayer(), name='CO2', checked='CO2'),
                                          dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
                                          dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
                                          dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False)]  +
@@ -445,7 +445,7 @@ indicators_1 = html.Div(
           html.Div([
               dcc.Graph(
                     #figure=px.bar(df, x='Km', y='Mode', orientation='h'), 
-                    figure=px.bar(df, x='distance', y='Mode', orientation='h', labels={'distance':'Max distance (km)'}, color = 'distance', title="Weekly distance share (km)"),
+                    figure=px.bar(df, x='distance', y='Mode', orientation='h', labels={'distance':'Total distance (km)'}, color = 'distance', title="Weekly distance share (km)"),
                     id="Km_share")         
               ])
 
@@ -840,7 +840,7 @@ def hex_to_rgb(hex_color):
     return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
 #def generate_color_gradient(CO2max,CO2_i, n_colors=256, n_min=0):
-def generate_color_gradient(CO2max,CO2_i):
+def generate_color_gradient(CO2max,CO2_i, label=0):
     #from  matplotlib.colors import ListedColormap, Normalize, LogNorm
     import matplotlib as mpl
 
@@ -860,11 +860,18 @@ def generate_color_gradient(CO2max,CO2_i):
         {"start": "F7DC6F", "end": "E74C3C"}
     ]
     """
-
-    ranges = [
-        {"start": "2ECC71", "end": "F4D03F"},
-        {"start": "F4D03F", "end": "C0392B"}
-    ]
+    if label==0:
+        ranges = [
+            {"start": "2ECC71", "end": "F4D03F"},
+            {"start": "F4D03F", "end": "C0392B"}
+        ]
+    """
+    elif label== 'Car':
+        ranges = [
+            {"start": "2ECC71", "end": "F4D03F"},
+            {"start": "F4D03F", "end": "C0392B"}
+        ]
+    """
     color_start_hex = ranges[0]["start"]
     color_end_hex = ranges[0]["end"]
     color_start_rgb = hex_to_rgb(color_start_hex)
@@ -906,8 +913,13 @@ def plot_result(result):
     
     temp = result.copy()
     temp['distance_km'] = temp['distance']/1000.
-    #temp['original_distance'] = temp['original_distance']/1000.
-    fig2 = px.bar(temp, x='distance_km', y='Mode', orientation='h', labels={'distance_km':'Max distance (km)'}, color = 'distance_km', title="Weekly distance share (km)")
+    temp = temp[['Mode','distance_km']]
+    Contribs = temp.groupby(['Mode']).sum()
+    #d = {'distance_km': , 'Mode': ['Car','PT','Walk']}
+    #temp = pd.DataFrame(data=Contribs)
+    Contribs = Contribs.reset_index()
+    print(Contribs.head())
+    fig2 = px.bar(Contribs, x='distance_km', y='Mode', orientation='h', labels={'distance_km':'Total distance (km)'}, color = 'distance_km', title="Weekly distance share (km)")
 
     #children = [dl.TileLayer()]
     maxCO2 = result['CO2'].max()
@@ -964,9 +976,9 @@ def plot_result(result):
                                  dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
                                  dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
                                  dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False)] +
-                                [dl.Overlay(dl.LayerGroup(markers_all_1), name="all_1", id= 'markers_all_1', checked=True),
-                                 dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote_1",id= 'markers_remote_1', checked=True),
-                                 dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking_1",id= 'markers_cow_1', checked=True)], 
+                                [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", id= 'markers_all_1', checked=True),
+                                 dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote",id= 'markers_remote_1', checked=True),
+                                 dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking",id= 'markers_cow_1', checked=True)], 
                                 id="lc_1"
                                 )
                 ]
@@ -1253,8 +1265,6 @@ def switch_layer(Scen, layer):
     markers_cow_1 = []
     print('inside switch layer!')
     if Scen:
-        print('inside if!')
-        print('layer ', layer)
         scen_df = pd.DataFrame(Scen)
         scen_df = geopandas.GeoDataFrame(
                 scen_df, geometry=geopandas.points_from_xy(scen_df.O_long, scen_df.O_lat), crs="EPSG:4326"
@@ -1274,29 +1284,19 @@ def switch_layer(Scen, layer):
 
 
             elif layer == "CO2/CO2_aver":
-                maxCO2 = scen_df['CO2'].max()
-                maxCO2_worst_case = scen_df['CO2_worst_case'].max()
-                Total_CO2 = scen_df['CO2'].sum()
-                Total_CO2_worst_case = scen_df['CO2_worst_case'].sum()
-
-                color = generate_color_gradient(maxCO2_worst_case,2*i_pred.CO2) 
-                text = 'CO2: ' + '{0:.2f}'.format(2*i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
+                maxCO2_worst_case = scen_df['CO2_worst_case_over_aver'].max()
+                color = generate_color_gradient(maxCO2_worst_case,i_pred.CO2_over_aver) 
+                text = 'CO2_over_EU_aver: ' + '{0:.2f}'.format(i_pred.CO2_over_aver) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
 
             elif layer == "weighted_d":
-                maxCO2 = scen_df['CO2'].max()
-                maxCO2_worst_case = scen_df['CO2_worst_case'].max()
-                Total_CO2 = scen_df['CO2'].sum()
-                Total_CO2_worst_case = scen_df['CO2_worst_case'].sum()
-                color = generate_color_gradient(maxCO2_worst_case,3*i_pred.CO2) 
-                text = 'CO2: ' + '{0:.2f}'.format(3*i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
+                max_worst_case = scen_df['weighted_d'].max()
+                color = generate_color_gradient(max_worst_case,i_pred.weighted_d) 
+                text = 'weighted_d: ' + '{0:.2f}'.format(i_pred.weighted_d) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
 
             else:
-                maxCO2 = scen_df['CO2'].max()
-                maxCO2_worst_case = scen_df['CO2_worst_case'].max()
-                Total_CO2 = scen_df['CO2'].sum()
-                Total_CO2_worst_case = scen_df['CO2_worst_case'].sum()
-                color = generate_color_gradient(maxCO2_worst_case,3*i_pred.CO2) 
-                text = 'CO2: ' + '{0:.2f}'.format(3*i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
+                max_worst_case = scen_df['weighted_n'].max()
+                color = generate_color_gradient(max_worst_case,i_pred.weighted_n) 
+                text = 'weighted_n: ' + '{0:.2f}'.format(i_pred.weighted_n) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
 
 
             n_rw = int(i_pred.Rem_work)
