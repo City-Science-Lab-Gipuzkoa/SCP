@@ -367,7 +367,7 @@ df = pd.DataFrame(data=d)
 indicators_1 = html.Div(
         [              
           #dbc.Button("Reset scenario (variables and files)", id='reset_scenario_1', n_clicks=0, style={"margin-top": "15px"}),
-          dbc.Button("Run baseline scenario", id='run_MCM_baseline_1', n_clicks=0, color="secondary", style={"margin-top": "15px"}),
+          #dbc.Button("Run baseline scenario", id='run_MCM_baseline_1', n_clicks=0, color="secondary", style={"margin-top": "15px"}),
           dbc.Row(
             [
                 dbc.Col(
@@ -865,26 +865,45 @@ def generate_color_gradient(CO2max,CO2_i, label=0):
             {"start": "2ECC71", "end": "F4D03F"},
             {"start": "F4D03F", "end": "C0392B"}
         ]
-    """
+        color_start_hex = ranges[0]["start"]
+        color_end_hex = ranges[0]["end"]
+        color_start_rgb = hex_to_rgb(color_start_hex)
+        color_end_rgb = hex_to_rgb(color_end_hex)
+        # Generate gradient
+        gradient1 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
+        color_start_hex = ranges[1]["start"]
+        color_end_hex = ranges[1]["end"]
+        color_start_rgb = hex_to_rgb(color_start_hex)
+        color_end_rgb = hex_to_rgb(color_end_hex)
+        # Generate gradient
+        gradient2 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
+        gradient = gradient1 + gradient2
+
     elif label== 'Car':
         ranges = [
-            {"start": "2ECC71", "end": "F4D03F"},
-            {"start": "F4D03F", "end": "C0392B"}
+            {"start": "F1948A", "end": "B03A2E"}
         ]
-    """
-    color_start_hex = ranges[0]["start"]
-    color_end_hex = ranges[0]["end"]
-    color_start_rgb = hex_to_rgb(color_start_hex)
-    color_end_rgb = hex_to_rgb(color_end_hex)
-    # Generate gradient
-    gradient1 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
-    color_start_hex = ranges[1]["start"]
-    color_end_hex = ranges[1]["end"]
-    color_start_rgb = hex_to_rgb(color_start_hex)
-    color_end_rgb = hex_to_rgb(color_end_hex)
-    # Generate gradient
-    gradient2 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
-    gradient = gradient1 + gradient2
+        color_start_hex = ranges[0]["start"]
+        color_end_hex = ranges[0]["end"]
+        color_start_rgb = hex_to_rgb(color_start_hex)
+        color_end_rgb = hex_to_rgb(color_end_hex)
+        # Generate gradient
+        gradient = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
+    
+    elif label== 'PT':
+        ranges = [
+            {"start": "D6EAF8", "end": "21618C"}
+        ]
+        color_start_hex = ranges[0]["start"]
+        color_end_hex = ranges[0]["end"]
+        color_start_rgb = hex_to_rgb(color_start_hex)
+        color_end_rgb = hex_to_rgb(color_end_hex)
+        # Generate gradient
+        gradient = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]    
+
+    else:
+        return '#2ECC71'
+    
 
     N = len(gradient)
 
@@ -900,17 +919,30 @@ def generate_color_gradient(CO2max,CO2_i, label=0):
 def plot_result(result):
     predicted = result['prediction']
     unique_labels, counts = np.unique(predicted, return_counts=True)
-    d = {'unique_labels': unique_labels, 'counts':counts}
-    df = pd.DataFrame(data=d)    
+    d = {'Mode': unique_labels, 'counts':counts}
+    df = pd.DataFrame(data=d)
+    df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'}) 
+    print()
+    print('df:')
+    print(df.head)
     #        'labels': df['unique_labels'],
+    """
     fig1 = {
         'data':[{
             'labels': ['Walk','PT','Car'],
             'values': df['counts'],
             'type': 'pie'
         }]
-    }
-    
+    }    
+    """
+    fig1 = px.pie(df, values='counts', names='Mode',color='Mode',
+                  color_discrete_map={'Car':'red',
+                                      'PT':'blue',
+                                      'Walk':'lightgreen'})
+    fig1.update_layout(showlegend=False)
+    fig1.update_layout(title_text='Transport share', title_x=0.5)
+
+
     temp = result.copy()
     temp['distance_km'] = temp['distance']/1000.
     temp = temp[['Mode','distance_km']]
@@ -922,18 +954,22 @@ def plot_result(result):
     fig2 = px.bar(Contribs, x='distance_km', y='Mode', orientation='h', labels={'distance_km':'Total distance (km)'}, color = 'distance_km', title="Weekly distance share (km)")
 
     #children = [dl.TileLayer()]
-    maxCO2 = result['CO2'].max()
-    maxCO2_worst_case = result['CO2_worst_case'].max()
+    #maxCO2 = result['CO2'].max()
+    #maxCO2_worst_case = result['CO2_worst_case'].max()
     Total_CO2 = result['CO2'].sum()
     Total_CO2_worst_case = result['CO2_worst_case'].sum()
     markers_all_1 = []
     markers_remote_1 = []
     markers_cow_1 = []
+    markers_comm_1 = []
     for i_pred in result.itertuples():
         #print(i_pred.geometry.y, i_pred.geometry.x)
         #color = generate_color_gradient(maxCO2,i_pred.CO2) 
         #color = generate_color_gradient(i_pred.CO2_worst_case,i_pred.CO2) 
-        color = generate_color_gradient(maxCO2_worst_case,i_pred.CO2) 
+        
+        maxCO2 = result.groupby("Mode")['CO2'].max()[i_pred.Mode]
+        color = generate_color_gradient(maxCO2,i_pred.CO2, i_pred.Mode) 
+        #color = generate_color_gradient(maxCO2_worst_case,i_pred.CO2, i_pred.Mode) 
         #print(color)
         #text = i_pred.Mode
         text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
@@ -968,6 +1004,11 @@ def plot_result(result):
                 markers_cow_1.append(marker_i)
         except:
             pass
+
+        
+    markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )
+
+
     #children.append(dl.ScaleControl(position="topright"))
     children = [ dl.TileLayer(),
                 dl.ScaleControl(position="topright"),
@@ -978,7 +1019,8 @@ def plot_result(result):
                                  dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False)] +
                                 [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", id= 'markers_all_1', checked=True),
                                  dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote",id= 'markers_remote_1', checked=True),
-                                 dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking",id= 'markers_cow_1', checked=True)], 
+                                 dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking",id= 'markers_cow_1', checked=True), 
+                                 dl.Overlay(dl.LayerGroup(markers_comm_1), name="home-headquarters",id= 'markers_comm_1', checked=True)], 
                                 id="lc_1"
                                 )
                 ]
@@ -1099,7 +1141,6 @@ def run_MCM_callback(root_dir, workerData, NremDays, NremWork, StopsCoords, Cowo
     print('Cow coords:')
     print(CowoCoords)
     
-    baseline = 0
     df = pd.DataFrame.from_dict(workerData)    
     result = run_MCM(df, root_dir, TransH, gkm_car, gkm_bus, co2lt, NremDays, NremWork, CowoCoords)    
     out = plot_result(result)
@@ -1108,7 +1149,7 @@ def run_MCM_callback(root_dir, workerData, NremDays, NremWork, StopsCoords, Cowo
     scenario_json = scenario.to_dict('records') # not working?
     return [out[0],out[1],out[2],out[3], scenario_json, True]
 
-
+"""
 @callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
            Output('Transport_share','figure',allow_duplicate=True),
            Output('Km_share','figure',allow_duplicate=True),
@@ -1140,7 +1181,7 @@ def run_MCM_baseline_callback(root_dir, workerData, TransH, Nclicks):
     default_values = [0,0,8,1./12,1.1,2.3,[],[]]
     #*default_values
     return [out[0],out[1],out[2],out[3], scenario_json, True]
-
+"""
 
 
 
@@ -1263,6 +1304,7 @@ def switch_layer(Scen, layer):
     markers_all_1 = []
     markers_remote_1 = []
     markers_cow_1 = []
+    markers_comm_1 = []
     print('inside switch layer!')
     if Scen:
         scen_df = pd.DataFrame(Scen)
@@ -1274,28 +1316,33 @@ def switch_layer(Scen, layer):
         for i_pred in scen_df.itertuples():
 
             if layer == "CO2":
-                maxCO2 = scen_df['CO2'].max()
-                maxCO2_worst_case = scen_df['CO2_worst_case'].max()
-                Total_CO2 = scen_df['CO2'].sum()
-                Total_CO2_worst_case = scen_df['CO2_worst_case'].sum()
+                #maxCO2 = scen_df['CO2'].max()
+                maxCO2 = scen_df.groupby("Mode")['CO2'].max()[i_pred.Mode]
 
-                color = generate_color_gradient(maxCO2_worst_case,i_pred.CO2) 
+                #color = generate_color_gradient(maxCO2_worst_case,i_pred.CO2, i_pred.Mode) 
+                color = generate_color_gradient(maxCO2,i_pred.CO2, i_pred.Mode)
+                if i_pred.Mode == 'PT':
+                    print('maxCO2: ',maxCO2)
+                    print('CO2: ',i_pred.CO2)
                 text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
 
 
             elif layer == "CO2/CO2_aver":
-                maxCO2_worst_case = scen_df['CO2_worst_case_over_aver'].max()
-                color = generate_color_gradient(maxCO2_worst_case,i_pred.CO2_over_aver) 
+                #maxCO2 = scen_df.groupby("Mode")['CO2_over_aver'].max()[i_pred.Mode]
+                #color = generate_color_gradient(maxCO2,i_pred.CO2_over_aver, i_pred.Mode)
+                color = generate_color_gradient(2,i_pred.CO2_over_aver, i_pred.Mode)  
                 text = 'CO2_over_EU_aver: ' + '{0:.2f}'.format(i_pred.CO2_over_aver) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
 
             elif layer == "weighted_d":
-                max_worst_case = scen_df['weighted_d'].max()
-                color = generate_color_gradient(max_worst_case,i_pred.weighted_d) 
+                #maxCO2 = scen_df.groupby("Mode")['weighted_d'].max()[i_pred.Mode]
+                #color = generate_color_gradient(maxCO2,i_pred.weighted_d, i_pred.Mode)
+                color = generate_color_gradient(2,i_pred.weighted_d, i_pred.Mode) 
                 text = 'weighted_d: ' + '{0:.2f}'.format(i_pred.weighted_d) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
 
-            else:
-                max_worst_case = scen_df['weighted_n'].max()
-                color = generate_color_gradient(max_worst_case,i_pred.weighted_n) 
+            else:            
+                #maxCO2 = scen_df.groupby("Mode")['weighted_n'].max()[i_pred.Mode] 
+                #color = generate_color_gradient(maxCO2,i_pred.weighted_d, i_pred.Mode)
+                color = generate_color_gradient(2,i_pred.weighted_d, i_pred.Mode)
                 text = 'weighted_n: ' + '{0:.2f}'.format(i_pred.weighted_n) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
 
 
@@ -1315,7 +1362,7 @@ def switch_layer(Scen, layer):
                             color=color,
                             fill=True,
                             fillColor=color,
-                            fillOpacity=1,
+                            fillOpacity=0.8,
                             )
             #children.append(marker_i)
             markers_all_1.append(marker_i)  
@@ -1332,6 +1379,8 @@ def switch_layer(Scen, layer):
             except:
                 pass
 
+            markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )      
+
     Baselayer = [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
                  dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
                  dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
@@ -1340,13 +1389,15 @@ def switch_layer(Scen, layer):
     OL1 = dl.LayerGroup(markers_all_1)
     OL2 = dl.LayerGroup(markers_remote_1)
     OL3 = dl.LayerGroup(markers_cow_1)
+    OL4 = dl.LayerGroup(markers_comm_1)
   
     children = [ dl.TileLayer(),
                     dl.ScaleControl(position="topright"),
                     dl.LayersControl(Baselayer +
                                     [dl.Overlay(OL1, name="all", checked=True),
                                      dl.Overlay(OL2, name="remote", checked=False),
-                                     dl.Overlay(OL3, name="coworking", checked=False)], 
+                                     dl.Overlay(OL3, name="coworking", checked=False),
+                                     dl.Overlay(OL4, name="home-headquarters", checked=False)], 
                                      id="lc_1"
                                     )
                     ]
