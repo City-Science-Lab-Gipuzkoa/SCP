@@ -988,10 +988,12 @@ def plot_result(result):
                         children=[dl.Tooltip(content=text)],
                         center=[i_pred.geometry.y, i_pred.geometry.x],
                         radius=10,
-                        color=color,
                         fill=True,
                         fillColor=color,
-                        fillOpacity=1,
+                        fillOpacity=1.0,                            
+                        stroke=True,
+                        weight = 2.0,
+                        color='black'
                         )
         #children.append(marker_i)
         markers_all_1.append(marker_i)  
@@ -1371,10 +1373,12 @@ def switch_layer(Scen, layer):
                             children=[dl.Tooltip(content=text)],
                             center=[i_pred.geometry.y, i_pred.geometry.x],
                             radius=10,
-                            color=color,
                             fill=True,
                             fillColor=color,
                             fillOpacity=1.0,
+                            stroke=True,
+                            weight = 2.0,
+                            color='black' 
                             )
             #children.append(marker_i)
             markers_all_1.append(marker_i)  
