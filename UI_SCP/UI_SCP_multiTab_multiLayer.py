@@ -336,7 +336,8 @@ central_panel_1 = html.Div(
                                         [dl.BaseLayer(dl.TileLayer(), name='CO2', checked='CO2'),
                                          dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
                                          dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
-                                         dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False)]  +
+                                         dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False),
+                                         dl.BaseLayer(dl.TileLayer(), name='Family type', checked=False)]  +
                                         [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", id='markers_all_1', checked=False),
                                          dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote", id='markers_remote_1', checked=False),
                                          dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking", id='markers_cow_1', checked=False)], 
@@ -1016,7 +1017,8 @@ def plot_result(result):
                                 [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
                                  dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
                                  dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
-                                 dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False)] +
+                                 dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False),
+                                 dl.BaseLayer(dl.TileLayer(), name='Family type', checked=False)] +
                                 [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", id= 'markers_all_1', checked=True),
                                  dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote",id= 'markers_remote_1', checked=True),
                                  dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking",id= 'markers_cow_1', checked=True), 
@@ -1312,7 +1314,6 @@ def switch_layer(Scen, layer):
                 scen_df, geometry=geopandas.points_from_xy(scen_df.O_long, scen_df.O_lat), crs="EPSG:4326"
                 )
 
-        cont = 0
         for i_pred in scen_df.itertuples():
 
             if layer == "CO2":
@@ -1339,15 +1340,33 @@ def switch_layer(Scen, layer):
                 color = generate_color_gradient(2,i_pred.weighted_d, i_pred.Mode) 
                 text = 'weighted_d: ' + '{0:.2f}'.format(i_pred.weighted_d) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
 
-            else:            
+            elif layer == "weighted_n":            
                 #maxCO2 = scen_df.groupby("Mode")['weighted_n'].max()[i_pred.Mode] 
                 #color = generate_color_gradient(maxCO2,i_pred.weighted_d, i_pred.Mode)
                 color = generate_color_gradient(2,i_pred.weighted_d, i_pred.Mode)
                 text = 'weighted_n: ' + '{0:.2f}'.format(i_pred.weighted_n) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
+                print()
+                print('color of weighted_n')
+                print(color)
+                print()
+            else:
+                #maxCO2 = scen_df.groupby("Mode")['weighted_n'].max()[i_pred.Mode] 
+                #color = generate_color_gradient(maxCO2,i_pred.weighted_d, i_pred.Mode)
 
+                family_types = ['Hogar de una persona', 'Otros hogares sin niños', '2 adultos',
+                                '2 adultos con niño(s)', '1 adulto con niño(s)',
+                                'Otros hogares con niños']
+                colors = generate_colors(len(family_types))
+                color = colors[i_pred.Tipo_familia-1]
+                text = 'Family type: ' + family_types[i_pred.Tipo_familia-1] + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
 
             n_rw = int(i_pred.Rem_work)
             text = text + '<br>' + 'Remote working: ' + (['Yes']*n_rw + ['No'])[n_rw-1]
+            print()
+            print(layer)
+            print(text)
+            print()
+
             try:
                 n_cw = int(i_pred.Coworking)
             except:
@@ -1362,7 +1381,7 @@ def switch_layer(Scen, layer):
                             color=color,
                             fill=True,
                             fillColor=color,
-                            fillOpacity=0.8,
+                            fillOpacity=1.0,
                             )
             #children.append(marker_i)
             markers_all_1.append(marker_i)  
@@ -1384,7 +1403,8 @@ def switch_layer(Scen, layer):
     Baselayer = [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
                  dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
                  dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
-                 dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False)]
+                 dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False),
+                 dl.BaseLayer(dl.TileLayer(), name='Family type', checked=False)]
 
     OL1 = dl.LayerGroup(markers_all_1)
     OL2 = dl.LayerGroup(markers_remote_1)
