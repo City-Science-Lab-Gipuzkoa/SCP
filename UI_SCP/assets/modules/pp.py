@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 
 t0 = time.time()
 
-def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
+def pp(hour,X, RouteOptDone, CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
 
     """
     feeds.add_feed(add_dict={'dbus': 'https://www.geo.euskadi.eus/cartografia/DatosDescarga/Transporte/Moveuskadi/ATTG/dbus/google_transit.zip'})
@@ -142,10 +142,12 @@ def pp(hour,X,CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
             cont=cont+1
 
 
-    if (os.path.isfile(network_filename)==False):
-
+    if (os.path.isfile(network_filename)==False) or RouteOptDone:
         print()
-        print('integrated network file not found! Generating a new one...')
+        print('-------------------------------------------')
+        print('Generating a new integrated network file...')
+        print('-------------------------------------------')
+        print()
         for timerange, nombre_archivo in zip(timeranges, nombres_archivos):
             
             filen = f'{nombre_archivo}'        

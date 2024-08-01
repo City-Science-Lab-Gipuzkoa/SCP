@@ -309,6 +309,7 @@ sidebar_1 =  html.Div(
         ),
 
         html.Div(id='outdata_1', style={"margin-top": "15px"}),   
+        dcc.Store(id='internal-value_route_opt_done_1', data=0),   
         dcc.Store(id='internal-value_stops_1', data=[]),
         dcc.Store(id='internal-value_coworking_1', data=[]),        
         dcc.Store(id='internal-value_routes_1', data=[]),        
@@ -1041,7 +1042,7 @@ def categorize_Mode(code):
     else:
         return 'PT'
     
-def run_MCM(trips_ez, root_Dir, Transh, gkm_car=1./12, gkm_bus=1.1, co2lt=2.3, NremDays=0, NremWork=0, CowCoords=None):
+def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, gkm_car=1./12, gkm_bus=1.1, co2lt=2.3, NremDays=0, NremWork=0, CowCoords=None):
     import pandas as pd
     import sys    
     root_dir = root_Dir
@@ -1068,7 +1069,7 @@ def run_MCM(trips_ez, root_Dir, Transh, gkm_car=1./12, gkm_bus=1.1, co2lt=2.3, N
                 'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] 
     trips_ez = trips_ez.drop(columns=eliminar)
     #trips_ez.head(10).to_csv(root_dir + workers_data_dir + 'example_workers_data.csv',index=False)
-    trips_ez=pp.pp(Transh,trips_ez, CowCoords, NremWork, NremDays, root_dir, MCM_data_dir) 
+    trips_ez=pp.pp(Transh,trips_ez, routeOptDone, CowCoords, NremWork, NremDays, root_dir, MCM_data_dir) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
     prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir)  
@@ -1122,6 +1123,7 @@ def toggle_collapse(n, is_open):
           State('worker_data_1', 'data'),
           State('choose_remote_days_1', 'value'),
           State('choose_remote_workers_1', 'value'),
+          State('internal-value_route_opt_done_1','data'),
           State('internal-value_stops_1','data'),
           State('internal-value_coworking_1','data'),
           State('choose_transp_hour_1','value'),
@@ -1131,7 +1133,7 @@ def toggle_collapse(n, is_open):
           ],
           Input('run_MCM_1', 'n_clicks'),
           prevent_initial_call=True)
-def run_MCM_callback(root_dir, workerData, NremDays, NremWork, StopsCoords, CowoFlags, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
+def run_MCM_callback(root_dir, workerData, NremDays, NremWork, RouteOptDone, StopsCoords, CowoFlags, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
     print('Cow. Flags:')
     print(CowoFlags)
     CowoIn = np.nonzero(CowoFlags)[0]
@@ -1144,7 +1146,7 @@ def run_MCM_callback(root_dir, workerData, NremDays, NremWork, StopsCoords, Cowo
     print(CowoCoords)
     
     df = pd.DataFrame.from_dict(workerData)    
-    result = run_MCM(df, root_dir, TransH, gkm_car, gkm_bus, co2lt, NremDays, NremWork, CowoCoords)    
+    result = run_MCM(df, root_dir, TransH, RouteOptDone, gkm_car, gkm_bus, co2lt, NremDays, NremWork, CowoCoords)    
     out = plot_result(result)
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
@@ -1723,6 +1725,7 @@ def choose_intervention(St,Cow,interv):
 
 
 @app.long_callback([Output("outdata_1", "children",allow_duplicate=True),
+               Output("internal-value_route_opt_done_1", 'data',allow_duplicate=True),
                Output('internal-value_routes_1','data',allow_duplicate=True),
                Output("choose_route_1", "options",allow_duplicate=True),
                Output('map_1','children',allow_duplicate=True)],
@@ -1782,6 +1785,7 @@ def calc_routes(Nroutes,St,Cow,CO2km, root_Dir, Nclick):
       print('Routes calculated!')
       #print(routes_points_coords)
       gGTFS.gGTFS(routes, Stops, Graph, root_dir)
+      route_opt = 1
       # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
       newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
@@ -1789,7 +1793,7 @@ def calc_routes(Nroutes,St,Cow,CO2km, root_Dir, Nclick):
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"}) 
       ###################################################################################################   
       #return ["Calculation completed!", routes_coords, new_menu, newMap]
-      return ["Calculation completed for: "+str(len(Stops)), routes_points_coords, new_menu, newMap]
+      return ["Calculation completed for: "+str(len(Stops)), route_opt, routes_points_coords, new_menu, newMap]
 
 
 @app.callback([Output('map_1','children',allow_duplicate=True)],
