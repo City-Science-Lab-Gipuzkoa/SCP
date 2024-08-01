@@ -334,7 +334,7 @@ central_panel_1 = html.Div(
                                 [dl.ScaleControl(position="topright"),
                                  dl.LayersControl(
                                         [dl.BaseLayer(dl.TileLayer(), name='CO2', checked='CO2'),
-                                         dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
+                                         dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_target', checked=False),
                                          dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
                                          dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False),
                                          dl.BaseLayer(dl.TileLayer(), name='Family type', checked=False)]  +
@@ -1015,7 +1015,7 @@ def plot_result(result):
                 dl.ScaleControl(position="topright"),
                 dl.LayersControl(
                                 [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
-                                 dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
+                                 dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_target', checked=False),
                                  dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
                                  dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False),
                                  dl.BaseLayer(dl.TileLayer(), name='Family type', checked=False)] +
@@ -1328,44 +1328,35 @@ def switch_layer(Scen, layer):
                 text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
 
 
-            elif layer == "CO2/CO2_aver":
+            elif layer == "CO2/CO2_target":
                 #maxCO2 = scen_df.groupby("Mode")['CO2_over_aver'].max()[i_pred.Mode]
                 #color = generate_color_gradient(maxCO2,i_pred.CO2_over_aver, i_pred.Mode)
-                color = generate_color_gradient(2,i_pred.CO2_over_aver, i_pred.Mode)  
-                text = 'CO2_over_EU_aver: ' + '{0:.2f}'.format(i_pred.CO2_over_aver) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
+                color = generate_color_gradient(1,i_pred.CO2_over_target, i_pred.Mode)  
+                text = 'CO2_over_2030_target: ' + '{0:.2f}'.format(i_pred.CO2_over_target) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'
 
             elif layer == "weighted_d":
                 #maxCO2 = scen_df.groupby("Mode")['weighted_d'].max()[i_pred.Mode]
                 #color = generate_color_gradient(maxCO2,i_pred.weighted_d, i_pred.Mode)
-                color = generate_color_gradient(2,i_pred.weighted_d, i_pred.Mode) 
+                color = generate_color_gradient(1,i_pred.weighted_d, i_pred.Mode) 
                 text = 'weighted_d: ' + '{0:.2f}'.format(i_pred.weighted_d) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
 
             elif layer == "weighted_n":            
                 #maxCO2 = scen_df.groupby("Mode")['weighted_n'].max()[i_pred.Mode] 
                 #color = generate_color_gradient(maxCO2,i_pred.weighted_d, i_pred.Mode)
-                color = generate_color_gradient(2,i_pred.weighted_d, i_pred.Mode)
+                color = generate_color_gradient(1,i_pred.weighted_d, i_pred.Mode)
                 text = 'weighted_n: ' + '{0:.2f}'.format(i_pred.weighted_n) + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
-                print()
-                print('color of weighted_n')
-                print(color)
-                print()
             else:
-                #maxCO2 = scen_df.groupby("Mode")['weighted_n'].max()[i_pred.Mode] 
-                #color = generate_color_gradient(maxCO2,i_pred.weighted_d, i_pred.Mode)
-
                 family_types = ['Hogar de una persona', 'Otros hogares sin niños', '2 adultos',
                                 '2 adultos con niño(s)', '1 adulto con niño(s)',
                                 'Otros hogares con niños']
                 colors = generate_colors(len(family_types))
                 color = colors[i_pred.Tipo_familia-1]
+                if i_pred.Tipo_familia in range(3) and i_pred.Mode == 'Car':
+                    color = '#C0392B'
                 text = 'Family type: ' + family_types[i_pred.Tipo_familia-1] + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance/1000) + ' Km'  
 
             n_rw = int(i_pred.Rem_work)
             text = text + '<br>' + 'Remote working: ' + (['Yes']*n_rw + ['No'])[n_rw-1]
-            print()
-            print(layer)
-            print(text)
-            print()
 
             try:
                 n_cw = int(i_pred.Coworking)
@@ -1401,7 +1392,7 @@ def switch_layer(Scen, layer):
             markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )      
 
     Baselayer = [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
-                 dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_aver', checked=False),
+                 dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_target', checked=False),
                  dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
                  dl.BaseLayer(dl.TileLayer(), name='weighted_n', checked=False),
                  dl.BaseLayer(dl.TileLayer(), name='Family type', checked=False)]

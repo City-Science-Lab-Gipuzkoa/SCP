@@ -28,7 +28,7 @@ def calculate_indicator_d(df):
         mask = [s for s in mask if "distance_stop" in s]
         min_dist = df[mask].min()
         den = 1 + min_dist/300 # at d=300 meters, temp = 1.5
-        temp = df['CO2_over_aver']*(1+1/den) 
+        temp = df['CO2_over_target']*(1+1/den) 
         return temp         
 
 def calculate_indicator_n(df):
@@ -36,7 +36,7 @@ def calculate_indicator_n(df):
         mask = [s for s in mask if "distance_stop" in s]
         thr = 500
         n = (df[mask] < thr).values.sum() # number of stops closer than thr
-        return df['CO2_over_aver']*(1 + n/3.)      
+        return df['CO2_over_target']*(1 + n/3.)      
 
 
 def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
@@ -63,13 +63,14 @@ def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
     gdf['Mode'] = gdf['prediction'].apply(categorize)
  
     gdf['CO2']  = gdf.apply(estimate_emissions, args=(gkm_car, gkm_bus, co2lt), axis=1)
-    CO2_aver_europe = 5.37 # aver. ton per person in 2021
+    #CO2_aver_europe = 5.37 # aver. ton per person in 2021
+    CO2_target = 2.3 # target CO2 ton per person in 2030    
     n_weeks = 52 # weeks in one year
     print('columns names:')
     print(gdf.columns.values)
-    gdf['CO2_over_aver'] = gdf['CO2']/(CO2_aver_europe*1000/n_weeks) 
+    gdf['CO2_over_target'] = gdf['CO2']/(CO2_target*1000/n_weeks) 
     gdf['CO2_worst_case']  = 5*gkm_car*co2lt*gdf['original_distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
-    gdf['CO2_worst_case_over_aver'] = gdf['CO2_worst_case']/(CO2_aver_europe*1000/n_weeks) 
+    gdf['CO2_worst_case_over_target'] = gdf['CO2_worst_case']/(CO2_target*1000/n_weeks) 
     gdf['distance']  = gdf['distance']*(5-gdf['Rem_work']) # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     gdf['weighted_d']  = gdf.apply(calculate_indicator_d, axis=1)
     gdf['weighted_n']  = gdf.apply(calculate_indicator_n, axis=1)
