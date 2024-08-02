@@ -117,7 +117,9 @@ custom_icon_coworking = dict(
 )
 
 server = Flask(__name__)
-app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
+#app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
+app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME, dbc.icons.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
+
 #app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP],prevent_initial_callbacks=True)
 
 """
@@ -202,15 +204,44 @@ interventions = [{'label': 'Company transportation', 'value': 'CT'},
 
 choose_transp_hour = [{'label': "{:02d}".format(i) + ':00' + '-' + "{:02d}".format(i+1) + ':00', 'value': i} for i in range(24)] 
 
+
+#btn_text = html.Div('Load and visualize data')
+#plus_icon = html.I(className="fas fa-plus", style = dict(display='inline-block'))
+#btn1_content = html.Span([btn_text, plus_icon])
+
+"""
+        dbc.Button(
+            "Load and visualize data",
+            id="Load_data_button_1",
+            className="bm-3",
+            color="primary",
+            size="lg",
+            n_clicks=0
+        ),
+
+        dbc.Button(
+            "Select type of intervention",
+            id="Intervention_type_button_1",
+            className="mb-3",
+            color="primary",
+            size="lg",
+            n_clicks=0,
+        ),
+
+"""
 sidebar_1 =  html.Div(
        [
         dbc.Button(
-            "Load and visualize data",
+            ['Load data ',html.I(className="fas fa-plus-circle")],
             id="Load_data_button_1",
             className="mb-3",
             color="primary",
             size="lg",
             n_clicks=0,
+            style={
+                    "cursor": "pointer",
+                    "display": "inline-block",
+                    },
         ),
         dbc.Collapse([
             dcc.Upload(
@@ -251,16 +282,22 @@ sidebar_1 =  html.Div(
             id="Load_data_panel_1",
             is_open=False,
         ),
+        html.Br(),        
         dcc.Store(id='worker_data_1', data=[]),
         dcc.Store(id='root_dir_1', data = root_dir),
         html.Br(),
+
         dbc.Button(
-            "Select type of intervention",
+            ['Select type of intervention ',html.I(className="fas fa-plus-circle")],
             id="Intervention_type_button_1",
             className="mb-3",
             color="primary",
             size="lg",
             n_clicks=0,
+            style={
+                    "cursor": "pointer",
+                    "display": "inline-block",
+                    },
         ),
         dbc.Collapse([
             dcc.Dropdown(interventions, multi=False,style={"margin-top": "15px"}, id='choose_intervention_1'),
@@ -271,6 +308,74 @@ sidebar_1 =  html.Div(
            id="Intervention_type_panel_1",
             is_open=False,
         ),
+        
+        html.Br(),
+        dbc.Row(
+            [
+                dbc.Col(
+                    html.Div(html.P(['Choose time'],style={"font-weight": "bold"})),
+                    style={"margin-top": "15px"},
+                    width="auto"
+                ),                
+                dbc.Col(
+                    html.Div(dcc.Dropdown(choose_transp_hour, multi=False, id='choose_transp_hour_1')),
+                    style={"margin-top": "15px"},
+                    width=6
+                ),
+                dbc.Col(
+                    html.Div(dcc.Loading(html.Div(id="running_MCM1"), id="loading-component_MCM_1")),
+                    style={"margin-top": "15px"},
+                    width="auto"
+                ),
+                dbc.Col(
+                    html.Div(dbc.Button("Run scenario", 
+                                        id="run_MCM_1",
+                                        className="mb-3",
+                                        size="lg",
+                                        n_clicks=0,
+                                        disabled=False, 
+                                        color='warning')
+                                        ),
+                    style={"margin-top": "15px"},
+                    width="auto"
+                )
+            ]
+          ),
+          dbc.Row(
+            [ 
+                #dbc.Col(
+                #    html.Div(dbc.Button("Save scenario", id='save_scenario_1', n_clicks=0)),
+                #    style={"margin-top": "15px"},
+                #    width="auto"
+                #),                
+                dbc.Col(
+                    html.Div(
+                              dcc.Upload(id='load-scenario_1',
+                                         children=html.Div([
+                                         dbc.Button('Load scenario')
+                                        ]),
+                                        # Allow multiple files to be uploaded
+                                        multiple=True
+                                        )
+                    ),
+                    style={"margin-top": "15px"},
+                    width='auto'
+                ),
+
+                dbc.Col(
+                    html.Div([
+                            dbc.Button("Download scenario", id='button_download_scenario_1', n_clicks=0),
+                            Download(id="download_scenario_1"),
+                            Download(id="download_inputs_1"),
+                            Download(id="download_StopsCowHubs_1")
+                            ]),
+                            style={"margin-top": "15px"},
+                            width="auto"
+                ),  
+
+            ]
+          ),
+
         html.Br(),
         dbc.Button(
             "Advanced settings",
@@ -370,64 +475,6 @@ indicators_1 = html.Div(
         [              
           #dbc.Button("Reset scenario (variables and files)", id='reset_scenario_1', n_clicks=0, style={"margin-top": "15px"}),
           #dbc.Button("Run baseline scenario", id='run_MCM_baseline_1', n_clicks=0, color="secondary", style={"margin-top": "15px"}),
-          dbc.Row(
-            [
-                dbc.Col(
-                    html.Div(html.P(['Choose trip time'],style={"font-weight": "bold"})),
-                    style={"margin-top": "15px"},
-                    width="auto"
-                ),                
-                dbc.Col(
-                    html.Div(dcc.Dropdown(choose_transp_hour, multi=False, id='choose_transp_hour_1')),
-                    style={"margin-top": "15px"},
-                    width=4
-                ),
-                dbc.Col(
-                    html.Div(dcc.Loading(html.Div(id="running_MCM1"), id="loading-component_MCM_1")),
-                    style={"margin-top": "15px"},
-                    width="auto"
-                ),
-                dbc.Col(
-                    html.Div(dbc.Button("Run new scenario", id="run_MCM_1", n_clicks=0, disabled=False)),
-                    style={"margin-top": "15px"},
-                    width="auto"
-                )
-            ]
-          ),
-          dbc.Row(
-            [ 
-                #dbc.Col(
-                #    html.Div(dbc.Button("Save scenario", id='save_scenario_1', n_clicks=0)),
-                #    style={"margin-top": "15px"},
-                #    width="auto"
-                #),                
-                dbc.Col(
-                    html.Div(
-                              dcc.Upload(id='load-scenario_1',
-                                         children=html.Div([
-                                         dbc.Button('Load scenario')
-                                        ]),
-                                        # Allow multiple files to be uploaded
-                                        multiple=True
-                                        )
-                    ),
-                    style={"margin-top": "15px"},
-                    width='auto'
-                ),
-
-                dbc.Col(
-                    html.Div([
-                            dbc.Button("Download scenario", id='button_download_scenario_1', n_clicks=0),
-                            Download(id="download_scenario_1"),
-                            Download(id="download_inputs_1"),
-                            Download(id="download_StopsCowHubs_1")
-                            ]),
-                            style={"margin-top": "15px"},
-                            width="auto"
-                ),  
-
-            ]
-          ),
           html.Div([
              daq.Gauge(
              color={"gradient":True,"ranges":{"green":[0,0.333],"yellow":[0.333,0.666],"red":[0.666,1.0]}},
