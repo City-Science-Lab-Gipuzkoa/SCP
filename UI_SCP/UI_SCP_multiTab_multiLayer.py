@@ -300,12 +300,17 @@ sidebar_1 =  html.Div(
                id='n_clusters_1',
                marks=None,
                tooltip={"placement": "bottom", "always_visible": True}
-            )  
+            ),
+            html.Br(),   
+            html.Div([
+                      dbc.Button("Download data template", id="button_download_template_1", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),               
+                      Download(id="download_template_1"),
+                    ])
             ],
             id="Load_data_panel_1",
             is_open=False,
         ),
-        html.Br(),        
+        html.Br(),                    
         dcc.Store(id='worker_data_1', data=[]),
         dcc.Store(id='root_dir_1', data = root_dir),
         html.Br(),
@@ -330,7 +335,7 @@ sidebar_1 =  html.Div(
             html.Div(id='sidebar_intervention_1', style={"margin-top": "15px"})
             ],
            id="Intervention_type_panel_1",
-            is_open=False,
+           is_open=False,
         ),
         
         html.Br(),
@@ -1042,8 +1047,11 @@ def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, gkm_car=1./12, gkm_bus=1.1
   
     eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio',
                 'Motos','Actividad','Año','Recur', 'Income', 'Income_Percentile'] 
-    trips_ez = trips_ez.drop(columns=eliminar)
-    #trips_ez.head(10).to_csv(root_dir + workers_data_dir + 'example_workers_data.csv',index=False)
+    try:
+        trips_ez = trips_ez.drop(columns=eliminar)
+    except:
+        pass
+    #trips_ez.head(10).to_csv(root_dir + workers_data_dir + 'template_workers_data.csv',index=False)
     trips_ez=pp.pp(Transh,trips_ez, routeOptDone, CowCoords, NremWork, NremDays, root_dir, MCM_data_dir) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
@@ -1293,6 +1301,12 @@ def save_scenario(root_dir, NremDays, NremWork, StopsCoords, CowoFlags, Scen, Tr
            prevent_initial_call=True)
 def switch_layer(Scen, layer):
 
+    #custom_icon_remote = dict(
+    #iconUrl= "https://imgur.com/ebj6ogp",
+    #iconSize=[10,10],
+    #iconAnchor=[0, 0]
+    #)   
+
     markers_all_1 = []
     markers_remote_1 = []
     markers_cow_1 = []
@@ -1371,12 +1385,16 @@ def switch_layer(Scen, layer):
             
             try:
                 if  i_pred.Rem_work > 0.0:
+                    #marker_i = dl.Marker(dl.Tooltip(""), position=(i_pred.geometry.y, i_pred.geometry.x), icon=custom_icon_remote, id={'type': 'marker', 'index': str(i_pred.Index)})    
+                    #markers.append(tmp)  
                     markers_remote_1.append(marker_i)
             except:
                 pass
     
             try:
                 if  i_pred.Coworking > 0.0:
+
+
                     markers_cow_1.append(marker_i)
             except:
                 pass
@@ -1414,6 +1432,18 @@ def switch_layer(Scen, layer):
 
 
 # Download files callbacks ###########################################
+# Download files callbacks ###########################################
+@callback([Output("download_template_1", "data")],
+          [State('root_dir_1','data')],
+          Input('button_download_template_1', 'n_clicks'),
+          prevent_initial_call=True)
+def download_template(rootDir, Nclicks):
+    tmpFile = rootDir + 'data/template_data.csv'
+    template_df = pd.read_csv(tmpFile)  
+    return [send_data_frame(template_df.to_csv, "template_input_data.csv", index=False)]
+
+
+
 @callback([Output("download_scenario_1", "data")],
           [
           State('internal-value_scenario_1','data')],
@@ -1435,7 +1465,7 @@ def download_scenario(Scen, Nclicks):
           State('choose_CO2_lt_1','value')],
           Input('button_download_scenario_1', 'n_clicks'),
           prevent_initial_call=True)
-def download_scenario(NremDays, NremWork, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
+def download_inputs(NremDays, NremWork, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
     inputs_dict = {'NremDays': NremDays, 'NremWork':NremWork, 
                    'TransH': TransH, 'gkm_car': gkm_car, 
                    'gkm_bus': gkm_bus, 'co2lt': co2lt
@@ -1453,7 +1483,7 @@ def download_scenario(NremDays, NremWork, TransH, gkm_car, gkm_bus, co2lt, Nclic
           State('internal-value_coworking_1','data')],
           Input('button_download_scenario_1', 'n_clicks'),
           prevent_initial_call=True)
-def download_scenario(StopsCoords, CowoFlags, Nclicks):
+def download_stops(StopsCoords, CowoFlags, Nclicks):
     if len(StopsCoords)>0:
         lats, lons = map(list, zip(*StopsCoords))
         stops_and_cow_df = pd.DataFrame(np.column_stack([lats, lons, CowoFlags]), 
@@ -1637,8 +1667,7 @@ def show_workers(n_clusters,workerData, N):
     return [newMap]
 
 
-@app.callback([Output('sidebar_intervention_1','children',allow_duplicate=True), 
-               Output('run_MCM_1','disabled')],
+@app.callback([Output('sidebar_intervention_1','children',allow_duplicate=True)],
               State('internal-value_stops_1','data'),
               State('internal-value_coworking_1','data'),
               Input('choose_intervention_1',"value"),
@@ -1674,14 +1703,14 @@ def choose_intervention(St,Cow,interv):
             dcc.Dropdown(routes, multi=False,style={"margin-top": "15px"},id='choose_route_1'),
             dbc.Button("Visualize routes", id="visualize_routes_1", n_clicks=0,style={"margin-top": "15px"}),
             html.Br(),               
-            html.Div(id='outdata', style={"margin-top": "15px"}),
+            html.Div(id='outdata_1', style={"margin-top": "15px"}),
             dcc.Store(id='internal-value_stops_1', data=St),
             dcc.Store(id='internal-value_coworking_1', data=Cow),        
             dcc.Store(id='internal-value_routes_1', data=[]),        
             dcc.Store(id='internal-value_scenario_1', data=[])
             ])       
         
-        return [sidebar_transport,True]
+        return [sidebar_transport]
 
     if interv == 'RW':         
         
@@ -1710,7 +1739,7 @@ def choose_intervention(St,Cow,interv):
                 ])        
 
         
-        return [sidebar_remote_work,False]
+        return [sidebar_remote_work]
 
 
 
