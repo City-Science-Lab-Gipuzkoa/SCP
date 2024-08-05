@@ -157,6 +157,11 @@ CONTENT_STYLE = {
     "margin-right": "5rem",
 }
 
+CONTENT_STYLE_2 = {
+    "margin-left": "0rem",
+    "margin-right": "5rem",
+}
+
 
 INDICATORS_STYLE = {
     "background-color": "#f8f9fa",
@@ -167,6 +172,17 @@ INDICATORS_STYLE = {
     "width": "30rem",
     "overflow": "scroll"    
 }
+
+INDICATORS_STYLE_2 = {
+    "background-color": "#f8f9fa",
+    "position": "fixed",
+    "top": 60,
+    "right": 20,
+    "bottom": 0,
+    "width": "60rem",
+    "overflow": "scroll"    
+}
+
 """
     "position": "fixed",
     "top": 0,
@@ -229,10 +245,16 @@ choose_transp_hour = [{'label': "{:02d}".format(i) + ':00' + '-' + "{:02d}".form
         ),
 
 """
+
+Step_1_text="Step 1:\nLoad data and visualize data "
+Step_2_text="Step 2:\nSelect type of intervention "
+Step_3_text="Step 3:\nChoose time "
+Step_4_text="Step 4: Run scenario"
+
 sidebar_1 =  html.Div(
        [
         dbc.Button(
-            ['Load data ',html.I(className="fas fa-plus-circle")],
+            [Step_1_text,html.I(className="fas fa-plus-circle")],
             id="Load_data_button_1",
             className="mb-3",
             color="primary",
@@ -241,6 +263,7 @@ sidebar_1 =  html.Div(
             style={
                     "cursor": "pointer",
                     "display": "inline-block",
+                    "white-space": "pre",
                     },
         ),
         dbc.Collapse([
@@ -288,7 +311,7 @@ sidebar_1 =  html.Div(
         html.Br(),
 
         dbc.Button(
-            ['Select type of intervention ',html.I(className="fas fa-plus-circle")],
+            [Step_2_text, html.I(className="fas fa-plus-circle")],
             id="Intervention_type_button_1",
             className="mb-3",
             color="primary",
@@ -297,6 +320,7 @@ sidebar_1 =  html.Div(
             style={
                     "cursor": "pointer",
                     "display": "inline-block",
+                    "white-space": "pre",
                     },
         ),
         dbc.Collapse([
@@ -313,7 +337,8 @@ sidebar_1 =  html.Div(
         dbc.Row(
             [
                 dbc.Col(
-                    html.Div(html.P(['Choose time'],style={"font-weight": "bold"})),
+                    html.Div(html.P([Step_3_text],style={"font-weight": "bold",
+                                                         "white-space": "pre"})),
                     style={"margin-top": "15px"},
                     width="auto"
                 ),                
@@ -328,14 +353,14 @@ sidebar_1 =  html.Div(
                     width="auto"
                 ),
                 dbc.Col(
-                    html.Div(dbc.Button("Run scenario", 
+                    html.Div(dbc.Button(Step_4_text, 
                                         id="run_MCM_1",
                                         className="mb-3",
                                         size="lg",
                                         n_clicks=0,
                                         disabled=False, 
-                                        color='warning')
-                                        ),
+                                        color='warning'),
+                                        style={"white-space": "pre"}),
                     style={"margin-top": "15px"},
                     width="auto"
                 )
@@ -382,7 +407,6 @@ sidebar_1 =  html.Div(
             id="Advanced_settings_button_1",
             className="mb-3",
             color="primary",
-            size="lg",
             n_clicks=0,
         ),
         dbc.Collapse([
@@ -418,7 +442,9 @@ sidebar_1 =  html.Div(
         dcc.Store(id='internal-value_stops_1', data=[]),
         dcc.Store(id='internal-value_coworking_1', data=[]),        
         dcc.Store(id='internal-value_routes_1', data=[]),        
-        dcc.Store(id='internal-value_scenario_1', data=[])
+        dcc.Store(id='internal-value_scenario_1', data=[]),        
+        dcc.Store(id='internal-value_remote_days_1', data=0),        
+        dcc.Store(id='internal-value_remote_workers_1', data=0)
         ],
         id='sidebar_1',
         style=SIDEBAR_STYLE)
@@ -468,9 +494,14 @@ df = px.data.tips()
 fig = px.pie(df, values='tip', names='day')
 fig.update_layout(showlegend=False)
 fig.update_layout(title_text='Transport share', title_x=0.5)
+#fig.update_layout(
+#    margin=dict(l=100, r=100, t=5, b=5)
+#)
+#fig.update_layout(width=int(100))
 
 d = {'distance': [100, 50, 2], 'Mode': ['Car','PT','Walk']}
 df = pd.DataFrame(data=d)
+#              style = {"margin-top": "20px","font-weight": "bold",'height': '30vh'},
 indicators_1 = html.Div(
         [              
           #dbc.Button("Reset scenario (variables and files)", id='reset_scenario_1', n_clicks=0, style={"margin-top": "15px"}),
@@ -479,23 +510,25 @@ indicators_1 = html.Div(
              daq.Gauge(
              color={"gradient":True,"ranges":{"green":[0,0.333],"yellow":[0.333,0.666],"red":[0.666,1.0]}},
              value=0.3,
+             size = 140,
              label={'label':'CO2 emissions', 'style':{'font-size':'18px',"font-weight": "bold"}},
-             style = {"margin-top": "20px","font-weight": "bold"},
              max=1,
              min=0,
-             id='CO2_gauge_1')
+             id='CO2_gauge_1',
+             style={'width': '40vh', 'height': '25vh'})
              ]),
           html.Div([
               dcc.Graph(
                 figure=fig, 
-                id='Transport_share')
+                id='Transport_share',
+                style={'width': '40vh', 'height': '30vh'})
             ]),
-
           html.Div([
               dcc.Graph(
                     #figure=px.bar(df, x='Km', y='Mode', orientation='h'), 
                     figure=px.bar(df, x='distance', y='Mode', orientation='h', labels={'distance':'Total distance (km)'}, color = 'distance', title="Weekly distance share (km)"),
-                    id="Km_share")         
+                    id="Km_share",
+                    style={'width': '60vh', 'height': '40vh'})       
               ])
 
         ],
@@ -513,64 +546,6 @@ indicators_1 = html.Div(
                 }
 
 """
-sidebar2 =  html.Div(
-       [
-        html.P(['Import worker file'],id='import_text2',style={"margin-top": "15px","font-weight": "bold"}),
-        dcc.Upload(
-             id='upload-data2',
-             children=html.Div([
-                       html.A('Import Files')
-                       ]),
-             style={
-                  'width': '100%',
-                  'height': '60px',
-                  'lineHeight': '60px',
-                  'borderWidth': '1px',
-                  'borderStyle': 'dashed',
-                  'borderRadius': '5px',
-                  'textAlign': 'center',
-                  'margin': '10px'
-                  },
-             # Allow multiple files to be uploaded
-             multiple=True
-        ),
-        dcc.Store(id='worker_data2', data=[]),
-        dcc.Store(id='root_dir2', data = root_dir),
-        dbc.Button("Visualize clusters of workers", id="show_workers2", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
-        html.Br(),        
-        html.P([ html.Br(),'Choose number of clusters'],id='cluster_num2',style={"margin-top": "15px","font-weight": "bold"}),        
-        dbc.Popover(
-                  dbc.PopoverBody(mouse_over_mess_clusters), 
-                  target="n_clusters",
-                  body=True,
-                  trigger="hover",style = {'font-size': 12, 'line-height':'2px'},
-                  placement= 'right',
-                  is_open=False),
-        #dcc.Input(id="n_clusters", type="text", value='19'),
-        dcc.Slider(1, 30, 1,
-               value=19,
-               id='n_clusters2',
-               marks=None,
-               tooltip={"placement": "bottom", "always_visible": True}
-            ) , 
-        html.Br(),
-        html.P([ html.Br(),'Select type of interventions'],id='intervention_select2',style={"margin-top": "15px", "font-weight": "bold"}),
-        html.Br(),
-        dcc.Dropdown(interventions, multi=False,style={"margin-top": "15px"}, id='choose_intervention2'),
-        html.P([ html.Br(),'Select action for markers'],id='action_select2',style={"margin-top": "15px", "font-weight": "bold"}),
-        dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action2'),           
-        html.Div([
-                 html.Div(id='outdata2', style={"margin-top": "15px"}),   
-                 dcc.Store(id='internal-value_stops2', data=[]),
-                 dcc.Store(id='internal-value_coworking2', data=[]),        
-                 dcc.Store(id='internal-value_routes2', data=[]),        
-                 dcc.Store(id='internal-value_scenario2', data=[])
-                 ],
-                 id='sidebar_intervention2', style={"margin-top": "15px"})
-        ],
-       id='sidebar2',
-       style=SIDEBAR_STYLE)
-
 
 central_panel2 = html.Div(
        [
@@ -592,7 +567,7 @@ central_panel2 = html.Div(
                     show_initially=False
                     )
     ],
-    style=CONTENT_STYLE)
+    style=CONTENT_STYLE_2)
 
 
 # plot test data
@@ -600,78 +575,13 @@ df = px.data.tips()
 fig = px.pie(df, values='tip', names='day')
 fig.update_layout(showlegend=False)
 fig.update_layout(title_text='Transport share', title_x=0.5)
+d = {'distance': [100, 50, 2], 'Mode': ['Car','PT','Walk']}
+df = pd.DataFrame(data=d)
+
 indicators2 = html.Div(
         [     
-          html.P([ html.Br(),'Liters of gasoline per kilometer (car)'],id='gas_km_car2',style={"margin-top": "15px","font-weight": "bold"}),
-          dcc.Slider(0, 5,0.02,
-               value=1./12,
-               id='choose_gas_km_car2',
-               marks=None,
-               tooltip={"placement": "bottom", "always_visible": True}
-          ) ,                   
-          html.P([ html.Br(),'Liters of gasoline per kilometer (bus)'],id='gas_km_bus2',style={"margin-top": "15px","font-weight": "bold"}),
-          dcc.Slider(0, 10,0.05,
-               value=1.12,
-               id='choose_gas_km_bus2',
-               marks=None,
-               tooltip={"placement": "bottom", "always_visible": True}
-          ) ,                    
-          html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt2',style={"margin-top": "15px","font-weight": "bold"}),
-          #dcc.Input(id="choose_CO2_lt", type="text", value='2.3', style={"margin-bottom": "15px"}),             
-          dcc.Slider(0, 10,0.05,
-               value=2.3,
-               id='choose_CO2_lt2',
-               marks=None,
-               tooltip={"placement": "bottom", "always_visible": True}
-          ),
           html.Br(),          
-          dbc.Button("Reset scenario (variables and files)", id='reset_scenario2', n_clicks=0, style={"margin-top": "15px"}),
-          dbc.Row(
-            [
-                dbc.Col(
-                    html.Div(html.P(['Choose trip time'],style={"font-weight": "bold"})),
-                    style={"margin-top": "15px"},
-                    width="auto"
-                ),                
-                dbc.Col(
-                    html.Div(dcc.Dropdown(choose_transp_hour, multi=False, id='choose_transp_hour2')),
-                    style={"margin-top": "15px"},
-                    width=4
-                ),
-                dbc.Col(
-                    html.Div(dcc.Loading(html.Div(id="running_MCM2"), id="loading-component_MCM2")),
-                    style={"margin-top": "15px"},
-                    width="auto"
-                ),
-                dbc.Col(
-                    html.Div(dbc.Button("Run simulation", id="run_MCM2", n_clicks=0, disabled=False)),
-                    style={"margin-top": "15px"},
-                    width="auto"
-                )
-            ]
-          ),
-          dbc.Row(
-            [ 
-                dbc.Col(
-                    html.Div(dbc.Button("Save scenario", id='save_scenario2', n_clicks=0)),
-                    style={"margin-top": "15px"},
-                    width="auto"
-                ),                
-                dbc.Col(
-                    html.Div(
-                              dcc.Upload(id='load-scenario2',
-                                         children=html.Div([
-                                         dbc.Button('Load scenario')
-                                        ]),
-                                        # Allow multiple files to be uploaded
-                                        multiple=True
-                                        )
-                    ),
-                    style={"margin-top": "15px"},
-                    width='auto'
-                )
-            ]
-          ),
+          dbc.Button("Compare scenarios", id='compare_scenarios', n_clicks=0, style={"margin-top": "15px"}),
           html.Div([
              daq.Gauge(
              color={"gradient":True,"ranges":{"green":[0,0.333],"yellow":[0.333,0.666],"red":[0.666,1.0]}},
@@ -695,10 +605,15 @@ indicators2 = html.Div(
                         }        
                 }, id='graph2', 
                 style={'width':'60vh'})
-            ], style={'width':'100%'})
+            ], style={'width':'100%'}),
+          html.Div([
+              dcc.Graph(
+                    #figure=px.bar(df, x='Km', y='Mode', orientation='h'), 
+                    figure=px.bar(df, y='distance', x='Mode', labels={'distance':'Total distance (km)'}, color = 'distance', title="Weekly distance share (km)"),
+                    id="Km_share_2")         
+              ])
         ],
-        style=INDICATORS_STYLE)
-
+        style=INDICATORS_STYLE_2)
 
 
 Tab_1 = dbc.Card(
@@ -720,9 +635,8 @@ Tab_2 = dbc.Card(
         [
         dbc.Row(
             [
-                dbc.Col(sidebar2, width=2, className='bg-light'),
-                dbc.Col(central_panel2, width=7),
-                dbc.Col(indicators2, width=3)
+                dbc.Col(central_panel2, width=6),
+                dbc.Col(indicators2, width=6)
             ])
         ]
     ),
@@ -965,7 +879,7 @@ def generate_color_gradient(CO2max,CO2_i, label=0):
 
     return color_hex
 
-def plot_result(result):
+def plot_result(result, StopsCoords=[], CowFlags=[]):
     predicted = result['prediction']
     unique_labels, counts = np.unique(predicted, return_counts=True)
     d = {'Mode': unique_labels, 'counts':counts}
@@ -1054,12 +968,10 @@ def plot_result(result):
             if  i_pred.Coworking > 0.0:
                 markers_cow_1.append(marker_i)
         except:
-            pass
-
-        
+            pass    
     markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )
 
-
+    
     #children.append(dl.ScaleControl(position="topright"))
     children = [ dl.TileLayer(),
                 dl.ScaleControl(position="topright"),
@@ -1076,6 +988,20 @@ def plot_result(result):
                                 id="lc_1"
                                 )
                 ]
+
+    if CowFlags:
+        custom_icon_coworking = dict(
+        iconUrl= "https://i.ibb.co/J2qXGKN/coworking-icon.png",
+        iconSize=[40,40],
+        iconAnchor=[22, 40]
+        )    
+        Cow_markers = []
+        for i, pos in enumerate(StopsCoords): 
+            if CowFlags[i]==1:
+                custom_icon = custom_icon_coworking
+                tmp = dl.Marker(dl.Tooltip("Coworking hub"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
+                Cow_markers.append(tmp)  
+        children = children + Cow_markers
 
     new_map = dl.Map(children, center=center,
                                      zoom=12,                        
@@ -1158,6 +1084,19 @@ def toggle_collapse(n, is_open):
 
 
 
+#           Output('internal-value_scenario','data',allow_duplicate=True),
+@callback([
+           Output('internal-value_remote_days_1', 'data',allow_duplicate=True),
+           Output('internal-value_remote_workers_1', 'data',allow_duplicate=True)
+          ],
+          [
+          Input('choose_remote_days_1','value'),
+          Input('choose_remote_workers_1','value')
+          ],
+          prevent_initial_call=True)
+def update_remote_work(rem_days, rem_work):
+    return [rem_days, rem_work]
+
 
 
 #           Output('internal-value_scenario','data',allow_duplicate=True),
@@ -1170,8 +1109,8 @@ def toggle_collapse(n, is_open):
           [
           State('root_dir_1', 'data'),
           State('worker_data_1', 'data'),
-          State('choose_remote_days_1', 'value'),
-          State('choose_remote_workers_1', 'value'),
+          State('internal-value_remote_days_1','data'),
+          State('internal-value_remote_workers_1','data'),
           State('internal-value_route_opt_done_1','data'),
           State('internal-value_stops_1','data'),
           State('internal-value_coworking_1','data'),
@@ -1196,7 +1135,7 @@ def run_MCM_callback(root_dir, workerData, NremDays, NremWork, RouteOptDone, Sto
     
     df = pd.DataFrame.from_dict(workerData)    
     result = run_MCM(df, root_dir, TransH, RouteOptDone, gkm_car, gkm_bus, co2lt, NremDays, NremWork, CowoCoords)    
-    out = plot_result(result)
+    out = plot_result(result, StopsCoords, CowoFlags)
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
@@ -1287,8 +1226,8 @@ def reset_scenario(root_Dir, NremDays, NremWork, WorkerFile, StopsCoords, CowoFl
            Output('loading-component_MCM_1','children',allow_duplicate=True)],
           [
           State('root_dir_1', 'data'),
-          State('choose_remote_days_1', 'value'),
-          State('choose_remote_workers_1', 'value'),
+          State('internal-value_remote_days_1','data'),
+          State('internal-value_remote_workers_1','data'),
           State('internal-value_stops_1','data'),
           State('internal-value_coworking_1','data'),
           State('internal-value_scenario_1','data'),
@@ -1488,8 +1427,8 @@ def download_scenario(Scen, Nclicks):
 
 @callback([Output("download_inputs_1", "data")],
           [
-          State('choose_remote_days_1', 'value'),
-          State('choose_remote_workers_1', 'value'),
+          State('internal-value_remote_days_1', 'data'),
+          State('internal-value_remote_workers_1', 'data'),
           State('choose_transp_hour_1','value'),
           State('choose_gas_km_car_1','value'),
           State('choose_gas_km_bus_1','value'),
@@ -1553,8 +1492,8 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
            Output('Transport_share','figure',allow_duplicate=True),
            Output('Km_share','figure',allow_duplicate=True),
            Output('map_1','children',allow_duplicate=True),
-           Output('choose_remote_days_1', 'value',allow_duplicate=True),           
-           Output('choose_remote_workers_1', 'value',allow_duplicate=True),
+           Output('internal-value_remote_days_1', 'data',allow_duplicate=True),           
+           Output('internal-value_remote_workers_1', 'data',allow_duplicate=True),
            Output('choose_transp_hour_1','value',allow_duplicate=True),
            Output('choose_gas_km_car_1','value',allow_duplicate=True),
            Output('choose_gas_km_bus_1','value',allow_duplicate=True),
