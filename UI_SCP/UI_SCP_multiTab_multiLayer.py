@@ -159,7 +159,7 @@ CONTENT_STYLE = {
 
 CONTENT_STYLE_2 = {
     "margin-left": "0rem",
-    "margin-right": "5rem",
+    "margin-right": "10rem",
 }
 
 
@@ -167,9 +167,9 @@ INDICATORS_STYLE = {
     "background-color": "#f8f9fa",
     "position": "fixed",
     "top": 60,
-    "right": 20,
+    "right": 30,
     "bottom": 0,
-    "width": "30rem",
+    "width": "35rem",
     "overflow": "scroll"    
 }
 
@@ -177,20 +177,12 @@ INDICATORS_STYLE_2 = {
     "background-color": "#f8f9fa",
     "position": "fixed",
     "top": 60,
-    "right": 20,
+    "right": 5,
     "bottom": 0,
-    "width": "60rem",
+    "width": "55rem",
     "overflow": "scroll"    
 }
 
-"""
-    "position": "fixed",
-    "top": 0,
-    "right": 0,
-    "bottom": 0,
-    "width": "12rem",
-    "padding": "2rem 1rem",
-"""
 
 mouse_over_mess = """
 Shifts stops to closest
@@ -225,36 +217,16 @@ choose_transp_hour = [{'label': "{:02d}".format(i) + ':00' + '-' + "{:02d}".form
 #plus_icon = html.I(className="fas fa-plus", style = dict(display='inline-block'))
 #btn1_content = html.Span([btn_text, plus_icon])
 
-"""
-        dbc.Button(
-            "Load and visualize data",
-            id="Load_data_button_1",
-            className="bm-3",
-            color="primary",
-            size="lg",
-            n_clicks=0
-        ),
 
-        dbc.Button(
-            "Select type of intervention",
-            id="Intervention_type_button_1",
-            className="mb-3",
-            color="primary",
-            size="lg",
-            n_clicks=0,
-        ),
-
-"""
-
-Step_1_text="Step 1:\nLoad data and visualize data "
+Step_1_text="Step 1:\nLoad and visualize data "
 Step_2_text="Step 2:\nSelect type of intervention "
-Step_3_text="Step 3:\nChoose time "
-Step_4_text="Step 4: Run scenario"
+Step_3_text="Step 3:\nSelect time for commuting "
+Step_4_text="Run"
 
-sidebar_1 =  html.Div(
-       [
+"""
+        html.P([Step_1_text],style={"font-weight": "bold","white-space": "pre"}),
         dbc.Button(
-            [Step_1_text,html.I(className="fas fa-plus-circle")],
+            [html.I(className="fas fa-plus-circle")],
             id="Load_data_button_1",
             className="mb-3",
             color="primary",
@@ -309,18 +281,34 @@ sidebar_1 =  html.Div(
             ],
             id="Load_data_panel_1",
             is_open=False,
-        ),
-        html.Br(),                    
-        dcc.Store(id='worker_data_1', data=[]),
-        dcc.Store(id='root_dir_1', data = root_dir),
-        html.Br(),
+        ), 
+         
+   
+"""
+
+collapse_button_1 = html.Div([
+
+            dbc.Button(
+                        [html.I(className="fas fa-plus-circle")],
+                        id="Load_data_button_1",
+                        className="mb-3",
+                        color="primary",
+                        n_clicks=0,
+                        style={
+                                "cursor": "pointer",
+                                "display": "inline-block",
+                                "white-space": "pre",
+                        },
+                ),
+])
+
+collapse_button_2 = html.Div([
 
         dbc.Button(
-            [Step_2_text, html.I(className="fas fa-plus-circle")],
+            [html.I(className="fas fa-plus-circle")],
             id="Intervention_type_button_1",
             className="mb-3",
             color="primary",
-            size="lg",
             n_clicks=0,
             style={
                     "cursor": "pointer",
@@ -328,7 +316,114 @@ sidebar_1 =  html.Div(
                     "white-space": "pre",
                     },
         ),
-        dbc.Collapse([
+])
+
+
+collapse_button_3 = html.Div([
+        dbc.Button(
+            [html.I(className="fas fa-plus-circle")],
+            id="Select_time_button_1",
+            className="mb-3",
+            color="primary",
+            n_clicks=0,
+            style={
+                    "cursor": "pointer",
+                    "display": "inline-block",
+                    "white-space": "pre",
+                    },
+        ),
+])
+
+
+collapse_button_4 = html.Div([
+        dbc.Button(
+            [html.I(className="fas fa-plus-circle")],
+            id="Advanced_settings_button_1",
+            className="mb-3",
+            color="primary",
+            n_clicks=0,
+            style={
+                    "cursor": "pointer",
+                    "display": "inline-block",
+                    "white-space": "pre",
+                    },
+        ),
+])
+
+sidebar_1 =  html.Div(
+       [
+                 
+        dbc.Row([
+            dbc.Col([
+                        html.P([Step_1_text],style={"font-weight": "bold","white-space": "pre"}),
+                    ],
+                    style={'height': '80px'},width=8),
+            dbc.Col([        
+                        collapse_button_1,
+                    ],
+                    style={'height': '80px'},width=3
+                    )                    
+        ]),
+        dbc.Row([
+                dbc.Collapse([
+                        dcc.Upload(
+                                id='upload-data_1',
+                                children=html.Div([
+                                html.A('Import Files')
+                            ]),
+                            style={
+                                'width': '100%',
+                                'height': '60px',
+                                'lineHeight': '60px',
+                                'borderWidth': '1px',
+                                'borderStyle': 'dashed',
+                                'borderRadius': '5px',
+                                'textAlign': 'center',
+                                'margin': '10px'
+                            },
+                            # Allow multiple files to be uploaded
+                            multiple=True),
+                            dbc.Button("Visualize clusters of workers", id="show_workers_1", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
+                            html.Br(),        
+                            html.P([ html.Br(),'Choose number of clusters'],id='cluster_num_1',style={"margin-top": "15px","font-weight": "bold"}),        
+                            dbc.Popover(
+                                dbc.PopoverBody(mouse_over_mess_clusters), 
+                                target="n_clusters_1",
+                                body=True,
+                                trigger="hover",style = {'font-size': 12, 'line-height':'2px'},
+                                placement= 'right',
+                                is_open=False),
+                            #dcc.Input(id="n_clusters", type="text", value='19'),
+                            dcc.Slider(1, 30, 1,
+                            value=19,
+                            id='n_clusters_1',
+                            marks=None,
+                            tooltip={"placement": "bottom", "always_visible": True}
+                            ),
+                            html.Br(),   
+                        html.Div([
+                                dbc.Button("Download data template", id="button_download_template_1", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),               
+                                Download(id="download_template_1"),
+                                ])
+                        ],
+                        id="Load_data_panel_1",
+                        is_open=False,
+                    )
+
+        ]),
+        dbc.Row([
+            dbc.Col([
+                        html.P([Step_2_text],style={"font-weight": "bold","white-space": "pre"}),
+                    ],
+                    style={'height': '80px'},width=8),
+            dbc.Col([        
+                        collapse_button_2,
+                    ],
+                    style={'height': '80px'},width=3
+                    )                    
+        ]),
+        dbc.Row([
+            dbc.Collapse([
             dcc.Dropdown(interventions, multi=False,style={"margin-top": "15px"}, id='choose_intervention_1'),
             html.P([ html.Br(),'Select action for markers'],id='action_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
             dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action_1'),           
@@ -336,49 +431,81 @@ sidebar_1 =  html.Div(
             ],
            id="Intervention_type_panel_1",
            is_open=False,
-        ),
-        
+           )
+        ]),
+        dcc.Store(id='worker_data_1', data=[]),
+        dcc.Store(id='root_dir_1', data = root_dir),       
+        dbc.Row([
+            dbc.Col([
+                        html.P([Step_3_text],style={"font-weight": "bold","white-space": "pre"}),
+                    ],
+                    style={'height': '80px'},width=8),
+            dbc.Col([        
+                        collapse_button_3,
+                    ],
+                    style={'height': '80px'},width=3
+                    )                    
+        ]),
+        dbc.Row([
+                dbc.Collapse([
+                    html.P(['Choose time range'],style={"font-weight": "bold","white-space": "pre"}),
+                    html.Div(dcc.Dropdown(choose_transp_hour, multi=False, id='choose_transp_hour_1'))            
+                    ],
+                    id='Select_time_panel_1',
+                    is_open=False,
+                ),
+        ]),
+        dbc.Row([
+            dbc.Col([
+                        html.P(['Advanced_settings'],style={"font-weight": "bold","white-space": "pre"}),
+                    ],
+                    style={'height': '80px'},width=8),
+            dbc.Col([        
+                        collapse_button_4,
+                    ],
+                    style={'height': '80px'},width=3
+                    )                    
+        ]),
         html.Br(),
+        dbc.Row([
+            dbc.Collapse([
+                html.P([ html.Br(),'Liters of gasoline per kilometer (car)'],id='gas_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
+                dcc.Slider(0, 5,0.02,
+                    value=1./12,
+                    id='choose_gas_km_car_1',
+                    marks=None,
+                    tooltip={"placement": "bottom", "always_visible": True}
+                ),                   
+                html.P([ html.Br(),'Liters of gasoline per kilometer (bus)'],id='gas_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
+                dcc.Slider(0, 10,0.05,
+                    value=1.12,
+                    id='choose_gas_km_bus_1',
+                    marks=None,
+                    tooltip={"placement": "bottom", "always_visible": True}
+                ),                    
+                html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt_1',style={"margin-top": "15px","font-weight": "bold"}),
+                dcc.Slider(0, 10,0.05,
+                    value=2.3,
+                    id='choose_CO2_lt_1',
+                    marks=None,
+                    tooltip={"placement": "bottom", "always_visible": True}
+                ),            
+                ],
+                id="Advanced_settings_panel_1",
+                is_open=False,
+                ),
+        ]),
+        html.Div(dbc.Button(Step_4_text, 
+                            id="run_MCM_1",
+                            className="mb-3",
+                            size="lg",
+                            n_clicks=0,
+                            disabled=False, 
+                            color='warning'),
+                            style={"white-space": "pre"}),
         dbc.Row(
-            [
-                dbc.Col(
-                    html.Div(html.P([Step_3_text],style={"font-weight": "bold",
-                                                         "white-space": "pre"})),
-                    style={"margin-top": "15px"},
-                    width="auto"
-                ),                
-                dbc.Col(
-                    html.Div(dcc.Dropdown(choose_transp_hour, multi=False, id='choose_transp_hour_1')),
-                    style={"margin-top": "15px"},
-                    width=6
-                ),
-                dbc.Col(
-                    html.Div(dcc.Loading(html.Div(id="running_MCM1"), id="loading-component_MCM_1")),
-                    style={"margin-top": "15px"},
-                    width="auto"
-                ),
-                dbc.Col(
-                    html.Div(dbc.Button(Step_4_text, 
-                                        id="run_MCM_1",
-                                        className="mb-3",
-                                        size="lg",
-                                        n_clicks=0,
-                                        disabled=False, 
-                                        color='warning'),
-                                        style={"white-space": "pre"}),
-                    style={"margin-top": "15px"},
-                    width="auto"
-                )
-            ]
-          ),
-          dbc.Row(
-            [ 
-                #dbc.Col(
-                #    html.Div(dbc.Button("Save scenario", id='save_scenario_1', n_clicks=0)),
-                #    style={"margin-top": "15px"},
-                #    width="auto"
-                #),                
-                dbc.Col(
+            [                 
+              dbc.Col(
                     html.Div(
                               dcc.Upload(id='load-scenario_1',
                                          children=html.Div([
@@ -390,9 +517,9 @@ sidebar_1 =  html.Div(
                     ),
                     style={"margin-top": "15px"},
                     width='auto'
-                ),
+              ),
 
-                dbc.Col(
+              dbc.Col(
                     html.Div([
                             dbc.Button("Download scenario", id='button_download_scenario_1', n_clicks=0),
                             Download(id="download_scenario_1"),
@@ -401,47 +528,8 @@ sidebar_1 =  html.Div(
                             ]),
                             style={"margin-top": "15px"},
                             width="auto"
-                ),  
-
-            ]
-          ),
-
-        html.Br(),
-        dbc.Button(
-            "Advanced settings",
-            id="Advanced_settings_button_1",
-            className="mb-3",
-            color="primary",
-            n_clicks=0,
-        ),
-        dbc.Collapse([
-            html.P([ html.Br(),'Liters of gasoline per kilometer (car)'],id='gas_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
-            dcc.Slider(0, 5,0.02,
-               value=1./12,
-               id='choose_gas_km_car_1',
-               marks=None,
-               tooltip={"placement": "bottom", "always_visible": True}
-            ) ,                   
-            html.P([ html.Br(),'Liters of gasoline per kilometer (bus)'],id='gas_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
-            dcc.Slider(0, 10,0.05,
-               value=1.12,
-               id='choose_gas_km_bus_1',
-               marks=None,
-               tooltip={"placement": "bottom", "always_visible": True}
-            ) ,                    
-            html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt_1',style={"margin-top": "15px","font-weight": "bold"}),
-            #dcc.Input(id="choose_CO2_lt", type="text", value='2.3', style={"margin-bottom": "15px"}),             
-            dcc.Slider(0, 10,0.05,
-               value=2.3,
-               id='choose_CO2_lt_1',
-               marks=None,
-               tooltip={"placement": "bottom", "always_visible": True}
-            ),            
-            ],
-           id="Advanced_settings_panel_1",
-            is_open=False,
-        ),
-
+              ),  
+            ]),
         html.Div(id='outdata_1', style={"margin-top": "15px"}),   
         dcc.Store(id='internal-value_route_opt_done_1', data=0),   
         dcc.Store(id='internal-value_stops_1', data=[]),
@@ -509,8 +597,6 @@ df = pd.DataFrame(data=d)
 #              style = {"margin-top": "20px","font-weight": "bold",'height': '30vh'},
 indicators_1 = html.Div(
         [              
-          #dbc.Button("Reset scenario (variables and files)", id='reset_scenario_1', n_clicks=0, style={"margin-top": "15px"}),
-          #dbc.Button("Run baseline scenario", id='run_MCM_baseline_1', n_clicks=0, color="secondary", style={"margin-top": "15px"}),
           html.Div([
              daq.Gauge(
              color={"gradient":True,"ranges":{"green":[0,0.333],"yellow":[0.333,0.666],"red":[0.666,1.0]}},
@@ -538,33 +624,18 @@ indicators_1 = html.Div(
 
         ],
         style=INDICATORS_STYLE)
-"""
-{
-                        'data': [{
-                                'labels': [1, 2, 3], 
-                                'values': [1, 2, 3], 
-                                'type': 'pie',
-                                }],
-                        'layout': {
-                            'title': 'Transport share'
-                        }        
-                }
-
-"""
 
 central_panel2 = html.Div(
        [
           html.Div([
              html.Img(src=image1,style={'width':'40%', "display": "inlineBlock", "verticalAlign": "top"}),
-             #html.Img(src=image2,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"}),
-             #html.Img(src=image3,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"})
 
              ],style= {'verticalAlign': 'top'}),
           dls.Clock(
                     children=[dl.Map([dl.TileLayer(),
-                    dl.ScaleControl(position="topright")], center=center, 
-                                     zoom=12,
-                                     id="map2",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+                                      dl.ScaleControl(position="topright")], center=center, 
+                                      zoom=12,
+                                      id="map_2",style={'width': '90vh', 'height': '70vh', "margin": "auto", "display": "block"})
                     ],
                     color="#435278",
                     speed_multiplier=1.5,
@@ -576,50 +647,67 @@ central_panel2 = html.Div(
 
 
 # plot test data
-df = px.data.tips()
-fig = px.pie(df, values='tip', names='day')
-fig.update_layout(showlegend=False)
-fig.update_layout(title_text='Transport share', title_x=0.5)
-d = {'distance': [100, 50, 2], 'Mode': ['Car','PT','Walk']}
-df = pd.DataFrame(data=d)
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+x = ['1970-01-01', '1970-01-01', '1970-02-01', '1970-04-01', '1970-01-02',
+     '1972-01-31', '1970-02-13', '1971-04-19']
+
+fig = make_subplots(rows=3, cols=2)
+
+trace0 = go.Histogram(x=x, nbinsx=4)
+trace1 = go.Histogram(x=x, nbinsx = 8)
+trace2 = go.Histogram(x=x, nbinsx=10)
+trace3 = go.Histogram(x=x,
+                      xbins=dict(
+                      start='1969-11-15',
+                      end='1972-03-31',
+                      size='M18'), # M18 stands for 18 months
+                      autobinx=False
+                     )
+trace4 = go.Histogram(x=x,
+                      xbins=dict(
+                      start='1969-11-15',
+                      end='1972-03-31',
+                      size='M4'), # 4 months bin size
+                      autobinx=False
+                      )
+trace5 = go.Histogram(x=x,
+                      xbins=dict(
+                      start='1969-11-15',
+                      end='1972-03-31',
+                      size= 'M2'), # 2 months
+                      autobinx = False
+                      )
+
+fig.append_trace(trace0, 1, 1)
+fig.append_trace(trace1, 1, 2)
+fig.append_trace(trace2, 2, 1)
+fig.append_trace(trace3, 2, 2)
+fig.append_trace(trace4, 3, 1)
+fig.append_trace(trace5, 3, 2)
 
 indicators2 = html.Div(
         [     
-          html.Br(),          
-          dbc.Button("Compare scenarios", id='compare_scenarios', n_clicks=0, style={"margin-top": "15px"}),
-          html.Div([
-             daq.Gauge(
-             color={"gradient":True,"ranges":{"green":[0,0.333],"yellow":[0.333,0.666],"red":[0.666,1.0]}},
-             value=0.3,
-             label={'label':'CO2 emissions', 'style':{'font-size':'18px',"font-weight": "bold"}},
-             style = {"margin-top": "20px","font-weight": "bold"},
-             max=1,
-             min=0,
-             id='CO2_gauge2')
-             ]),
+          html.Div(
+                    dcc.Upload(id='load-scenario_2',
+                               children=html.Div([
+                               dbc.Button('Load scenario to compare to')
+                               ]),
+                               # Allow multiple files to be uploaded
+                               multiple=True
+                            )
+          ),
           html.Div([
               dcc.Graph(
-                figure={
-                        'data': [{
-                                'labels': [1, 2, 3], 
-                                'values': [1, 2, 3], 
-                                'type': 'pie',
-                                }],
-                        'layout': {
-                            'title': 'Transport share'
-                        }        
-                }, id='graph2', 
-                style={'width':'60vh'})
-            ], style={'width':'100%'}),
-          html.Div([
-              dcc.Graph(
-                    #figure=px.bar(df, x='Km', y='Mode', orientation='h'), 
-                    figure=px.bar(df, y='distance', x='Mode', labels={'distance':'Total distance (km)'}, color = 'distance', title="Weekly distance share (km)"),
-                    id="Km_share_2")         
-              ])
+                figure=fig, 
+                id='graph2', 
+                style={'width':'90vh'})
+            ], 
+            style={'width':'100%'}
+            )
         ],
         style=INDICATORS_STYLE_2)
-
 
 Tab_1 = dbc.Card(
     dbc.CardBody(
@@ -640,8 +728,8 @@ Tab_2 = dbc.Card(
         [
         dbc.Row(
             [
-                dbc.Col(central_panel2, width=6),
-                dbc.Col(indicators2, width=6)
+                dbc.Col(central_panel2, width=5),
+                dbc.Col(indicators2, width=7)
             ])
         ]
     ),
@@ -652,8 +740,8 @@ Tab_2 = dbc.Card(
 
 tabs = dbc.Tabs(
     [
-        dbc.Tab(Tab_1, label="Tab 1"),
-        dbc.Tab(Tab_2, label="Tab 2")
+        dbc.Tab(Tab_1, label="Calculate scenarios"),
+        dbc.Tab(Tab_2, label="Compare scenarios")
     ]
 )
 
@@ -1079,6 +1167,19 @@ def toggle_collapse(n, is_open):
     if n:
         return not is_open
     return is_open
+
+
+@callback(
+    Output("Select_time_panel_1", "is_open"),
+    [Input("Select_time_button_1", "n_clicks")],
+    [State("Select_time_panel_1", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+
 @callback(
     Output("Advanced_settings_panel_1", "is_open"),
     [Input("Advanced_settings_button_1", "n_clicks")],
@@ -1112,8 +1213,7 @@ def update_remote_work(rem_days, rem_work):
            Output('Transport_share','figure',allow_duplicate=True),
            Output('Km_share','figure',allow_duplicate=True),
            Output('map_1','children',allow_duplicate=True),
-           Output('internal-value_scenario_1','data',allow_duplicate=True),
-           Output('loading-component_MCM_1','children',allow_duplicate=True)],
+           Output('internal-value_scenario_1','data',allow_duplicate=True)],
           [
           State('root_dir_1', 'data'),
           State('worker_data_1', 'data'),
@@ -1147,7 +1247,7 @@ def run_MCM_callback(root_dir, workerData, NremDays, NremWork, RouteOptDone, Sto
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
-    return [out[0],out[1],out[2],out[3], scenario_json, True]
+    return [out[0],out[1],out[2],out[3], scenario_json]
 
 """
 @callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
