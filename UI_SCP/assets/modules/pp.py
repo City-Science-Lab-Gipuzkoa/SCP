@@ -141,7 +141,10 @@ def pp(hour,X, RouteOptDone, CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
         else:
             cont=cont+1
 
-
+    print()
+    print('test if present:')
+    print(networks_path + 'pedestrian_net.h5')
+    print(os.path.isfile(networks_path + 'pedestrian_net.h5'))
     if (os.path.isfile(network_filename)==False) or RouteOptDone:
         print()
         print('-------------------------------------------')
@@ -238,6 +241,12 @@ def pp(hour,X, RouteOptDone, CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
     #eliminar = ['Unnamed: 0', 'Com_Ori', 'Com_Des', 'Modo', 'Municipio', 'Motos','Actividad','Año']
     #X = X.drop(columns=eliminar)
 
+    print()
+    print('test again if present:')
+    print(networks_path + 'pedestrian_net.h5')
+    print(os.path.isfile(networks_path + 'pedestrian_net.h5'))
+    print()
+    
     # Codify hour manually
 
     # Create a copy column

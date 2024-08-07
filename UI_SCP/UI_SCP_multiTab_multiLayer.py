@@ -643,7 +643,7 @@ central_panel2 = html.Div(
                     show_initially=False
                     )
     ],
-    style=CONTENT_STYLE_2)
+    style=CONTENT_STYLE)
 
 
 # plot test data
@@ -653,7 +653,8 @@ from plotly.subplots import make_subplots
 x = ['1970-01-01', '1970-01-01', '1970-02-01', '1970-04-01', '1970-01-02',
      '1972-01-31', '1970-02-13', '1971-04-19']
 
-fig = make_subplots(rows=3, cols=2)
+fig = make_subplots(rows=3, cols=3)
+
 
 trace0 = go.Histogram(x=x, nbinsx=4)
 trace1 = go.Histogram(x=x, nbinsx = 8)
@@ -679,7 +680,7 @@ trace5 = go.Histogram(x=x,
                       size= 'M2'), # 2 months
                       autobinx = False
                       )
-
+ 
 fig.append_trace(trace0, 1, 1)
 fig.append_trace(trace1, 1, 2)
 fig.append_trace(trace2, 2, 1)
@@ -689,25 +690,17 @@ fig.append_trace(trace5, 3, 2)
 
 indicators2 = html.Div(
         [     
-          html.Div(
-                    dcc.Upload(id='load-scenario_2',
-                               children=html.Div([
-                               dbc.Button('Load scenario to compare to')
-                               ]),
-                               # Allow multiple files to be uploaded
-                               multiple=True
-                            )
-          ),
           html.Div([
               dcc.Graph(
                 figure=fig, 
                 id='graph2', 
-                style={'width':'90vh'})
+                style={'width':'150vh', 'height':'100vh'})
             ], 
             style={'width':'100%'}
             )
         ],
-        style=INDICATORS_STYLE_2)
+        )
+#        style=INDICATORS_STYLE_2)
 
 Tab_1 = dbc.Card(
     dbc.CardBody(
@@ -728,8 +721,7 @@ Tab_2 = dbc.Card(
         [
         dbc.Row(
             [
-                dbc.Col(central_panel2, width=5),
-                dbc.Col(indicators2, width=7)
+                dbc.Col(indicators2, width=12)
             ])
         ]
     ),
@@ -741,7 +733,7 @@ Tab_2 = dbc.Card(
 tabs = dbc.Tabs(
     [
         dbc.Tab(Tab_1, label="Calculate scenarios"),
-        dbc.Tab(Tab_2, label="Compare scenarios")
+        dbc.Tab(Tab_2, label="Detailed result visualization")
     ]
 )
 
@@ -793,8 +785,6 @@ def parse_contents_load_scenario(contents, filename, date):
             'There was an error processing this file.'
         ])
     
-    print('test name:')
-    print(filename)
     if 'scenario' in filename:
         gdf = geopandas.GeoDataFrame(df, 
                                  geometry = geopandas.points_from_xy(df.O_long, df.O_lat), 
@@ -977,20 +967,11 @@ def plot_result(result, StopsCoords=[], CowFlags=[]):
     unique_labels, counts = np.unique(predicted, return_counts=True)
     d = {'Mode': unique_labels, 'counts':counts}
     df = pd.DataFrame(data=d)
-    df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'}) 
+    df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'})
     print()
     print('df:')
     print(df.head)
     #        'labels': df['unique_labels'],
-    """
-    fig1 = {
-        'data':[{
-            'labels': ['Walk','PT','Car'],
-            'values': df['counts'],
-            'type': 'pie'
-        }]
-    }    
-    """
     fig1 = px.pie(df, values='counts', names='Mode',color='Mode',
                   color_discrete_map={'Car':'red',
                                       'PT':'blue',
@@ -1008,6 +989,171 @@ def plot_result(result, StopsCoords=[], CowFlags=[]):
     Contribs = Contribs.reset_index()
     print(Contribs.head())
     fig2 = px.bar(Contribs, x='distance_km', y='Mode', orientation='h', labels={'distance_km':'Total distance (km)'}, color = 'distance_km', title="Weekly distance share (km)")
+
+    temp = result.loc[result['Coworking'] == 1]
+    Total_CO2 = temp['CO2'].sum()
+    Total_CO2_worst_case = temp['CO2_worst_case'].sum()
+    fig3 = go.Indicator(mode = "gauge+number",
+                        value = Total_CO2/Total_CO2_worst_case,
+                       domain = {'x': [0, 1], 'y': [0, 1]},        
+                        gauge= {
+                                'steps':[
+                                {'range':[0,0.333],'color': 'green'},
+                                {'range': [0.333,0.666],'color': 'yellow'},
+                                { 'range':[0.666,1.0],   'color':'red'}],
+                                'axis':{'range':[0,1]},
+                                'bar':{
+                                        'color':'black',
+                                        'thickness':0.5
+                                      }
+                                })
+
+    temp = result.loc[result['Rem_work'] == 1]
+    Total_CO2 = temp['CO2'].sum()
+    Total_CO2_worst_case = temp['CO2_worst_case'].sum()
+    fig4 = go.Indicator(mode = "gauge+number",
+                       value = Total_CO2/Total_CO2_worst_case,
+                       domain = {'x': [0, 1], 'y': [0, 1]},      
+                        gauge= {
+                                'steps':[
+                                {'range':[0,0.333],'color': 'green'},
+                                {'range': [0.333,0.666],'color': 'yellow'},
+                                { 'range':[0.666,1.0],   'color':'red'}],
+                                'axis':{'range':[0,1]},
+                                'bar':{
+                                        'color':'black',
+                                        'thickness':0.5
+                                      }
+                                })
+        
+    temp = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0)]
+    Total_CO2 = temp['CO2'].sum()
+    Total_CO2_worst_case = temp['CO2_worst_case'].sum()
+    fig5 = go.Indicator(mode = "gauge+number",
+                       value = Total_CO2/Total_CO2_worst_case,
+                       domain = {'x': [0, 1], 'y': [0, 1]},        
+                       gauge= {
+                                'steps':[
+                                {'range':[0,0.333],'color': 'green'},
+                                {'range': [0.333,0.666],'color': 'yellow'},
+                                { 'range':[0.666,1.0],   'color':'red'}],
+                                'axis':{'range':[0,1]},
+                                'bar':{
+                                        'color':'black',
+                                        'thickness':0.5
+                                      }
+                                })
+
+    predicted = result.loc[result['Coworking'] == 1, 'prediction']
+    unique_labels, counts = np.unique(predicted, return_counts=True)
+    d = {'Mode': unique_labels, 'counts':counts}
+    df = pd.DataFrame(data=d)
+    df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'}) 
+    df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})     
+    fig6 = go.Pie(labels=df["Mode"],
+                  values=df["counts"],
+                  showlegend=False,
+                  textposition='inside',
+                  textinfo='label+percent',
+                  marker=dict(colors=df['color']))
+
+    predicted = result.loc[result['Rem_work'] == 1, 'prediction']   
+    unique_labels, counts = np.unique(predicted, return_counts=True)
+    d = {'Mode': unique_labels, 'counts':counts}
+    df = pd.DataFrame(data=d)
+    df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'}) 
+    df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'}) 
+    fig7 = go.Pie(labels=df["Mode"],
+                  values=df["counts"],
+                  showlegend=False,
+                  textposition='inside',
+                  textinfo='label+percent',
+                  marker=dict(colors=df['color']))
+ 
+    predicted = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0), 'prediction']  
+    unique_labels, counts = np.unique(predicted, return_counts=True)
+    d = {'Mode': unique_labels, 'counts':counts}
+    df = pd.DataFrame(data=d)
+    df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'}) 
+    df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'}) 
+    fig8 = go.Pie(labels=df["Mode"],
+                  values=df["counts"],
+                  showlegend=False,
+                  textposition='inside',
+                  textinfo='label+percent',
+                  marker=dict(colors=df['color']))
+
+    temp = result.loc[result['Coworking'] == 1]
+    temp['distance_km'] = temp['distance']/1000.
+    temp = temp[['Mode','distance_km']]
+    Contribs = temp.groupby(['Mode']).sum() 
+    Contribs = Contribs.reset_index()
+    Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    print(Contribs.head())
+    fig9 = go.Bar(
+            x=Contribs['distance_km'],
+            y=Contribs['Mode'],
+            orientation='h',
+            marker_color=Contribs['color'])
+
+    temp = result.loc[result['Rem_work'] == 1]
+    temp['distance_km'] = temp['distance']/1000.
+    temp = temp[['Mode','distance_km']]
+    Contribs = temp.groupby(['Mode']).sum() 
+    Contribs = Contribs.reset_index()
+    Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    print(Contribs.head())
+    fig10 = go.Bar(
+            x=Contribs['distance_km'],
+            y=Contribs['Mode'],
+            orientation='h',
+            marker_color=Contribs['color'])
+
+
+    temp = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0)]
+    temp['distance_km'] = temp['distance']/1000.
+    temp = temp[['Mode','distance_km']]
+    Contribs = temp.groupby(['Mode']).sum() 
+    Contribs = Contribs.reset_index()
+    Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    print(Contribs.head())
+    fig11 = go.Bar(
+            x=Contribs['distance_km'],
+            y=Contribs['Mode'],
+            orientation='h',
+            marker_color=Contribs['color'])
+
+
+    column_titles = ['Remote working', 'Coworking', 'all-(Remote+Coworking)']
+    row_titles = ['CO2 emissions', 'Transport share', 'Distance share']
+    #fig = make_subplots(rows=1, cols=3)
+    fig = make_subplots(rows=3, cols=3, 
+                        specs=[
+                               [{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}],
+                               [{"type": "pie"}, {"type": "pie"}, {"type": "pie"}],
+                               [{"type": "bar"}, {"type": "bar"}, {"type": "bar"}]],
+                        column_titles = column_titles,
+                        row_titles = row_titles,
+                        row_heights=[1, 2, 2]
+                        ) #-> row height is used to re-size plots of specific rows
+    
+    #fig = make_subplots(rows=2, cols=3)
+    fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
+    fig.append_trace(fig3, 1, 1)
+    fig.append_trace(fig4, 1, 2)
+    fig.append_trace(fig5, 1, 3)
+    fig.append_trace(fig6, 2, 1)
+    fig.append_trace(fig7, 2, 2)
+    fig.append_trace(fig8, 2, 3)
+    fig.append_trace(fig9, 3, 1)
+    fig.append_trace(fig10, 3, 2)
+    fig.append_trace(fig11, 3, 3)     
+
+    #fig.update_yaxes(title_text="CO2 emissions", row=1, col=1)
+    #fig.update_yaxes(title_text="Transport share", row=2, col=1)
+    #fig.update_yaxes(title_text="Distance share", row=3, col=1)
+    fig.update_annotations(font_size=28)
+    fig.update_layout(showlegend=False)    
 
     #children = [dl.TileLayer()]
     #maxCO2 = result['CO2'].max()
@@ -1100,7 +1246,7 @@ def plot_result(result, StopsCoords=[], CowFlags=[]):
                                      zoom=12,                        
                                      id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
-    return [Total_CO2/Total_CO2_worst_case, fig1,fig2, new_map]
+    return [Total_CO2/Total_CO2_worst_case, fig1,fig2, fig, new_map]
 
 def categorize_Mode(code):
     if 'Andando' in code:
@@ -1193,7 +1339,7 @@ def toggle_collapse(n, is_open):
 
 
 
-#           Output('internal-value_scenario','data',allow_duplicate=True),
+# Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([
            Output('internal-value_remote_days_1', 'data',allow_duplicate=True),
            Output('internal-value_remote_workers_1', 'data',allow_duplicate=True)
@@ -1208,10 +1354,11 @@ def update_remote_work(rem_days, rem_work):
 
 
 
-#           Output('internal-value_scenario','data',allow_duplicate=True),
+# Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
            Output('Transport_share','figure',allow_duplicate=True),
            Output('Km_share','figure',allow_duplicate=True),
+           Output('graph2','figure',allow_duplicate=True),
            Output('map_1','children',allow_duplicate=True),
            Output('internal-value_scenario_1','data',allow_duplicate=True)],
           [
@@ -1243,11 +1390,17 @@ def run_MCM_callback(root_dir, workerData, NremDays, NremWork, RouteOptDone, Sto
     
     df = pd.DataFrame.from_dict(workerData)    
     result = run_MCM(df, root_dir, TransH, RouteOptDone, gkm_car, gkm_bus, co2lt, NremDays, NremWork, CowoCoords)    
+    print()
+    print('Coworking:')
+    print(result['Coworking'].unique())
+    print()
+    print('Remote work:')
+    print(result['Rem_work'].unique())    
     out = plot_result(result, StopsCoords, CowoFlags)
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
-    return [out[0],out[1],out[2],out[3], scenario_json]
+    return [out[0],out[1],out[2],out[3], out[4], scenario_json]
 
 """
 @callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
@@ -1331,7 +1484,7 @@ def reset_scenario(root_Dir, NremDays, NremWork, WorkerFile, StopsCoords, CowoFl
 
 
 @callback([
-           Output('loading-component_MCM_1','children',allow_duplicate=True)],
+           Output("outdata_1", "children",allow_duplicate=True)],
           [
           State('root_dir_1', 'data'),
           State('internal-value_remote_days_1','data'),
@@ -1391,7 +1544,7 @@ def save_scenario(root_dir, NremDays, NremWork, StopsCoords, CowoFlags, Scen, Tr
                                columns=['lat', 'lon', 'CowHub'])
         stops_and_cow_df.to_csv(stops_and_cow_file)
 
-    return [True] 
+    return ['Scenario saved into files!'] 
 
 
 @callback([
@@ -1629,8 +1782,7 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
            Output('choose_gas_km_bus_1','value',allow_duplicate=True),
            Output('choose_CO2_lt_1','value',allow_duplicate=True),
            Output('internal-value_stops_1','data',allow_duplicate=True),           
-           Output('internal-value_coworking_1','data',allow_duplicate=True),           
-           Output('loading-component_MCM_1','children',allow_duplicate=True)],
+           Output('internal-value_coworking_1','data',allow_duplicate=True)],
             [Input('load-scenario_1', 'contents'),
             State('load-scenario_1', 'filename'),
             State('load-scenario_1', 'last_modified')],
@@ -1683,7 +1835,7 @@ def load_scenario(list_of_contents, list_of_names, list_of_dates):
             CowHubs_flags = []
         #StopsCoords,CowHubs_flags,
         #return [scenario[0][0],scenario[0][1],scenario[0][2],inputs[0],inputs[1],inputs[2],inputs[3],inputs[4],inputs[5], StopsCoords, CowHubs_flags, True]
-        return [scenario[0][0],scenario[0][1],scenario[0][2],scenario[0][3],*inputs, StopsCoords, CowHubs_flags, True]
+        return [scenario[0][0],scenario[0][1],scenario[0][2],scenario[0][3],*inputs, StopsCoords, CowHubs_flags]
 
 
 #@app.callback([Output("clickdata", "children")],
