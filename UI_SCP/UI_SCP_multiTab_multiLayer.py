@@ -186,9 +186,9 @@ INDICATORS_STYLE_2 = {
     "background-color": "#f8f9fa",
     "position": "fixed",
     "top": 60,
-    "right": 5,
+    "left": 5,
     "bottom": 0,
-    "width": "55rem",
+    "width": "150rem",
     "overflow": "scroll"    
 }
 
@@ -726,13 +726,12 @@ indicators2 = html.Div(
               dcc.Graph(
                 figure=fig, 
                 id='graph2', 
-                style={'width':'150vh', 'height':'100vh'})
+                style={'width':'150vh', 'height':'120vh'})
             ], 
             style={'width':'100%'}
             )
         ],
-        )
-#        style=INDICATORS_STYLE_2)
+        style=INDICATORS_STYLE_2)
 
 Tab_1 = dbc.Card(
     dbc.CardBody(
@@ -1179,7 +1178,7 @@ def plot_result(result, NremDays, NremWork, Nbuses, StopsCoords=[], CowFlags=[])
                   textinfo='label+percent',
                   marker=dict(colors=df['color']))
 
-    temp = result.loc[result['Coworking'] == 1]
+    temp = result.loc[result['Rem_work'] == 1]
     temp['distance_km'] = temp['distance']/1000.
     temp = temp[['Mode','distance_km']]
     Contribs = temp.groupby(['Mode']).sum() 
@@ -1192,7 +1191,7 @@ def plot_result(result, NremDays, NremWork, Nbuses, StopsCoords=[], CowFlags=[])
             orientation='h',
             marker_color=Contribs['color'])
 
-    temp = result.loc[result['Rem_work'] == 1]
+    temp = result.loc[result['Coworking'] == 1]
     temp['distance_km'] = temp['distance']/1000.
     temp = temp[['Mode','distance_km']]
     Contribs = temp.groupby(['Mode']).sum() 
