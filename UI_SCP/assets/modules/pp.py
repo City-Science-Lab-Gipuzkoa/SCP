@@ -458,7 +458,7 @@ def pp(hour,X, RouteOptDone, CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
     #print()
     #print('second check')
     #print(X['O_long'].isnull().values.any(),X['O_lat'].isnull().values.any(),X['D_long'].isnull().values.any(),X['D_lat'].isnull().values.any())
-    print(X)
+    #print(X)
 
     # Add TRANSIT
 

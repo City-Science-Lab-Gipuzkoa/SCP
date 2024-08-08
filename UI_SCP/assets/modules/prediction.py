@@ -64,7 +64,7 @@ def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
  
     gdf['CO2']  = gdf.apply(estimate_emissions, args=(gkm_car, gkm_bus, co2lt), axis=1)
     #CO2_aver_europe = 5.37 # aver. ton per person in 2021
-    CO2_target = 2.3 # target CO2 ton per person in 2030    
+    CO2_target = 2.3 * 0.4 # target CO2 ton per person in 2030 * 0.4 (assumes that 40% is associated to transportation)   
     n_weeks = 52 # weeks in one year
     print('columns names:')
     print(gdf.columns.values)

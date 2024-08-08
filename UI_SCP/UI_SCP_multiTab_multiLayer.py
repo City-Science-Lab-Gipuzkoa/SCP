@@ -36,6 +36,9 @@ import geopandas
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, adjusted_rand_score
 
+from pylab import cm
+import matplotlib
+
 #from google.colab import drive
 #drive.mount('/content/drive',  force_remount=True)
 
@@ -555,20 +558,30 @@ fig1 = go.Scatterpolar(
             fill='toself'
         )
 
+
+cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
+interv = np.linspace(0,1,cmap.N)
+j = 0
+steps_gauge = []
+for i in reversed(range(cmap.N-1)):
+    rgba = cmap(i)
+    t = {'range':[interv[j],interv[j+1]],'color': matplotlib.colors.rgb2hex(rgba)}
+    j+=1
+    steps_gauge.append(t)
+
 fig2 = go.Indicator(mode = "gauge+number",
                         value = 0.3,
                        domain = {'x': [0, 1], 'y': [0, 1]},        
                         gauge= {
-                                'steps':[
-                                {'range':[0,0.333],'color': 'green'},
-                                {'range': [0.333,0.666],'color': 'yellow'},
-                                { 'range':[0.666,1.0],   'color':'red'}],
+                                'steps':steps_gauge,
                                 'axis':{'range':[0,1]},
                                 'bar':{
                                         'color':'black',
                                         'thickness':0.5
                                       }
-                                })
+                                }
+
+                    )
 
 
 fig3 = go.Pie(labels=df_tmp["Mode"],
@@ -1007,20 +1020,29 @@ def plot_result(result, NremDays, NremWork, Nbuses, StopsCoords=[], CowFlags=[])
 
     Total_CO2 = result['CO2'].sum()
     Total_CO2_worst_case = result['CO2_worst_case'].sum()
+    
+    cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
+    interv = np.linspace(0,1,cmap.N)
+    j = 0
+    steps_gauge = []
+    for i in reversed(range(cmap.N-1)):
+        rgba = cmap(i)
+        t = {'range':[interv[j],interv[j+1]],'color': matplotlib.colors.rgb2hex(rgba)}
+        j+=1
+        steps_gauge.append(t)
+
     fig2 = go.Indicator(mode = "gauge+number",
                         value = Total_CO2/Total_CO2_worst_case,
                         domain = {'x': [0, 1], 'y': [0, 1]},        
-                        gauge= {
-                                    'steps':[
-                                    {'range':[0,0.333],'color': 'green'},
-                                    {'range': [0.333,0.666],'color': 'yellow'},
-                                    { 'range':[0.666,1.0],   'color':'red'}],
+                        gauge  = {
+                                    'steps':steps_gauge,
                                     'axis':{'range':[0,1]},
                                     'bar':{
                                             'color':'black',
                                             'thickness':0.5
                                         }
-                                    })
+                                    }
+                        )
 
     predicted = result['prediction']
     unique_labels, counts = np.unique(predicted, return_counts=True)
@@ -1080,10 +1102,7 @@ def plot_result(result, NremDays, NremWork, Nbuses, StopsCoords=[], CowFlags=[])
                         value = Total_CO2/Total_CO2_worst_case,
                        domain = {'x': [0, 1], 'y': [0, 1]},        
                         gauge= {
-                                'steps':[
-                                {'range':[0,0.333],'color': 'green'},
-                                {'range': [0.333,0.666],'color': 'yellow'},
-                                { 'range':[0.666,1.0],   'color':'red'}],
+                                'steps':steps_gauge,
                                 'axis':{'range':[0,1]},
                                 'bar':{
                                         'color':'black',
@@ -1098,10 +1117,7 @@ def plot_result(result, NremDays, NremWork, Nbuses, StopsCoords=[], CowFlags=[])
                        value = Total_CO2/Total_CO2_worst_case,
                        domain = {'x': [0, 1], 'y': [0, 1]},      
                         gauge= {
-                                'steps':[
-                                {'range':[0,0.333],'color': 'green'},
-                                {'range': [0.333,0.666],'color': 'yellow'},
-                                { 'range':[0.666,1.0],   'color':'red'}],
+                                'steps':steps_gauge,
                                 'axis':{'range':[0,1]},
                                 'bar':{
                                         'color':'black',
@@ -1116,10 +1132,7 @@ def plot_result(result, NremDays, NremWork, Nbuses, StopsCoords=[], CowFlags=[])
                        value = Total_CO2/Total_CO2_worst_case,
                        domain = {'x': [0, 1], 'y': [0, 1]},        
                        gauge= {
-                                'steps':[
-                                {'range':[0,0.333],'color': 'green'},
-                                {'range': [0.333,0.666],'color': 'yellow'},
-                                { 'range':[0.666,1.0],   'color':'red'}],
+                                'steps':steps_gauge,
                                 'axis':{'range':[0,1]},
                                 'bar':{
                                         'color':'black',
@@ -1127,12 +1140,12 @@ def plot_result(result, NremDays, NremWork, Nbuses, StopsCoords=[], CowFlags=[])
                                       }
                                 })
 
-    predicted = result.loc[result['Coworking'] == 1, 'prediction']
+    predicted = result.loc[result['Rem_work'] == 1, 'prediction']   
     unique_labels, counts = np.unique(predicted, return_counts=True)
     d = {'Mode': unique_labels, 'counts':counts}
     df = pd.DataFrame(data=d)
     df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'}) 
-    df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})     
+    df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'}) 
     fig4 = go.Pie(labels=df["Mode"],
                   values=df["counts"],
                   showlegend=False,
@@ -1140,12 +1153,12 @@ def plot_result(result, NremDays, NremWork, Nbuses, StopsCoords=[], CowFlags=[])
                   textinfo='label+percent',
                   marker=dict(colors=df['color']))
 
-    predicted = result.loc[result['Rem_work'] == 1, 'prediction']   
+    predicted = result.loc[result['Coworking'] == 1, 'prediction']
     unique_labels, counts = np.unique(predicted, return_counts=True)
     d = {'Mode': unique_labels, 'counts':counts}
     df = pd.DataFrame(data=d)
     df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'}) 
-    df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'}) 
+    df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})     
     fig5 = go.Pie(labels=df["Mode"],
                   values=df["counts"],
                   showlegend=False,
@@ -1207,17 +1220,43 @@ def plot_result(result, NremDays, NremWork, Nbuses, StopsCoords=[], CowFlags=[])
             marker_color=Contribs['color'])
 
 
+    #family_types = ['Hogar de una persona', 'Otros hogares sin niños', '2 adultos',
+    #                '2 adultos con niño(s)', '1 adulto con niño(s)',
+    #                'Otros hogares con niños']    
+    no_kids_df = result.loc[(result['Rem_work'] == 0) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
+    kids_df    = result.loc[(result['Rem_work'] == 0) &(result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
+    fig10 = go.Bar(
+            x=['No kids', 'Kids'],
+            y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
+            marker_color=['red','orange'])
+
+    no_kids_df = result.loc[(result['Coworking'] == 0) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
+    kids_df    = result.loc[(result['Coworking'] == 0) &(result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
+    fig11 = go.Bar(
+            x=['No kids', 'Kids'],
+            y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
+            marker_color=['red','orange'])
+
+    no_kids_df = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
+    kids_df    = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0) & (result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
+    fig12 = go.Bar(
+            x=['No kids', 'Kids'],
+            y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
+            marker_color=['red','orange'])
+
+
     column_titles = ['Remote working', 'Coworking', 'all-(Remote+Coworking)']
-    row_titles = ['CO2 emissions', 'Transport share', 'Distance share']
+    row_titles = ['CO2 emissions', 'Transport share', 'Distance share', 'Using car']
     #fig = make_subplots(rows=1, cols=3)
-    fig_decomp = make_subplots(rows=3, cols=3, 
+    fig_decomp = make_subplots(rows=4, cols=3, 
                         specs=[
                                [{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}],
                                [{"type": "pie"}, {"type": "pie"}, {"type": "pie"}],
+                               [{"type": "bar"}, {"type": "bar"}, {"type": "bar"}],
                                [{"type": "bar"}, {"type": "bar"}, {"type": "bar"}]],
                         column_titles = column_titles,
                         row_titles = row_titles,
-                        row_heights=[1, 2, 2]
+                        row_heights=[1, 2, 2, 2]
                         ) #-> row height is used to re-size plots of specific rows
     
     #fig = make_subplots(rows=2, cols=3)
@@ -1230,7 +1269,10 @@ def plot_result(result, NremDays, NremWork, Nbuses, StopsCoords=[], CowFlags=[])
     fig_decomp.append_trace(fig6, 2, 3)
     fig_decomp.append_trace(fig7, 3, 1)
     fig_decomp.append_trace(fig8, 3, 2)
-    fig_decomp.append_trace(fig9, 3, 3)     
+    fig_decomp.append_trace(fig9, 3, 3)
+    fig_decomp.append_trace(fig10, 4, 1)
+    fig_decomp.append_trace(fig11, 4, 2)
+    fig_decomp.append_trace(fig12, 4, 3)      
 
     #fig.update_yaxes(title_text="CO2 emissions", row=1, col=1)
     #fig.update_yaxes(title_text="Transport share", row=2, col=1)
