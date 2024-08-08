@@ -1222,15 +1222,15 @@ def plot_result(result, NremDays, NremWork, Nbuses, StopsCoords=[], CowFlags=[])
     #family_types = ['Hogar de una persona', 'Otros hogares sin niños', '2 adultos',
     #                '2 adultos con niño(s)', '1 adulto con niño(s)',
     #                'Otros hogares con niños']    
-    no_kids_df = result.loc[(result['Rem_work'] == 0) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
-    kids_df    = result.loc[(result['Rem_work'] == 0) &(result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
+    no_kids_df = result.loc[(result['Rem_work'] == 1) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
+    kids_df    = result.loc[(result['Rem_work'] == 1) &(result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
     fig10 = go.Bar(
             x=['No kids', 'Kids'],
             y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
             marker_color=['red','orange'])
 
-    no_kids_df = result.loc[(result['Coworking'] == 0) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
-    kids_df    = result.loc[(result['Coworking'] == 0) &(result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
+    no_kids_df = result.loc[(result['Coworking'] == 1) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
+    kids_df    = result.loc[(result['Coworking'] == 1) &(result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
     fig11 = go.Bar(
             x=['No kids', 'Kids'],
             y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
