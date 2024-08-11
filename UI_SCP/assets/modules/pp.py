@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 
 t0 = time.time()
 
-def pp(hour,X, RouteOptDone, CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
+def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, MCM_dir):
 
     """
     feeds.add_feed(add_dict={'dbus': 'https://www.geo.euskadi.eus/cartografia/DatosDescarga/Transporte/Moveuskadi/ATTG/dbus/google_transit.zip'})
@@ -336,8 +336,9 @@ def pp(hour,X, RouteOptDone, CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
                 )
     
     # Coworking hubs #############################################################
-    X["original_distance"] = X["distance"] # save original distance to calculte worst case scenario
-
+    #X["original_distance"] = X["distance"] # save original distance to calculte worst case scenario
+    X["original_distance"] = X.loc[:,"distance"] # save original distance to calculte worst case scenario
+    X['Coworking'] = 0
     cowhub_i = 0
     if np.any(CowCoords):
         for cowhub in CowCoords:
@@ -361,9 +362,19 @@ def pp(hour,X, RouteOptDone, CowCoords, RemWoPer, RemWoDays, root_dir, MCM_dir):
 
         # Keep track of whether coworking hub is closer than original distance #####################
         t = X[compare_cols].idxmin(axis=1) # for each row, get names of the column with min dist
-        t = pd.DataFrame(t).values
-        t = [1 if p[0] != 'distance' else 0 for p in t] # set to 1 if coworking hub is at a minimum distance
-        X['Coworking'] = t
+        #t = pd.DataFrame(t).values
+        #t = [1 if p[0] != 'distance' else 0 for p in t] # set to 1 if coworking hub is at a minimum distance
+        t = t.to_frame().reset_index() # convert to dataframe
+        t = t.rename(columns= {0: 'closest'}) # assign column name
+        t.index.name = 'index'
+        temp = []
+        for index, row in t.iterrows():
+            if row['closest'] != 'distance' and CowDays > 0: # if coworking hub is closer than headquarter
+                temp.append(1)                                      # and coworking days are > 0,
+            else:                                                   # we set Coworking to 1
+                temp.append(0)
+        X['Coworking'] = temp
+        #X['Coworking'] = t
         ############################################################################################
         # keep minimum distance among work destinations ############################################
         X['distance'] = X[compare_cols].min(axis=1)

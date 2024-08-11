@@ -36,7 +36,8 @@ def calculate_indicator_n(df):
         mask = [s for s in mask if "distance_stop" in s]
         thr = 500
         n = (df[mask] < thr).values.sum() # number of stops closer than thr
-        return df['CO2_over_target']*(1 + n/3.)      
+        #return df['CO2_over_target']*(1 + n/3.)
+        return n      
 
 
 def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
@@ -71,8 +72,9 @@ def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
     gdf['CO2_over_target'] = gdf['CO2']/(CO2_target*1000/n_weeks) 
     gdf['CO2_worst_case']  = 5*gkm_car*co2lt*gdf['original_distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     gdf['CO2_worst_case_over_target'] = gdf['CO2_worst_case']/(CO2_target*1000/n_weeks) 
-    gdf['distance']  = gdf['distance']*(5-gdf['Rem_work']) # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    gdf['distance_week']  = gdf['distance']*(5-gdf['Rem_work']) # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     gdf['weighted_d']  = gdf.apply(calculate_indicator_d, axis=1)
-    gdf['weighted_n']  = gdf.apply(calculate_indicator_n, axis=1)
+    #gdf['weighted_n']  = gdf.apply(calculate_indicator_n, axis=1)
+    gdf['n_close_stops']  = gdf.apply(calculate_indicator_n, axis=1)
 
     return gdf
