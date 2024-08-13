@@ -662,6 +662,7 @@ central_panel2 = html.Div(
     style=CONTENT_STYLE)
 
 
+"""
 x = ['1970-01-01', '1970-01-01', '1970-02-01', '1970-04-01', '1970-01-02',
      '1972-01-31', '1970-02-13', '1971-04-19']
 
@@ -699,12 +700,13 @@ fig.append_trace(trace2, 2, 1)
 fig.append_trace(trace3, 2, 2)
 fig.append_trace(trace4, 3, 1)
 fig.append_trace(trace5, 3, 2)
+"""
 
 indicators_2 = html.Div(
         [     
           html.Div([
               dcc.Graph(
-                figure=fig, 
+                #figure="", 
                 id='graph2', 
                 style={'width':'150vh', 'height':'120vh'})
             ], 
@@ -712,7 +714,6 @@ indicators_2 = html.Div(
             )
         ],
         style=INDICATORS_STYLE_2)
-
 
 """
 d_tmp = {'counts': [100, 50, 2], 'distance_week': [100, 50, 2], 'Mode': ['Car','PT','Walk'], 'color': ['red','blue','green']}
@@ -811,15 +812,16 @@ fig.update_layout(title_text='Calculated scenario')
 
 # 
 #            style={'width': '70vh', 'height': '100vh'})
+"""
 indicators_3 = html.Div(
         [              
         dcc.Graph(
-            figure=fig,
+            #figure=fig,
             id = 'Indicator_panel_3',
             style={'width': '60vh', 'height': '100vh'}) 
         ]
         )
-"""
+
 
 Tab_1 = dbc.Card(
     dbc.CardBody(
@@ -841,6 +843,7 @@ Tab_2 = dbc.Card(
         dbc.Row(
             [
                 dbc.Col(indicators_2, width=12)
+                #dbc.Col("", width=12)                
             ])
         ]
     ),
@@ -867,8 +870,8 @@ Tab_3 = dbc.Card(
 
         dbc.Row(
             [
-                #dbc.Col(indicators_3, width='auto'),
-                dbc.Col("", width='auto'),                
+                dbc.Col(indicators_3, width='auto'),
+                #dbc.Col("", width='auto'),                
             ],
             id='Tab_3'
             )
