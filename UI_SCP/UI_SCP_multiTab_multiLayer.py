@@ -714,7 +714,7 @@ indicators_2 = html.Div(
         style=INDICATORS_STYLE_2)
 
 
-
+"""
 d_tmp = {'counts': [100, 50, 2], 'distance_week': [100, 50, 2], 'Mode': ['Car','PT','Walk'], 'color': ['red','blue','green']}
 df_tmp = pd.DataFrame(data=d_tmp)
 
@@ -819,7 +819,7 @@ indicators_3 = html.Div(
             style={'width': '60vh', 'height': '100vh'}) 
         ]
         )
-
+"""
 
 Tab_1 = dbc.Card(
     dbc.CardBody(
@@ -867,7 +867,8 @@ Tab_3 = dbc.Card(
 
         dbc.Row(
             [
-                dbc.Col(indicators_3, width='auto'),
+                #dbc.Col(indicators_3, width='auto'),
+                dbc.Col("", width='auto'),                
             ],
             id='Tab_3'
             )
@@ -1411,7 +1412,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
 
 
     column_titles = ['Remote working', 'Coworking', 'Rest']
-    row_titles = ['CO2 emissions', 'Transport share', 'Distance share', 'Using car']
+    row_titles = ['CO2 emissions', 'Transport share', 'Distance share (km)', 'Using car']
     #fig = make_subplots(rows=1, cols=3)
     fig_decomp = make_subplots(rows=4, cols=3, 
                         specs=[
@@ -1858,7 +1859,7 @@ def plot_comparison(current, loaded):
 
 
     column_titles = ['Remote working', 'Coworking', 'Rest']
-    row_titles = ['CO2 emissions', 'Transport share', 'Distance share', 'Using car']
+    row_titles = ['CO2 emissions', 'Transport share', 'Distance share (km)', 'Using car']
     #fig = make_subplots(rows=1, cols=3)
     fig_decomp = make_subplots(rows=4, cols=3, 
                         specs=[
