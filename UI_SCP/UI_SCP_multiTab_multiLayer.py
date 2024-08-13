@@ -462,19 +462,6 @@ sidebar_1 =  html.Div(
               ),
 
         dbc.Row(
-                    html.Div(
-                              dcc.Upload(id='compare-scenario_1',
-                                         children=html.Div([
-                                         dbc.Button('Compare scenario')
-                                        ]),
-                                        # Allow multiple files to be uploaded
-                                        multiple=True
-                                        )
-                    ),
-                    style={"margin-top": "15px"},
-                    #width='auto'
-              ),
-        dbc.Row(
                     html.Div([
                             dbc.Button("Download scenario", id='button_download_scenario_1', n_clicks=0),
                             Download(id="download_scenario_1"),
@@ -820,6 +807,7 @@ fig.update_annotations(font_size=18)
 fig.update_layout(showlegend=False)    
 fig.update_layout(polar=dict(radialaxis=dict(visible=False)))
 fig.update_polars(radialaxis=dict(range=[0, radius_max]))
+fig.update_layout(title_text='Calculated scenario')
 
 # 
 #            style={'width': '70vh', 'height': '100vh'})
@@ -1259,6 +1247,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
     fig_total.update_layout(showlegend=False)    
     fig_total.update_layout(polar=dict(radialaxis=dict(visible=False)))
     fig_total.update_polars(radialaxis=dict(range=[0, radius_max]))
+    fig_total.update_layout(title_text='Calculated scenario')
 
 
     temp = result.loc[result['Rem_work'] == 1]
@@ -2058,12 +2047,13 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3):
             zip(list_of_contents, list_of_names, list_of_dates) if 'inputs' in n]
         stops_CowHubs = [
             parse_contents_load_scenario(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates) if 'stops_CowHubs' in n]
+            zip(list_of_contents, list_of_names, list_of_dates) if 'StopsCowHubs' in n]
         #scenario = []
         scenario = [
             parse_contents_load_scenario(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates) if 'scenario' in n]
 
+        scenario_name = [n.split('/')[-1] for n in list_of_names if 'scenario' in n][0]
 
         #out = plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords, CowoFlags)
 
@@ -2071,10 +2061,9 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3):
             print('inputs:')
             print(inputs)    
             inputs = np.array(inputs[0][:])[0]
-            #inputs = list(inputs)
-            print(inputs)         
-            print(inputs[0])
-            print(inputs[1])
+            #print(inputs)         
+            #print(inputs[0])
+            #print(inputs[1])
             NremDays = inputs[0] 
             NremWork = inputs[1]
             CowDays = inputs[2]
@@ -2083,16 +2072,17 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3):
         except:
             pass
 
+
         try:
-            stops_CowHubs = np.array(stops_CowHubs[0][:])[:]
-            print(stops_CowHubs)            
-            lats = stops_CowHubs[:,1]
-            lons = stops_CowHubs[:,2]
+            stops_CowHubs = np.array(stops_CowHubs[0][:])[:]           
+            lats = stops_CowHubs[:,0]
+            lons = stops_CowHubs[:,1]
+            CowFlags = stops_CowHubs[:,2]
             #StopsCoords = map(list, zip(lats,lons))
             StopsCoords = list(zip(lats,lons))
             print('Stops:')
             print(StopsCoords)
-            CowFlags = stops_CowHubs[:,3]
+
         except:
             StopsCoords = []
             CowFlags = []
@@ -2121,7 +2111,12 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3):
     x2 = sum(CowFlags)
     x3 = CowDays
     x4 = Nbuses
-    x5 = len(StopsCoords) - sum(CowFlags)                           
+    x5 = len(StopsCoords) - sum(CowFlags)   
+
+    print('Number of Cow. Hubs:')
+    print(x2)
+    print()
+
     x0_max = 5
     x1_max = 100
     x2_max = 3
@@ -2214,6 +2209,7 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3):
     fig_total.update_layout(showlegend=False)    
     fig_total.update_layout(polar=dict(radialaxis=dict(visible=False)))
     fig_total.update_polars(radialaxis=dict(range=[0, radius_max]))
+    fig_total.update_layout(title_text=scenario_name)
 
     indicators_n = html.Div(
             [              
@@ -2708,7 +2704,7 @@ def load_scenario(list_of_contents, list_of_names, list_of_dates):
             zip(list_of_contents, list_of_names, list_of_dates) if 'inputs' in n]
         stops_CowHubs = [
             parse_contents_load_scenario(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates) if 'stops_CowHubs' in n]
+            zip(list_of_contents, list_of_names, list_of_dates) if 'StopsCowHubs' in n]
         #scenario = []
         scenario = [
             parse_contents_load_scenario(c, n, d) for c, n, d in
@@ -2724,29 +2720,21 @@ def load_scenario(list_of_contents, list_of_names, list_of_dates):
             pass
 
         try:
-            #print(inputs[int(len(inputs)/2):])
-            print('Stops:')
-            print(stops_CowHubs)
-            #print(stops_CowHubs[:,1],stops_CowHubs[:,2],stops_CowHubs[:,3])
-        except:
-            pass
-
-        try:
-            stops_CowHubs = np.array(stops_CowHubs[0][:])[:]
-            print(stops_CowHubs)            
-            lats = stops_CowHubs[:,1]
-            lons = stops_CowHubs[:,2]
+            stops_CowHubs = np.array(stops_CowHubs[0][:])[:]           
+            lats = stops_CowHubs[:,0]
+            lons = stops_CowHubs[:,1]
+            CowFlags = stops_CowHubs[:,2]
             #StopsCoords = map(list, zip(lats,lons))
             StopsCoords = list(zip(lats,lons))
             print('Stops:')
             print(StopsCoords)
-            CowHubs_flags = stops_CowHubs[:,3]
+
         except:
             StopsCoords = []
-            CowHubs_flags = []
+            CowFlags = []
         #StopsCoords,CowHubs_flags,
         #return [scenario[0][0],scenario[0][1],scenario[0][2],inputs[0],inputs[1],inputs[2],inputs[3],inputs[4],inputs[5], StopsCoords, CowHubs_flags, True]
-        return [scenario[0][0],scenario[0][1],scenario[0][2],scenario[0][3],*inputs, StopsCoords, CowHubs_flags]
+        return [scenario[0][0],scenario[0][1],scenario[0][2],scenario[0][3],*inputs, StopsCoords, CowFlags]
 
 
 
@@ -2778,7 +2766,7 @@ def compare_scenario(list_of_contents, list_of_names, list_of_dates,
             zip(list_of_contents, list_of_names, list_of_dates) if 'inputs' in n]
         stops_CowHubs = [
             parse_contents_compare_scenario(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates) if 'stops_CowHubs' in n]
+            zip(list_of_contents, list_of_names, list_of_dates) if 'StopsCowHubs' in n]
         scenario_l = [
             parse_contents_compare_scenario(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates) if 'scenario' in n]
@@ -2803,18 +2791,18 @@ def compare_scenario(list_of_contents, list_of_names, list_of_dates,
             pass
 
         try:
-            stops_CowHubs_l = np.array(stops_CowHubs[0][:])[:]
-            print(stops_CowHubs_l)            
-            lats = stops_CowHubs_l[:,1]
-            lons = stops_CowHubs_l[:,2]
+            stops_CowHubs = np.array(stops_CowHubs[0][:])[:]           
+            lats = stops_CowHubs[:,0]
+            lons = stops_CowHubs[:,1]
+            CowFlags = stops_CowHubs[:,2]
             #StopsCoords = map(list, zip(lats,lons))
-            StopsCoords_l = list(zip(lats,lons))
+            StopsCoords = list(zip(lats,lons))
             print('Stops:')
-            print(StopsCoords_l)
-            CowFlags_l = stops_CowHubs_l[:,3]
+            print(StopsCoords)
+
         except:
-            StopsCoords_l = []
-            CowFlags_l = []
+            StopsCoords = []
+            CowFlags = []
 
         scenario_c = pd.DataFrame(scenario_c)
         scenario_c = geopandas.GeoDataFrame(scenario_c, 

@@ -377,7 +377,8 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
         #X['Coworking'] = t
         ############################################################################################
         # keep minimum distance among work destinations ############################################
-        X['distance'] = X[compare_cols].min(axis=1)
+        if CowDays > 0:
+           X['distance'] = X[compare_cols].min(axis=1)
         X.drop(columns=filter_cols, inplace=True)     
         ############################################################################################
 
