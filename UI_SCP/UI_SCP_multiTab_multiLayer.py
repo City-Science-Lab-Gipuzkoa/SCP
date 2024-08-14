@@ -186,7 +186,7 @@ INDICATORS_STYLE_2 = {
     "background-color": "#f8f9fa",
     "position": "fixed",
     "top": 60,
-    "left": 5,
+    "left": 30,
     "bottom": 0,
     "width": "150rem",
     "overflow": "scroll"    
@@ -449,7 +449,7 @@ sidebar_1 =  html.Div(
         #    [                 
         dbc.Row(
                     html.Div(
-                              dcc.Upload(id='load-scenario_1',
+                              dcc.Upload(id='button_load_scenario_1',
                                          children=html.Div([
                                          dbc.Button('Load scenario')
                                         ]),
@@ -702,15 +702,17 @@ fig.append_trace(trace4, 3, 1)
 fig.append_trace(trace5, 3, 2)
 """
 
+#style={'width':'120vh', 'height':'120vh'}
 indicators_2 = html.Div(
         [     
           html.Div([
               dcc.Graph(
                 #figure="", 
                 id='graph2', 
-                style={'width':'150vh', 'height':'120vh'})
+                style={'width':'120vh', 'height':'150vh'}
+                )
             ], 
-            style={'width':'100%'}
+            #style={'width':'100%'}
             )
         ],
         style=INDICATORS_STYLE_2)
@@ -842,7 +844,7 @@ Tab_2 = dbc.Card(
         [
         dbc.Row(
             [
-                dbc.Col(indicators_2, width=12)
+                dbc.Col(indicators_2, width='auto')
                 #dbc.Col("", width=12)                
             ])
         ]
@@ -1254,9 +1256,10 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
     fig_total.update_layout(title_text='Calculated scenario')
 
 
+    Total_CO2_worst_case = result['CO2_worst_case'].sum()
+
     temp = result.loc[result['Rem_work'] == 1]
     Total_CO2 = temp['CO2'].sum()
-    Total_CO2_worst_case = temp['CO2_worst_case'].sum()
     fig1 = go.Indicator(mode = "gauge+number",
                         value = Total_CO2/Total_CO2_worst_case,
                        domain = {'x': [0, 1], 'y': [0, 1]},        
@@ -1271,7 +1274,6 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
 
     temp = result.loc[result['Coworking'] == 1]
     Total_CO2 = temp['CO2'].sum()
-    Total_CO2_worst_case = temp['CO2_worst_case'].sum()
     fig2 = go.Indicator(mode = "gauge+number",
                        value = Total_CO2/Total_CO2_worst_case,
                        domain = {'x': [0, 1], 'y': [0, 1]},      
@@ -1286,7 +1288,6 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
         
     temp = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0)]
     Total_CO2 = temp['CO2'].sum()
-    Total_CO2_worst_case = temp['CO2_worst_case'].sum()
     fig3 = go.Indicator(mode = "gauge+number",
                        value = Total_CO2/Total_CO2_worst_case,
                        domain = {'x': [0, 1], 'y': [0, 1]},        
@@ -1341,12 +1342,20 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
                   marker=dict(colors=df['color']),
                   scalegroup = 'one')
 
+
     temp = result.loc[result['Rem_work'] == 1]
-    temp['distance_km'] = temp['distance_week']/1000.
-    temp = temp[['Mode','distance_km']]
-    Contribs = temp.groupby(['Mode']).sum() 
-    Contribs = Contribs.reset_index()
-    Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    if not temp.empty:
+        temp['distance_km'] = temp['distance_week']/1000.
+        temp = temp[['Mode','distance_km']]
+        Contribs = temp.groupby(['Mode']).sum() 
+        Contribs = Contribs.reset_index()
+        Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    else:
+        data = {'Mode': ['No mode'],
+                'distance_km': [0],
+                'color': ['#FF0000']}
+        Contribs = pd.DataFrame(data)
+        
     print(Contribs.head())
     fig7 = go.Bar(
             x=Contribs['distance_km'],
@@ -1355,13 +1364,18 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
             marker_color=Contribs['color'])
     max_dist_1 = Contribs['distance_km'].max()
 
-    temp = result.loc[result['Coworking'] == 1]
-    temp['distance_km'] = temp['distance_week']/1000.
-    temp = temp[['Mode','distance_km']]
-    Contribs = temp.groupby(['Mode']).sum() 
-    Contribs = Contribs.reset_index()
-    Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
-    print(Contribs.head())
+    temp = result.loc[result['Coworking'] == 1]    
+    if not temp.empty:
+        temp['distance_km'] = temp['distance_week']/1000.
+        temp = temp[['Mode','distance_km']]
+        Contribs = temp.groupby(['Mode']).sum() 
+        Contribs = Contribs.reset_index()
+        Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    else:        
+        data = {'Mode': ['No mode'],
+                'distance_km': [0],
+                'color': ['#FF0000']}
+        Contribs = pd.DataFrame(data)
     fig8 = go.Bar(
             x=Contribs['distance_km'],
             y=Contribs['Mode'],
@@ -1371,12 +1385,17 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
 
 
     temp = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0)]
-    temp['distance_km'] = temp['distance_week']/1000.
-    temp = temp[['Mode','distance_km']]
-    Contribs = temp.groupby(['Mode']).sum() 
-    Contribs = Contribs.reset_index()
-    Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
-    print(Contribs.head())
+    if not temp.empty:
+        temp['distance_km'] = temp['distance_week']/1000.
+        temp = temp[['Mode','distance_km']]
+        Contribs = temp.groupby(['Mode']).sum() 
+        Contribs = Contribs.reset_index()
+        Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    else:
+        data = {'Mode': ['No mode'],
+                'distance_km': [0],
+                'color': ['#FF0000']}
+        Contribs = pd.DataFrame(data)
     fig9 = go.Bar(
             x=Contribs['distance_km'],
             y=Contribs['Mode'],
@@ -1462,6 +1481,25 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
     markers_remote_1 = []
     markers_cow_1 = []
     markers_comm_1 = []
+
+
+    custom_icon_coworking_big = dict(
+        iconUrl= "https://i.ibb.co/J2qXGKN/coworking-icon.png",
+        iconSize=[50,50],
+        iconAnchor=[0, 0]
+        )
+    custom_icon_coworking = dict(
+        iconUrl= "https://i.ibb.co/jMgmc4W/cowork-small-icon.png",
+        iconSize=[20,20],
+        iconAnchor=[10, 10]
+        )  
+    custom_icon_home = dict(
+        iconUrl= "https://i.ibb.co/0ZqM4PG/home-icon.png",
+        iconSize=[20,20],
+        iconAnchor=[10, 10]
+        )
+
+
     for i_pred in result.itertuples():
         #print(i_pred.geometry.y, i_pred.geometry.x)
         #color = generate_color_gradient(maxCO2,i_pred.CO2) 
@@ -1480,7 +1518,8 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
             n_cw = int(i_pred.Coworking)
         except:
             n_cw = 0    
-        text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]          
+        text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]  
+
         marker_i = dl.CircleMarker(
                         id=str(i_pred),
                         children=[dl.Tooltip(content=text)],
@@ -1493,19 +1532,27 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
                         weight = 2.0,
                         color='black'
                         )
-        #children.append(marker_i)
-        markers_all_1.append(marker_i)  
-        #print('remote_work_i: ', i_pred.Rem_work)
+
         try:
             if  i_pred.Rem_work > 0.0:
+                marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
+                                     position=[i_pred.geometry.y, i_pred.geometry.x], 
+                                     icon=custom_icon_home, 
+                                     id=str(i_pred))
                 markers_remote_1.append(marker_i)
         except:
             pass
         try:
             if  i_pred.Coworking > 0.0:
+                marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
+                                     position=[i_pred.geometry.y, i_pred.geometry.x], 
+                                     icon=custom_icon_coworking, 
+                                     id=str(i_pred))
                 markers_cow_1.append(marker_i)
         except:
             pass    
+        markers_all_1.append(marker_i)  
+
     markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )
 
     
@@ -1527,16 +1574,10 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
                 ]
 
     if CowFlags:
-        custom_icon_coworking = dict(
-        iconUrl= "https://i.ibb.co/J2qXGKN/coworking-icon.png",
-        iconSize=[40,40],
-        iconAnchor=[22, 40]
-        )    
         Cow_markers = []
         for i, pos in enumerate(StopsCoords): 
             if CowFlags[i]==1:
-                custom_icon = custom_icon_coworking
-                tmp = dl.Marker(dl.Tooltip("Coworking hub"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
+                tmp = dl.Marker(dl.Tooltip("Coworking hub"), position=pos, icon=custom_icon_coworking_big, id={'type': 'marker', 'index': i})    
                 Cow_markers.append(tmp)  
         children = children + Cow_markers
 
@@ -1546,7 +1587,6 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
 
     #return [Total_CO2/Total_CO2_worst_case, fig_total, fig_decomp, new_map]
     return [fig_total, fig_decomp, new_map]
-
 
 
 def plot_comparison(current, loaded):
@@ -2117,10 +2157,6 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3):
     x4 = Nbuses
     x5 = len(StopsCoords) - sum(CowFlags)   
 
-    print('Number of Cow. Hubs:')
-    print(x2)
-    print()
-
     x0_max = 5
     x1_max = 100
     x2_max = 3
@@ -2303,6 +2339,7 @@ def update_coworking(cow_days):
            Output('graph2','figure',allow_duplicate=True),
            Output('map_1','children',allow_duplicate=True),
            Output('Indicator_panel_3', 'figure',allow_duplicate=True),
+           Output("Tab_3", "children",allow_duplicate=True),
            Output('internal-value_scenario_1','data',allow_duplicate=True)],
           [
           State('root_dir_1', 'data'),
@@ -2317,11 +2354,12 @@ def update_coworking(cow_days):
           State('choose_transp_hour_1','value'),
           State('choose_gas_km_car_1','value'),
           State('choose_gas_km_bus_1','value'),
-          State('choose_CO2_lt_1','value')
+          State('choose_CO2_lt_1','value'),
+          State('Tab_3', 'children')
           ],
           Input('run_MCM_1', 'n_clicks'),
           prevent_initial_call=True)
-def run_MCM_callback(root_dir, workerData, NremDays, NremWork, RouteOptDone, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
+def run_MCM_callback(root_dir, workerData, NremDays, NremWork, RouteOptDone, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, gkm_car, gkm_bus, co2lt, Tab3, Nclicks):
     print('Cow. Flags:')
     print(CowoFlags)
     CowoIn = np.nonzero(CowoFlags)[0]
@@ -2349,8 +2387,21 @@ def run_MCM_callback(root_dir, workerData, NremDays, NremWork, RouteOptDone, Sto
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
-    #return [out[0],out[1],out[2],out[3], out[4], scenario_json]
-    return [out[0],out[1],out[2], out[0], scenario_json]
+    ##return [out[0],out[1],out[2],out[3], out[4], scenario_json]
+
+    #return [out[0],out[1],out[2], out[0], scenario_json]
+
+    indicators_n = html.Div(
+            [              
+            dcc.Graph(
+                figure=out[0],
+                style={'width': '60vh', 'height': '100vh'}) 
+            ]
+            )
+
+    #return [fig_total, fig_decomp, new_map, Tab3 + [dbc.Col(indicators_n, width='auto')]]
+    return [out[0],out[1],out[2], out[0], Tab3 + [dbc.Col(indicators_n, width='auto')], scenario_json]
+
 
 """
 @callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
@@ -2682,64 +2733,78 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
 ############################################################################################
 
 #           Output('internal-value_stops','data',allow_duplicate=True),
-@callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
-           Output('Transport_share','figure',allow_duplicate=True),
-           Output('Km_share','figure',allow_duplicate=True),
+       
+@callback([Output('Indicator_panel_1', 'figure',allow_duplicate=True),
+           Output('graph2','figure',allow_duplicate=True),
+           Output('Indicator_panel_3', 'figure',allow_duplicate=True),
            Output('map_1','children',allow_duplicate=True),
-           Output('internal-value_remote_days_1', 'data',allow_duplicate=True),           
+           Output('internal-value_remote_days_1', 'data',allow_duplicate=True),
            Output('internal-value_remote_workers_1', 'data',allow_duplicate=True),
-           Output('choose_transp_hour_1','value',allow_duplicate=True),
-           Output('choose_gas_km_car_1','value',allow_duplicate=True),
-           Output('choose_gas_km_bus_1','value',allow_duplicate=True),
-           Output('choose_CO2_lt_1','value',allow_duplicate=True),
-           Output('internal-value_stops_1','data',allow_duplicate=True),           
-           Output('internal-value_coworking_1','data',allow_duplicate=True)],
-            [Input('load-scenario_1', 'contents'),
-            State('load-scenario_1', 'filename'),
-            State('load-scenario_1', 'last_modified')],
-              prevent_initial_call=True)
-def load_scenario(list_of_contents, list_of_names, list_of_dates):        
-    if list_of_contents is not None:
-        print()
-        print('list of names:')
-        print(list_of_names)
-        inputs = [
-            parse_contents_load_scenario(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates) if 'inputs' in n]
-        stops_CowHubs = [
-            parse_contents_load_scenario(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates) if 'StopsCowHubs' in n]
-        #scenario = []
-        scenario = [
-            parse_contents_load_scenario(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates) if 'scenario' in n]
-        
-        try:
-            print('inputs:')
-            print(inputs)    
-            inputs = np.array(inputs[0][:])[0]
-            print(inputs)    
-            print()
-        except:
-            pass
+           Output('internal-value_coworking_days_1', 'data',allow_duplicate=True),
+           Output('internal-value_bus_number_1', 'data',allow_duplicate=True),
+           Output('choose_transp_hour_1', 'value',allow_duplicate=True),
+           Output('choose_gas_km_car_1', 'value',allow_duplicate=True),
+           Output('choose_gas_km_bus_1', 'value',allow_duplicate=True),
+           Output('choose_CO2_lt_1', 'value',allow_duplicate=True),
+           Output('internal-value_stops_1', 'data',allow_duplicate=True),
+           Output('internal-value_coworking_1', 'data',allow_duplicate=True),
+           Output('internal-value_scenario_1','data',allow_duplicate=True)],
+           [Input('button_load_scenario_1', 'contents'),
+            State('button_load_scenario_1', 'filename'),
+            State('button_load_scenario_1', 'last_modified')],
+            prevent_initial_call=True)
+def load_scenario(contents, names, dates):
+    if contents is None:
+        #return [dash.no_update]*14
+        return []
 
-        try:
-            stops_CowHubs = np.array(stops_CowHubs[0][:])[:]           
-            lats = stops_CowHubs[:,0]
-            lons = stops_CowHubs[:,1]
-            CowFlags = stops_CowHubs[:,2]
-            #StopsCoords = map(list, zip(lats,lons))
-            StopsCoords = list(zip(lats,lons))
-            print('Stops:')
-            print(StopsCoords)
+    print('inside callback!')
+    inputs = [parse_contents_load_scenario(c, n, d) for c, n, d in zip(contents, names, dates)
+              if 'inputs' in n]
+    stops_cow_hubs = [parse_contents_load_scenario(c, n, d) for c, n, d in zip(contents, names, dates)
+                      if 'StopsCowHubs' in n]
+    scenario = [parse_contents_load_scenario(c, n, d) for c, n, d in zip(contents, names, dates)
+                if 'scenario' in n]
 
-        except:
-            StopsCoords = []
-            CowFlags = []
-        #StopsCoords,CowHubs_flags,
-        #return [scenario[0][0],scenario[0][1],scenario[0][2],inputs[0],inputs[1],inputs[2],inputs[3],inputs[4],inputs[5], StopsCoords, CowHubs_flags, True]
-        return [scenario[0][0],scenario[0][1],scenario[0][2],scenario[0][3],*inputs, StopsCoords, CowFlags]
+    inputs = np.array(inputs[0][:])[0]
+    NremDays = inputs[0] 
+    NremWork = inputs[1]
+    CowDays = inputs[2]
+    Nbuses = inputs[3] 
+    try:   
+        stops_cow_hubs = np.array(stops_cow_hubs[0][:])[:]
+        lats = stops_cow_hubs[:, 0]
+        lons = stops_cow_hubs[:, 1]
+        cow_flags = stops_cow_hubs[:, 2]
+        stops_coords = list(zip(lats, lons))
+    except:
+        stops_coords = []
+        cow_flags = []
 
+    print()
+    print('loaded scenario:')
+    print(scenario)
+    col_names = scenario[0][:][1].tolist() 
+    print(len(col_names))
+    scenario = np.array(scenario[0][:][0])
+    scenario = pd.DataFrame(scenario)
+    print(len(scenario.columns))
+    print(col_names)
+    scenario.columns = col_names
+
+    scenario = geopandas.GeoDataFrame(scenario)  
+    print(scenario.columns.tolist())     
+
+    print(scenario['CO2_worst_case'].sum())
+    print(scenario['CO2_worst_case'].head(20))    
+    out = plot_result(scenario, NremDays, NremWork, CowDays, Nbuses, stops_coords, cow_flags)
+
+    scenario = pd.DataFrame(scenario.drop(columns='geometry'))
+    scenario_json = scenario.to_dict('records') # not working?
+    #return [out[0],out[1],out[2],out[3], out[4], scenario_json]
+    #return [out[0],out[2], *inputs, scenario_json]
+    #fig_total, fig_decomp, new_map
+    return [out[0],out[1],out[0],out[2], *inputs, stops_coords, cow_flags, scenario_json]
 
 
 #           Output('internal-value_stops','data',allow_duplicate=True),
