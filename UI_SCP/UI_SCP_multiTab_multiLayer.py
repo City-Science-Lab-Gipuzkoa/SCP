@@ -479,7 +479,8 @@ sidebar_1 =  html.Div(
         dcc.Store(id='internal-value_coworking_days_1', data=0),        
         dcc.Store(id='internal-value_routes_1', data=[]),        
         dcc.Store(id='internal-value_scenario_1', data=[]),       
-        dcc.Store(id='internal-value_loaded_scenario_1', data=[]),        
+        dcc.Store(id='internal-value_loaded_scenario_1', data=[]),   
+        dcc.Store(id='internal-value_calculated_scenarios_1', data=[]),      
         dcc.Store(id='internal-value_remote_days_1', data=0),
         dcc.Store(id='internal-value_remote_workers_1', data=0),
         dcc.Store(id='internal-value_bus_number_1', data = 0) 
@@ -662,45 +663,20 @@ central_panel2 = html.Div(
     style=CONTENT_STYLE)
 
 
-"""
-x = ['1970-01-01', '1970-01-01', '1970-02-01', '1970-04-01', '1970-01-02',
-     '1972-01-31', '1970-02-13', '1971-04-19']
+def blank_fig():
+    fig = go.Figure(go.Scatter(x=[], y = []))
+    fig.update_layout(template = None)
+    fig.update_xaxes(showgrid = False, showticklabels = False, zeroline=False)
+    fig.update_layout(
+        autosize=False,
+        width=10,
+        height=150,
+        margin=dict(
+        l=0,
+        ))    
+    fig.update_yaxes(showgrid = False, showticklabels = False, zeroline=False)
 
-fig = make_subplots(rows=3, cols=3)
-
-
-trace0 = go.Histogram(x=x, nbinsx=4)
-trace1 = go.Histogram(x=x, nbinsx = 8)
-trace2 = go.Histogram(x=x, nbinsx=10)
-trace3 = go.Histogram(x=x,
-                      xbins=dict(
-                      start='1969-11-15',
-                      end='1972-03-31',
-                      size='M18'), # M18 stands for 18 months
-                      autobinx=False
-                     )
-trace4 = go.Histogram(x=x,
-                      xbins=dict(
-                      start='1969-11-15',
-                      end='1972-03-31',
-                      size='M4'), # 4 months bin size
-                      autobinx=False
-                      )
-trace5 = go.Histogram(x=x,
-                      xbins=dict(
-                      start='1969-11-15',
-                      end='1972-03-31',
-                      size= 'M2'), # 2 months
-                      autobinx = False
-                      )
- 
-fig.append_trace(trace0, 1, 1)
-fig.append_trace(trace1, 1, 2)
-fig.append_trace(trace2, 2, 1)
-fig.append_trace(trace3, 2, 2)
-fig.append_trace(trace4, 3, 1)
-fig.append_trace(trace5, 3, 2)
-"""
+    return fig
 
 #style={'width':'120vh', 'height':'120vh'}
 indicators_2 = html.Div(
@@ -711,119 +687,36 @@ indicators_2 = html.Div(
                 id='graph2', 
                 style={'width':'120vh', 'height':'150vh'}
                 )
+           
             ], 
             #style={'width':'100%'}
             )
         ],
         style=INDICATORS_STYLE_2)
 
-"""
-d_tmp = {'counts': [100, 50, 2], 'distance_week': [100, 50, 2], 'Mode': ['Car','PT','Walk'], 'color': ['red','blue','green']}
-df_tmp = pd.DataFrame(data=d_tmp)
 
-radius_max = 1
-x0 = 1
-x1 = 30
-x2 = 2
-x3 = 2
-x4 = 7  
-x5 = 7                          
-x0_max = 5
-x1_max = 100
-x2_max = 3
-x3_max = 5
-x4_max = 15
-x5_max = 15
-fig1 = go.Scatterpolar(
-            r=[radius_max*x0/x0_max, radius_max*x1/x1_max, radius_max*x2/x2_max, radius_max*x3/x3_max, radius_max*x4/x4_max, radius_max*x5/x5_max],
-            theta=['Remote working days',
-                   'Remote working persons (%)',
-                   'Coworking hubs', 
-                   'Coworking days', 
-                   'Bus routes',
-                   'Bus stops'],
-            hovertext= [str(x0),str(x1), str(x2), str(x3), str(x4), str(x5)],
-            fill='toself'
-        )
-
-
-cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
-interv = np.linspace(0,1,cmap.N)
-j = 0
-steps_gauge = []
-for i in reversed(range(cmap.N-1)):
-    rgba = cmap(i)
-    t = {'range':[interv[j],interv[j+1]],'color': matplotlib.colors.rgb2hex(rgba)}
-    j+=1
-    steps_gauge.append(t)
-
-fig2 = go.Indicator(mode = "gauge+number",
-                        value = 0.3,
-                       domain = {'x': [0, 1], 'y': [0, 1]},        
-                        gauge= {
-                                'steps':steps_gauge,
-                                'axis':{'range':[0,1]},
-                                'bar':{
-                                        'color':'black',
-                                        'thickness':0.5
-                                      }
-                                }
-
-                    )
-
-
-fig3 = go.Pie(labels=df_tmp["Mode"],
-                  values=df_tmp["counts"],
-                  showlegend=False,
-                  textposition='inside',
-                  textinfo='label+percent',
-                  marker=dict(colors=df_tmp['color']))
-
-
-fig4 = go.Bar(
-            x=df_tmp['distance_week'],
-            y=df_tmp['Mode'],
-            orientation='h',
-            marker_color=df_tmp['color'])
-
-row_titles = ("Interventions", "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
-column_titles = ()
-
-fig = make_subplots(rows=4, cols=1, 
-                    specs=[
-                            [{"type": "scatterpolar"}], [{"type": "indicator"}],
-                            [{"type": "pie"}], [{"type": "bar"}]],
-                    row_heights=[2,1,2,1],
-                    subplot_titles=row_titles
-                    ) #-> row height is used to re-size plots of specific rows
-#fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
-fig.for_each_annotation(lambda a:  a.update(x = 0.2) if a.text in row_titles else())
-fig.append_trace(fig1, 1, 1)
-fig.append_trace(fig2, 2, 1)
-fig.append_trace(fig3, 3, 1)
-fig.append_trace(fig4, 4, 1)   
-
-#fig.update_yaxes(title_text="CO2 emissions", row=1, col=1)
-#fig.update_yaxes(title_text="Transport share", row=2, col=1)
-#fig.update_yaxes(title_text="Distance share", row=3, col=1)
-fig.update_annotations(font_size=18)
-fig.update_layout(showlegend=False)    
-fig.update_layout(polar=dict(radialaxis=dict(visible=False)))
-fig.update_polars(radialaxis=dict(range=[0, radius_max]))
-fig.update_layout(title_text='Calculated scenario')
-
-# 
-#            style={'width': '70vh', 'height': '100vh'})
-"""
 indicators_3 = html.Div(
         [              
-        dcc.Graph(
-            #figure=fig,
-            id = 'Indicator_panel_3',
-            style={'width': '60vh', 'height': '100vh'}) 
+        #dcc.Graph(
+        #    #figure=fig,
+        #    id = 'Indicator_panel_3',
+        #    style={'width': '60vh', 'height': '100vh'}) 
+        dcc.Graph(id='Indicator_panel_3', 
+                  figure = blank_fig())
+
         ]
         )
+indicators_4 = html.Div(
+        [              
+        #dcc.Graph(
+        #    #figure=fig,
+        #    id = 'Indicator_panel_3',
+        #    style={'width': '60vh', 'height': '100vh'}) 
+        dcc.Graph(id='Indicator_panel_4', 
+                  figure = blank_fig())
 
+        ]
+        )
 
 Tab_1 = dbc.Card(
     dbc.CardBody(
@@ -851,7 +744,6 @@ Tab_2 = dbc.Card(
     ),
     className="mt-3",
 )
-
 
 Tab_3 = dbc.Card(
     dbc.CardBody(
@@ -883,12 +775,12 @@ Tab_3 = dbc.Card(
 )
 
 
+
 tabs = dbc.Tabs(
     [
         dbc.Tab(Tab_1, label="Calculate scenarios"),
         dbc.Tab(Tab_2, label="Detailed result visualization"),
-        dbc.Tab(Tab_3, label="Scenarios comparison")
-
+        dbc.Tab(Tab_3, label="Scenarios comparison")       
     ]
 )
 
@@ -948,36 +840,6 @@ def parse_contents_load_scenario(contents, filename, date):
         #out = plot_result(gdf)
         #gdf.columns = df.columns
         out = [gdf, gdf.columns]
-    else:
-        out =  df
-
-    return out
-
-
-def parse_contents_compare_scenario(contents, filename, date):
-    content_type, content_string = contents.split(',')    
-    decoded = base64.b64decode(content_string)
-    try:
-        if 'csv' in filename:
-            # Assume that the user uploaded a CSV file
-            df = pd.read_csv(
-                io.StringIO(decoded.decode('utf-8')))
-        elif 'xls' in filename:
-            # Assume that the user uploaded an excel file
-            df = pd.read_excel(io.BytesIO(decoded))
-    except Exception as e:
-        print(e)
-        return html.Div([
-            'There was an error processing this file.'
-        ])
-    
-    if 'scenario' in filename:
-        gdf = geopandas.GeoDataFrame(df, 
-                                 geometry = geopandas.points_from_xy(df.O_long, df.O_lat), 
-                                 crs="EPSG:4326"
-        )
-        #out = plot_comparison(gdf)
-        out = gdf        
     else:
         out =  df
 
@@ -1151,7 +1013,7 @@ def generate_color_gradient(CO2max,CO2_i, label=0):
 
     return color_hex
 
-def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], CowFlags=[]):
+def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, StopsCoords=[], CowFlags=[]):
 
     radius_max = 1
     x0 = NremDays
@@ -1229,8 +1091,8 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
                 orientation='h',
                 marker_color=Contribs['color'])
 
+    
     row_titles = ("Interventions", "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
-    column_titles = ()
 
     fig_total = make_subplots(rows=4, cols=1, 
                         specs=[
@@ -1244,11 +1106,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
     fig_total.append_trace(fig1, 1, 1)
     fig_total.append_trace(fig2, 2, 1)
     fig_total.append_trace(fig3, 3, 1)
-    fig_total.append_trace(fig4, 4, 1)   
-
-    #fig.update_yaxes(title_text="CO2 emissions", row=1, col=1)
-    #fig.update_yaxes(title_text="Transport share", row=2, col=1)
-    #fig.update_yaxes(title_text="Distance share", row=3, col=1)
+    fig_total.append_trace(fig4, 4, 1) 
     fig_total.update_annotations(font_size=18)
     fig_total.update_layout(showlegend=False)    
     fig_total.update_layout(polar=dict(radialaxis=dict(visible=False)))
@@ -1256,8 +1114,125 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
     fig_total.update_layout(title_text='Calculated scenario')
 
 
-    Total_CO2_worst_case = result['CO2_worst_case'].sum()
+    try:
+        new_scenarios = json.loads(stored_scenarios)
+        from datetime import datetime
+        now = datetime.now() # current date and time
+        date_time = now.strftime("%m/%d/%Y_%H:%M:%S")
+        scenario_name = date_time
+    except:
+        new_scenarios = stored_scenarios
+        scenario_name = 'baseline'
 
+    class NumpyEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, np.ndarray):
+                return obj.tolist()
+            return super().default(obj) 
+   
+    calculated_scenario = {
+            'name': scenario_name,            
+            'NremDays': NremDays,
+            'NremWork': NremWork,
+            'CowDays': CowDays,
+            'Nbuses': Nbuses,
+            'CowFlags': CowFlags,
+            'StopsCoords': StopsCoords,
+            'Total_CO2': Total_CO2,
+            'Total_CO2_worst_case': Total_CO2_worst_case,
+            'counts': df["counts"].tolist(), 
+            'Transport_share_labels': df["Mode"].tolist(),
+            'distance_km': Contribs['distance_km'].tolist(), 
+            'Distance_share_labels': Contribs["Mode"].tolist()
+        }
+    new_scenarios.append(calculated_scenario)
+    print()
+    print('new scenarios: ')
+    print(new_scenarios)
+
+    baseline_scenario = next(item for item in new_scenarios if item["name"] == "baseline")
+    new_stored_scenarios = json.dumps(new_scenarios, cls=NumpyEncoder)
+
+    BS_TS_df = pd.DataFrame({'counts': baseline_scenario['counts']}, index = baseline_scenario['Transport_share_labels'])
+    BS_DS_df = pd.DataFrame({'distance_km': baseline_scenario['distance_km']}, index = baseline_scenario['Distance_share_labels'])
+    print()
+    print('check BS_TS_df:')
+    print(BS_TS_df.head())
+    print('check BS_DS_df:')
+    print(BS_DS_df.head())
+    print() 
+
+    temp_df = df.copy()
+    temp_Contribs = Contribs.copy()
+    diff_TS_df = temp_df[['Mode','counts']].set_index('Mode').subtract(BS_TS_df)
+    diff_DS_df = temp_Contribs[['Mode','distance_km']].set_index('Mode').subtract(BS_DS_df)
+
+    print() 
+    print('Before plots?')   
+    print(df['counts'])
+    print(Contribs['distance_km'])
+    temp_df = pd.DataFrame({'counts': df['counts'].tolist()}, index=df['Mode'].tolist())
+    temp_Contribs = pd.DataFrame({'distance_km': Contribs['distance_km'].tolist()}, index=Contribs['Mode'].tolist())
+    print('aux vars:')
+    print(temp_df)
+    print(temp_Contribs)
+
+    TS_diff_perc = 100*diff_TS_df.loc[diff_TS_df.index, ['counts']] / temp_df.loc[temp_df.index, ['counts']]
+    DS_diff_perc = 100*diff_DS_df.loc[diff_DS_df.index, ['distance_km']] / temp_Contribs.loc[temp_Contribs.index, ['distance_km']]
+    print()
+    print('original data')
+    print(df)
+    print()
+    print('Difference')
+    print(diff_TS_df)
+    print()
+    print('Ratio:')
+    print(TS_diff_perc)
+    print()
+    print()
+    print('original data')
+    print(Contribs)
+    print()
+    print('Difference')
+    print(diff_DS_df)
+    print()
+    print('Ratio:')
+    print(DS_diff_perc)
+
+    fig5 = go.Bar(
+                y=TS_diff_perc['counts'],
+                x=df['Mode'],
+                marker_color=df['color'])
+
+    fig6 = go.Bar(
+                y=DS_diff_perc['distance_km'],
+                x=Contribs['Mode'],
+                marker_color=Contribs['color'])
+
+
+    row_titles = ("Interventions", "Transport share difference WRT baseline (%)", "Distance share difference WRT baseline (%)")
+
+    fig_comp = make_subplots(rows=3, cols=1, 
+                        specs=[[{"type": "scatterpolar"}], 
+                               [{"type": "bar"}],
+                               [{"type": "bar"}]],
+                        row_heights=[2,1,1],
+                        subplot_titles=row_titles
+                        ) #-> row height is used to re-size plots of specific rows
+    #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
+    fig_comp.for_each_annotation(lambda a:  a.update(x = 0.5) if a.text in row_titles else())
+    fig_comp.append_trace(fig1, 1, 1)
+    fig_comp.append_trace(fig5, 2, 1)
+    fig_comp.append_trace(fig6, 3, 1)
+    fig_comp.update_annotations(font_size=18)
+    fig_comp.update_layout(showlegend=False)    
+    #fig_comp.update_layout(polar=dict(radialaxis=dict(visible=False)))
+    #fig_comp.update_polars(radialaxis=dict(range=[0, radius_max]))
+    fig_comp.update_layout(title_text='Calculated scenario')
+
+
+
+    Total_CO2_worst_case = result['CO2_worst_case'].sum()
     temp = result.loc[result['Rem_work'] == 1]
     Total_CO2 = temp['CO2'].sum()
     fig1 = go.Indicator(mode = "gauge+number",
@@ -1586,9 +1561,9 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords=[], Cow
                                      id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
     #return [Total_CO2/Total_CO2_worst_case, fig_total, fig_decomp, new_map]
-    return [fig_total, fig_decomp, new_map]
+    return [fig_total, new_map, fig_decomp, fig_comp, new_stored_scenarios]
 
-
+"""
 def plot_comparison(current, loaded):
 
     scenario_c = current[0]
@@ -2025,7 +2000,7 @@ def plot_comparison(current, loaded):
 
     #return [Total_CO2/Total_CO2_worst_case, fig_total, fig_decomp, new_map]
     return [fig_total, fig_decomp, new_map]
-
+"""
 
 
 def categorize_Mode(code):
@@ -2074,13 +2049,15 @@ def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, gkm_car=1./12, gkm_bus=1.1
  
 
 @callback(
-    [Output("Tab_3", "children",allow_duplicate=True)],
+    [Output("Tab_3", "children",allow_duplicate=True),
+    Output("internal-value_calculated_scenarios_1","data",allow_duplicate=True)],
     [Input('add-scenario_1', 'contents'),
     State('add-scenario_1', 'filename'),
     State('add-scenario_1', 'last_modified'),
-    State('Tab_3', 'children')],
+    State('Tab_3', 'children'),
+    State('internal-value_calculated_scenarios_1','data')],
     prevent_initial_call=True)
-def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3):
+def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_scenarios):
 
     if list_of_contents is not None:
         print()
@@ -2178,6 +2155,7 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3):
     Total_CO2 = scenario['CO2'].sum()
     Total_CO2_worst_case = scenario['CO2_worst_case'].sum()
     
+    
     cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
     interv = np.linspace(0,1,cmap.N)
     j = 0
@@ -2226,13 +2204,15 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3):
                 orientation='h',
                 marker_color=Contribs['color'])
 
-    row_titles = ("Interventions", "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
 
-    fig_total = make_subplots(rows=4, cols=1, 
+    """
+    row_titles = ("Interventions", "CO2 emissions", "Transport share (%)", "Weekly distance share (km)", "Difference WRT baseline (%)")
+
+    fig_total = make_subplots(rows=5, cols=1, 
                         specs=[
                                 [{"type": "scatterpolar"}], [{"type": "indicator"}],
-                                [{"type": "pie"}], [{"type": "bar"}]],
-                        row_heights=[2,1,2,1],
+                                [{"type": "pie"}], [{"type": "bar"}], [{"type": "bar"}]],
+                        row_heights=[2,1,2,1,1],
                         subplot_titles=row_titles
                         ) #-> row height is used to re-size plots of specific rows
     #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
@@ -2240,7 +2220,8 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3):
     fig_total.append_trace(fig1, 1, 1)
     fig_total.append_trace(fig2, 2, 1)
     fig_total.append_trace(fig3, 3, 1)
-    fig_total.append_trace(fig4, 4, 1)   
+    fig_total.append_trace(fig4, 4, 1) 
+    fig_total.append_trace(fig5, 5, 1)   
 
     #fig.update_yaxes(title_text="CO2 emissions", row=1, col=1)
     #fig.update_yaxes(title_text="Transport share", row=2, col=1)
@@ -2250,16 +2231,135 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3):
     fig_total.update_layout(polar=dict(radialaxis=dict(visible=False)))
     fig_total.update_polars(radialaxis=dict(range=[0, radius_max]))
     fig_total.update_layout(title_text=scenario_name)
+    """
+
+    try:
+        new_scenarios = json.loads(stored_scenarios)
+        from datetime import datetime
+        now = datetime.now() # current date and time
+        date_time = now.strftime("%m/%d/%Y_%H:%M:%S")
+        scenario_name = date_time
+    except:
+        new_scenarios = stored_scenarios
+        scenario_name = 'baseline'
+
+    class NumpyEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, np.ndarray):
+                return obj.tolist()
+            return super().default(obj) 
+   
+    calculated_scenario = {
+            'name': scenario_name,            
+            'NremDays': NremDays,
+            'NremWork': NremWork,
+            'CowDays': CowDays,
+            'Nbuses': Nbuses,
+            'CowFlags': CowFlags,
+            'StopsCoords': StopsCoords,
+            'Total_CO2': Total_CO2,
+            'Total_CO2_worst_case': Total_CO2_worst_case,
+            'counts': df["counts"].tolist(), 
+            'Transport_share_labels': df["Mode"].tolist(),
+            'distance_km': Contribs['distance_km'].tolist(), 
+            'Distance_share_labels': Contribs["Mode"].tolist()
+        }
+    new_scenarios.append(calculated_scenario)
+    print()
+    print('new scenarios: ')
+    print(new_scenarios)
+
+    baseline_scenario = next(item for item in new_scenarios if item["name"] == "baseline")
+    new_stored_scenarios = json.dumps(new_scenarios, cls=NumpyEncoder)
+
+    BS_TS_df = pd.DataFrame({'counts': baseline_scenario['counts']}, index = baseline_scenario['Transport_share_labels'])
+    BS_DS_df = pd.DataFrame({'distance_km': baseline_scenario['distance_km']}, index = baseline_scenario['Distance_share_labels'])
+    print()
+    print('check BS_TS_df:')
+    print(BS_TS_df.head())
+    print('check BS_DS_df:')
+    print(BS_DS_df.head())
+    print() 
+
+    temp_df = df.copy()
+    temp_Contribs = Contribs.copy()
+    diff_TS_df = temp_df[['Mode','counts']].set_index('Mode').subtract(BS_TS_df)
+    diff_DS_df = temp_Contribs[['Mode','distance_km']].set_index('Mode').subtract(BS_DS_df)
+
+    print() 
+    print('Before plots?')   
+    print(df['counts'])
+    print(Contribs['distance_km'])
+    temp_df = pd.DataFrame({'counts': df['counts'].tolist()}, index=df['Mode'].tolist())
+    temp_Contribs = pd.DataFrame({'distance_km': Contribs['distance_km'].tolist()}, index=Contribs['Mode'].tolist())
+    print('aux vars:')
+    print(temp_df)
+    print(temp_Contribs)
+
+    TS_diff_perc = 100*diff_TS_df.loc[diff_TS_df.index, ['counts']] / temp_df.loc[temp_df.index, ['counts']]
+    DS_diff_perc = 100*diff_DS_df.loc[diff_DS_df.index, ['distance_km']] / temp_Contribs.loc[temp_Contribs.index, ['distance_km']]
+    print()
+    print('original data')
+    print(df)
+    print()
+    print('Difference')
+    print(diff_TS_df)
+    print()
+    print('Ratio:')
+    print(TS_diff_perc)
+    print()
+    print()
+    print('original data')
+    print(Contribs)
+    print()
+    print('Difference')
+    print(diff_DS_df)
+    print()
+    print('Ratio:')
+    print(DS_diff_perc)
+
+
+
+    fig5 = go.Bar(
+                y=TS_diff_perc['counts'],
+                x=df['Mode'],
+                marker_color=df['color'])
+
+    fig6 = go.Bar(
+                y=DS_diff_perc['distance_km'],
+                x=Contribs['Mode'],
+                marker_color=Contribs['color'])
+
+    row_titles = ("Interventions", "Transport share difference WRT baseline (%)", "Distance share difference WRT baseline (%)")
+
+    fig_comp = make_subplots(rows=3, cols=1, 
+                        specs=[[{"type": "scatterpolar"}], 
+                               [{"type": "bar"}],
+                               [{"type": "bar"}]],
+                        row_heights=[2,1,1],
+                        subplot_titles=row_titles
+                        ) #-> row height is used to re-size plots of specific rows
+    #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
+    fig_comp.for_each_annotation(lambda a:  a.update(x = 0.2) if a.text in row_titles else())
+    fig_comp.append_trace(fig1, 1, 1)
+    fig_comp.append_trace(fig5, 2, 1)
+    fig_comp.append_trace(fig6, 3, 1)
+    fig_comp.update_annotations(font_size=18)
+    fig_comp.update_layout(showlegend=False)    
+    #fig_comp.update_layout(polar=dict(radialaxis=dict(visible=False)))
+    #fig_comp.update_polars(radialaxis=dict(range=[0, radius_max]))
+    fig_comp.update_layout(title_text='Calculated scenario')  
 
     indicators_n = html.Div(
             [              
             dcc.Graph(
-                figure=fig_total,
+                figure=fig_comp,
                 style={'width': '60vh', 'height': '100vh'}) 
             ]
             )
 
-    return [Tab3 + [dbc.Col(indicators_n, width='auto')]]
+    return [Tab3 + [dbc.Col(indicators_n, width='auto')], new_stored_scenarios]
+
 
 # Left sidebar subpanels #############################################
 @callback(
@@ -2336,14 +2436,16 @@ def update_coworking(cow_days):
 """
 # Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([Output('Indicator_panel_1', 'figure',allow_duplicate=True),
-           Output('graph2','figure',allow_duplicate=True),
            Output('map_1','children',allow_duplicate=True),
+           Output('graph2','figure',allow_duplicate=True),
            Output('Indicator_panel_3', 'figure',allow_duplicate=True),
            Output("Tab_3", "children",allow_duplicate=True),
-           Output('internal-value_scenario_1','data',allow_duplicate=True)],
+           Output('internal-value_scenario_1','data',allow_duplicate=True),
+           Output('internal-value_calculated_scenarios_1','data',allow_duplicate=True)],
           [
           State('root_dir_1', 'data'),
           State('worker_data_1', 'data'),
+          State('internal-value_calculated_scenarios_1','data'),
           State('internal-value_remote_days_1','data'),
           State('internal-value_remote_workers_1','data'),
           State('internal-value_route_opt_done_1','data'),
@@ -2359,7 +2461,7 @@ def update_coworking(cow_days):
           ],
           Input('run_MCM_1', 'n_clicks'),
           prevent_initial_call=True)
-def run_MCM_callback(root_dir, workerData, NremDays, NremWork, RouteOptDone, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, gkm_car, gkm_bus, co2lt, Tab3, Nclicks):
+def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork, RouteOptDone, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, gkm_car, gkm_bus, co2lt, Tab3, Nclicks):
     print('Cow. Flags:')
     print(CowoFlags)
     CowoIn = np.nonzero(CowoFlags)[0]
@@ -2372,18 +2474,8 @@ def run_MCM_callback(root_dir, workerData, NremDays, NremWork, RouteOptDone, Sto
     print(CowoCoords)
     
     df = pd.DataFrame.from_dict(workerData)    
-    result = run_MCM(df, root_dir, TransH, RouteOptDone, gkm_car, gkm_bus, co2lt, NremDays, NremWork, CowoCoords, CowDays)    
-    print()
-    print('Check result:')
-    print(result.head())
-    print()
-    print()
-    print('Coworking:')
-    print(result['Coworking'].unique())
-    print()
-    print('Remote work:')
-    print(result['Rem_work'].unique())    
-    out = plot_result(result, NremDays, NremWork, CowDays, Nbuses, StopsCoords, CowoFlags)
+    result = run_MCM(df, root_dir, TransH, RouteOptDone, gkm_car, gkm_bus, co2lt, NremDays, NremWork, CowoCoords, CowDays)     
+    out = plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, StopsCoords, CowoFlags)
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
@@ -2394,114 +2486,15 @@ def run_MCM_callback(root_dir, workerData, NremDays, NremWork, RouteOptDone, Sto
     indicators_n = html.Div(
             [              
             dcc.Graph(
-                figure=out[0],
+                figure=out[3],
                 style={'width': '60vh', 'height': '100vh'}) 
             ]
             )
 
     #return [fig_total, fig_decomp, new_map, Tab3 + [dbc.Col(indicators_n, width='auto')]]
-    return [out[0],out[1],out[2], out[0], Tab3 + [dbc.Col(indicators_n, width='auto')], scenario_json]
-
-
-"""
-@callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
-           Output('Transport_share','figure',allow_duplicate=True),
-           Output('Km_share','figure',allow_duplicate=True),
-           Output('map_1','children',allow_duplicate=True),
-           Output('internal-value_scenario_1','data',allow_duplicate=True),
-           Output('loading-component_MCM_1','children',allow_duplicate=True)],
-          [
-          State('root_dir_1', 'data'),
-          State('worker_data_1', 'data'),
-          State('choose_transp_hour_1','value')
-          ],
-          Input('run_MCM_baseline_1', 'n_clicks'),
-          prevent_initial_call=True)
-def run_MCM_baseline_callback(root_dir, workerData, TransH, Nclicks):
-    df = pd.DataFrame.from_dict(workerData)    
-    result = run_MCM(df, root_dir, TransH)    
-    out = plot_result(result)
-    scenario = pd.DataFrame(result.drop(columns='geometry'))
-    scenario_json = scenario.to_dict('records')
-    
-    #default_remote_days = 0
-    #default_remote_workers = 0
-    #default__transp_hour = 8
-    #default_gas_km_car = 1./12
-    #default_gas_km_bus = 1.1
-    #default__CO2_lt = 2.3
-    #default_internal_value_stops = []
-    #default_internal_value_coworking = []
-    default_values = [0,0,8,1./12,1.1,2.3,[],[]]
-    #*default_values
-    return [out[0],out[1],out[2],out[3], scenario_json, True]
-"""
-
-"""
-@callback([
-           Output("outdata_1", "children",allow_duplicate=True)],
-          [
-          State('root_dir_1', 'data'),
-          State('internal-value_remote_days_1','data'),
-          State('internal-value_remote_workers_1','data'),
-          State('internal-value_bus_number_1','data'),
-          State('internal-value_stops_1','data'),
-          State('internal-value_coworking_1','data'),
-          State('internal-value_coworking_days_1','data'),
-          State('internal-value_scenario_1','data'),
-          State('choose_transp_hour_1','value'),
-          State('choose_gas_km_car_1','value'),
-          State('choose_gas_km_bus_1','value'),
-          State('choose_CO2_lt_1','value')],
-          Input('save_scenario_1', 'n_clicks'),
-          prevent_initial_call=True)
-def save_scenario(root_dir, NremDays, NremWork, Nbuses, StopsCoords, CowoFlags, CowDays, Scen, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
-    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/saved_scenarios/'
-    
-    root_dir = root_dir + 'data/saved_scenarios/'
-    scen_label = 'scenario_'
-    inputs_label = 'inputs_'
-    stops_and_cow_label = 'stops_CowHubs_'
-
-    scen_df = pd.DataFrame(Scen)
-
-    inputs_dict = {'NremDays': NremDays, 'NremWork':NremWork, 
-                   'CowDays': CowDays, 
-                   'Nbuses' : Nbuses,
-                   'TransH': TransH, 'gkm_car': gkm_car, 
-                   'gkm_bus': gkm_bus, 'co2lt': co2lt
-                   }
-    print('dictionary:')
-    print(inputs_dict.items())
-    inputs_df = pd.DataFrame(inputs_dict, index=[0])
-    #inputs_df = pd.DataFrame.from_dict(inputs_dict, index=[0])
-
-
-    try:
-        files = os.listdir(root_dir)
-        versions = [name.split('.csv')[0].split('_')[-1] for name in files]
-        print('versions:')
-        print(versions)
-        last_version = max(list(map(int,versions))) + 1
-    except:
-        last_version = 0
-    
-    scen_file = root_dir + scen_label + str(last_version) + '.csv'
-    inputs_file = root_dir + inputs_label + str(last_version) + '.csv'
-    stops_and_cow_file = root_dir + stops_and_cow_label + str(last_version) + '.csv'
-
-    scen_df.to_csv(scen_file)
-    print('Save scenarion to:')
-    print(scen_file)
-    inputs_df.to_csv(inputs_file, index=False)
-    if len(StopsCoords)>0:
-        lats, lons = map(list, zip(*StopsCoords))
-        stops_and_cow_df = pd.DataFrame(np.column_stack([lats, lons, CowoFlags]), 
-                               columns=['lat', 'lon', 'CowHub'])
-        stops_and_cow_df.to_csv(stops_and_cow_file)
-
-    return ['Scenario saved into files!'] 
-"""
+    #return [out[0], out[1], out[2], out[0], Tab3 + [dbc.Col(indicators_n, width='auto')], scenario_json, new_stored_scenarios]
+    return [out[0], out[1], out[2], out[3], Tab3 + [dbc.Col(indicators_n, width='auto')], scenario_json, out[4]]
+    #      fig_total, fig_comp, fig_decomp, new_map, new_stored_scenarios
 
 @callback([
            Output('map_1','children',allow_duplicate=True)],
@@ -2808,94 +2801,6 @@ def load_scenario(contents, names, dates):
 
 
 #           Output('internal-value_stops','data',allow_duplicate=True),
-@callback([
-           Output('Indicator_panel_1', 'figure',allow_duplicate=True),
-           Output('map_1','children',allow_duplicate=True)],
-            [Input('compare-scenario_1', 'contents'),
-            State('compare-scenario_1', 'filename'),
-            State('compare-scenario_1', 'last_modified'),
-            State('internal-value_remote_days_1','data'),
-            State('internal-value_remote_workers_1','data'),
-            State('internal-value_bus_number_1','data'),            
-            State('internal-value_stops_1','data'),
-            State('internal-value_coworking_1','data'),
-            State('internal-value_scenario_1','data')
-            ],
-              prevent_initial_call=True)
-def compare_scenario(list_of_contents, list_of_names, list_of_dates, 
-                     NremDays_c, NremWork_c,
-                     Nbuses_c, StopsCoords_c,CowFlags_c,
-                     scenario_c):        
-    if list_of_contents is not None:
-        print()
-        print('list of names:')
-        print(list_of_names)
-        inputs = [
-            parse_contents_compare_scenario(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates) if 'inputs' in n]
-        stops_CowHubs = [
-            parse_contents_compare_scenario(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates) if 'StopsCowHubs' in n]
-        scenario_l = [
-            parse_contents_compare_scenario(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates) if 'scenario' in n]
-        
-        try:
-            print('inputs:')
-            print(inputs)    
-            inputs = np.array(inputs[0][:])[0]
-            #inputs = list(inputs)
-            print(inputs)
-            #Nbuses_l = inputs['Nbuses'] 
-            #NremDays_l = inputs['NremDays'] 
-            #NremWork_l = inputs['NremWork']            
-            print(inputs[0])
-            print(inputs[1])
-            NremDays_l = inputs[0] 
-            NremWork_l = inputs[1]
-            Nbuses_l = inputs[2]
-
-            print()
-        except:
-            pass
-
-        try:
-            stops_CowHubs = np.array(stops_CowHubs[0][:])[:]           
-            lats = stops_CowHubs[:,0]
-            lons = stops_CowHubs[:,1]
-            CowFlags = stops_CowHubs[:,2]
-            #StopsCoords = map(list, zip(lats,lons))
-            StopsCoords = list(zip(lats,lons))
-            print('Stops:')
-            print(StopsCoords)
-
-        except:
-            StopsCoords = []
-            CowFlags = []
-
-        scenario_c = pd.DataFrame(scenario_c)
-        scenario_c = geopandas.GeoDataFrame(scenario_c, 
-                                 geometry = geopandas.points_from_xy(scenario_c.O_long, scenario_c.O_lat), 
-                                 crs="EPSG:4326"
-        )
-
-        scenario_l = np.array(scenario_l[0][:])[:]
-        scenario_l = pd.DataFrame(scenario_l)
-        scenario_l.columns = scenario_c.columns
-        scenario_l = geopandas.GeoDataFrame(scenario_l, 
-                                 geometry = geopandas.points_from_xy(scenario_l.O_long, scenario_l.O_lat), 
-                                 crs="EPSG:4326"
-        )
-        print('Loaded scenario after second conversion:')        
-        print(scenario_l.head())        
-        list_c = [scenario_c, NremDays_c, NremWork_c, Nbuses_c, StopsCoords_c, CowFlags_c]
-        list_l = [scenario_l, NremDays_l, NremWork_l, Nbuses_l, StopsCoords_l, CowFlags_l]
-        #print('Loaded scenario:')
-        #print(list_c[0].head())
-        plots = plot_comparison(list_c,list_l)
-
-
-        return [plots[0],plots[1]]
 
 
 #@app.callback([Output("clickdata", "children")],
@@ -2986,10 +2891,11 @@ def show_workers(n_clusters,workerData, N):
               State('internal-value_remote_days_1', 'data'),
               State('internal-value_remote_workers_1', 'data'),
               State('internal-value_bus_number_1', 'data'),
+              State('internal-value_calculated_scenarios_1', 'data'),
               Input('choose_intervention_1',"value"),
               prevent_initial_call=True
               )
-def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, interv):
+def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scenarios, interv):
     print('chosen interv.: ', interv)
            
     if interv == 'CT':
@@ -3027,7 +2933,8 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, interv):
             dcc.Store(id='internal-value_remote_workers_1', data=RemWorkers),
             dcc.Store(id='internal-value_bus_number_1', data=Nbuses),
             dcc.Store(id='internal-value_routes_1', data=[]),        
-            dcc.Store(id='internal-value_scenario_1', data=[])
+            dcc.Store(id='internal-value_scenario_1', data=[]),        
+            dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
             ])       
         
         return [sidebar_transport]
@@ -3059,7 +2966,8 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, interv):
                 dcc.Store(id='internal-value_remote_workers_1', data=RemWorkers),
                 dcc.Store(id='internal-value_bus_number_1', data=Nbuses),
                 dcc.Store(id='internal-value_routes_1', data=[]),        
-                dcc.Store(id='internal-value_scenario_1', data=[])
+                dcc.Store(id='internal-value_scenario_1', data=[]),        
+                dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
                 ])        
         return [sidebar_remote_work]
 
@@ -3082,7 +2990,8 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, interv):
                 dcc.Store(id='internal-value_remote_workers_1', data=RemWorkers),   
                 dcc.Store(id='internal-value_bus_number_1', data=Nbuses),
                 dcc.Store(id='internal-value_routes_1', data=[]),        
-                dcc.Store(id='internal-value_scenario_1', data=[])
+                dcc.Store(id='internal-value_scenario_1', data=[]),        
+                dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
                 ])   
         return [sidebar_cowork]
 
