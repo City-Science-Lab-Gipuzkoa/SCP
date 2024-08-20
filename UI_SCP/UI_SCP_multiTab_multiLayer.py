@@ -58,6 +58,15 @@ sys.path.append(root_dir + 'modules')
 #import calcroutes_module -> import inside callback function
 #import generate_GTFS_module -> import inside callback function
 
+print()
+print('Cleaning folders...')
+shutil.rmtree(root_dir + 'data/input_data_MCM/GTFS_feeds')
+shutil.rmtree(root_dir + 'data/input_data_MCM/transit_together_24h')
+shutil.copytree(root_dir + 'data/input_data_MCM/GTFS_feeds_backup', root_dir + 'data/input_data_MCM/GTFS_feeds')
+shutil.copytree(root_dir + 'data/input_data_MCM/transit_together_24h_backup', root_dir + 'data/input_data_MCM/transit_together_24h')
+print('done!')
+print()
+
 from dash.long_callback import DiskcacheLongCallbackManager
 ## Diskcache
 import diskcache
@@ -65,18 +74,7 @@ cache = diskcache.Cache("./cache")
 long_callback_manager = DiskcacheLongCallbackManager(cache)
 
 print('Code restarted!')
-"""
-# the following code caused some problem...
-# clean console ###############################################################
-try:
-    from IPython import get_ipython
-    get_ipython().magic('clear')
-    get_ipython().magic('reset -f')
-except:
-    pass
-###############################################################################
-print('Console cleared!')
-"""
+
 #"/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/calcroutes_module.py"
 
 #im1 = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/CSL_logo.PNG'
@@ -97,6 +95,8 @@ from PIL import Image
 image1 = Image.open(im1)
 #image2 = Image.open(im2)
 #image3 = Image.open(im3)
+
+
 
 
 stops_df = pd.read_csv(stops_file, encoding='latin-1')
@@ -1284,11 +1284,19 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     diff_DS_df = temp_Contribs[['Mode','distance_km']].set_index('Mode').subtract(BS_DS_df)
 
 
-    temp_df = pd.DataFrame({'counts': df['counts'].tolist()}, index=df['Mode'].tolist())
-    temp_Contribs = pd.DataFrame({'distance_km': Contribs['distance_km'].tolist()}, index=Contribs['Mode'].tolist())
+    #temp_df = pd.DataFrame({'counts': df['counts'].tolist()}, index=df['Mode'].tolist())
+    #temp_Contribs = pd.DataFrame({'distance_km': Contribs['distance_km'].tolist()}, index=Contribs['Mode'].tolist())
 
-    TS_diff_perc = 100*diff_TS_df.loc[diff_TS_df.index, ['counts']] / temp_df.loc[temp_df.index, ['counts']]
-    DS_diff_perc = 100*diff_DS_df.loc[diff_DS_df.index, ['distance_km']] / temp_Contribs.loc[temp_Contribs.index, ['distance_km']]
+    #TS_diff_perc = diff_TS_df['counts'].div(temp_df.loc[diff_TS_df.index, 'counts'])
+    #DS_diff_perc = diff_DS_df['distance_km'].div(temp_Contribs.loc[temp_Contribs.index, 'distance_km'])
+    BS_TS_df['Mode'] = BS_TS_df.index
+    BS_DS_df['Mode'] = BS_DS_df.index
+    TS_diff_perc = diff_TS_df.merge(BS_TS_df, on='Mode', suffixes=('_diff', '_baseline')).assign(
+                    counts_ratio=lambda x: x['counts_diff'].div(x['counts_baseline']))
+    DS_diff_perc = diff_DS_df.merge(BS_DS_df, on='Mode', suffixes=('_diff', '_baseline')).assign(
+                    distance_km_ratio=lambda x: x['distance_km_diff'].div(x['distance_km_baseline']))
+
+
 
     y_diff = [Total_CO2_remote-baseline_scenario['Total_CO2_remote'], Total_CO2_cowork-baseline_scenario['Total_CO2_cowork'], Total_CO2-baseline_scenario['Total_CO2']]
     totals = [baseline_scenario['Total_CO2_remote']+1, baseline_scenario['Total_CO2_cowork']+1, baseline_scenario['Total_CO2']]
@@ -1302,8 +1310,28 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     print([Total_CO2_remote, Total_CO2_cowork, Total_CO2])
     print('Diff:')
     print(y_diff)
+    print()
+    print('Baseline share:')
+    print(BS_TS_df)
+    print('Transport share:')
+    print(temp_df)
+    print('Transport share diff:')
+    print(diff_TS_df)
+    print()    
+    print()
+    print('Baseline distance share:')
+    print(BS_DS_df)
+    print('Distance share:')
+    print(temp_Contribs)    
+    print('Distance share diff:')
+    print(diff_DS_df)
+    print()
+    print('TS_diff_perc')
+    print(TS_diff_perc)
+    print()
+    print('DS_diff_perc')
+    print(DS_diff_perc)
 
-    #            y=y_perc[:2],    
     fig2 = go.Bar(
                 y=y_diff[:2],
                 x=['Remote','Coworking'],
@@ -1314,12 +1342,12 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                 marker_color=colors[2])
 
     fig3 = go.Bar(
-                y=TS_diff_perc['counts'],
+                y=100*TS_diff_perc['counts_ratio'],
                 x=df['Mode'],
                 marker_color=df['color'])
 
     fig4 = go.Bar(
-                y=DS_diff_perc['distance_km'],
+                y=100*DS_diff_perc['distance_km_ratio'],
                 x=Contribs['Mode'],
                 marker_color=Contribs['color'])
 
@@ -2229,11 +2257,8 @@ def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork,
            prevent_initial_call=True)
 def switch_layer(Scen, layer):
 
-    #custom_icon_remote = dict(
-    #iconUrl= "https://imgur.com/ebj6ogp",
-    #iconSize=[10,10],
-    #iconAnchor=[0, 0]
-    #)   
+    print('switching layer...')
+    print(layer)
 
     markers_all_1 = []
     markers_remote_1 = []
@@ -2379,10 +2404,10 @@ def switch_layer(Scen, layer):
             )
         ]
     )
-
-    Legend = Legend_workers
     
+    Legend = []
     if Scen:
+        Legend = Legend_workers
         scen_df = pd.DataFrame(Scen)
         scen_df = geopandas.GeoDataFrame(
                 scen_df, geometry=geopandas.points_from_xy(scen_df.O_long, scen_df.O_lat), crs="EPSG:4326"
@@ -2901,7 +2926,17 @@ def calc_routes(Nroutes,St,Cow,CO2km, root_Dir, Nclick):
     if Nclick > 0:
       #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
       root_dir = root_Dir
-      sys.path.append(root_dir + 'modules')  
+      sys.path.append(root_dir + 'modules')
+      print()
+      print('Cleaning folders...')
+      shutil.rmtree(root_dir + 'data/input_data_MCM/GTFS_feeds')
+      shutil.rmtree(root_dir + 'data/input_data_MCM/transit_together_24h')
+      shutil.copytree(root_dir + 'data/input_data_MCM/GTFS_feeds_backup', root_dir + 'data/input_data_MCM/GTFS_feeds')
+      shutil.copytree(root_dir + 'data/input_data_MCM/transit_together_24h_backup', root_dir + 'data/input_data_MCM/transit_together_24h')
+      print('done!')
+      print()
+
+
       import calcroutes_module
       import dash_leaflet as dl
       import generate_GTFS_module as gGTFS
