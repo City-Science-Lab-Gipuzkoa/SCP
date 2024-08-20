@@ -224,9 +224,9 @@ choose_transp_hour = [{'label': "{:02d}".format(i) + ':00' + '-' + "{:02d}".form
 
 
 Step_1_text="Step 1:\nLoad and visualize raw data "
-Step_2_text="Step 2:\nSelect type of intervention "
-Step_3_text="Step 3:\nSelect time for commuting "
-Step_4_text="Run"
+Step_2_text="Step 2:\nRun baseline scenario "
+Step_3_text="Step 3:\nSelect type of intervention "
+Step_4_text="Step 4:\nSelect time for commuting "
 
 collapse_button_1 = html.Div([
 
@@ -248,6 +248,22 @@ collapse_button_2 = html.Div([
 
         dbc.Button(
             [html.I(className="fas fa-plus-circle")],
+            id="Run_baseline_button_1",
+            className="mb-3",
+            color="primary",
+            n_clicks=0,
+            style={
+                    "cursor": "pointer",
+                    "display": "inline-block",
+                    "white-space": "pre",
+                    },
+        ),
+])
+
+collapse_button_3 = html.Div([
+
+        dbc.Button(
+            [html.I(className="fas fa-plus-circle")],
             id="Intervention_type_button_1",
             className="mb-3",
             color="primary",
@@ -260,8 +276,7 @@ collapse_button_2 = html.Div([
         ),
 ])
 
-
-collapse_button_3 = html.Div([
+collapse_button_4 = html.Div([
         dbc.Button(
             [html.I(className="fas fa-plus-circle")],
             id="Select_time_button_1",
@@ -277,7 +292,7 @@ collapse_button_3 = html.Div([
 ])
 
 
-collapse_button_4 = html.Div([
+collapse_button_5 = html.Div([
         dbc.Button(
             [html.I(className="fas fa-plus-circle")],
             id="Advanced_settings_button_1",
@@ -353,6 +368,8 @@ sidebar_1 =  html.Div(
                     )
 
         ]),
+
+
         dbc.Row([
             dbc.Col([
                         html.P([Step_2_text],style={"font-weight": "bold","white-space": "pre"}),
@@ -360,6 +377,33 @@ sidebar_1 =  html.Div(
                     style={'height': '80px'},width=8),
             dbc.Col([        
                         collapse_button_2,
+                    ],
+                    style={'height': '80px'},width=3
+                    )                    
+        ]),
+        dbc.Row([
+            dbc.Collapse([ 
+            dbc.Button('Run', 
+                            id="run_baseline_1",
+                            className="mb-3",
+                            size="lg",
+                            n_clicks=0,
+                            disabled=False)         
+            ],
+           id="Run_baseline_panel_1",
+           is_open=False,
+           )
+        ]),
+
+
+
+        dbc.Row([
+            dbc.Col([
+                        html.P([Step_3_text],style={"font-weight": "bold","white-space": "pre"}),
+                    ],
+                    style={'height': '80px'},width=8),
+            dbc.Col([        
+                        collapse_button_3,
                     ],
                     style={'height': '80px'},width=3
                     )                    
@@ -375,15 +419,15 @@ sidebar_1 =  html.Div(
            is_open=False,
            )
         ]),
-        dcc.Store(id='worker_data_1', data=[]),
-        dcc.Store(id='root_dir_1', data = root_dir), 
+
+
         dbc.Row([
             dbc.Col([
-                        html.P([Step_3_text],style={"font-weight": "bold","white-space": "pre"}),
+                        html.P([Step_4_text],style={"font-weight": "bold","white-space": "pre"}),
                     ],
                     style={'height': '80px'},width=8),
             dbc.Col([        
-                        collapse_button_3,
+                        collapse_button_4,
                     ],
                     style={'height': '80px'},width=3
                     )                    
@@ -403,7 +447,7 @@ sidebar_1 =  html.Div(
                     ],
                     style={'height': '80px'},width=8),
             dbc.Col([        
-                        collapse_button_4,
+                        collapse_button_5,
                     ],
                     style={'height': '80px'},width=3
                     )                    
@@ -437,7 +481,8 @@ sidebar_1 =  html.Div(
                 is_open=False,
                 ),
         ]),
-        html.Div(dbc.Button(Step_4_text, 
+        
+        html.Div(dbc.Button('Run', 
                             id="run_MCM_1",
                             className="mb-3",
                             size="lg",
@@ -445,8 +490,7 @@ sidebar_1 =  html.Div(
                             disabled=False, 
                             color='warning'),
                             style={"white-space": "pre"}),
-        #dbc.Row(
-        #    [                 
+              
         dbc.Row(
                     html.Div(
                               dcc.Upload(id='button_load_scenario_1',
@@ -459,7 +503,7 @@ sidebar_1 =  html.Div(
                     ),
                     style={"margin-top": "15px"},
                     #width='auto'
-              ),
+                ),
 
         dbc.Row(
                     html.Div([
@@ -471,8 +515,10 @@ sidebar_1 =  html.Div(
                             style={"margin-top": "15px"},
                             #width="auto"
               ),  
-            #]),
+
         html.Div(id='outdata_1', style={"margin-top": "15px"}),   
+        dcc.Store(id='worker_data_1', data=[]),
+        dcc.Store(id='root_dir_1', data = root_dir),         
         dcc.Store(id='internal-value_route_opt_done_1', data=0),   
         dcc.Store(id='internal-value_stops_1', data=[]),
         dcc.Store(id='internal-value_coworking_1', data=[]),
@@ -1013,6 +1059,75 @@ def generate_color_gradient(CO2max,CO2_i, label=0):
 
     return color_hex
 
+
+def create_square_icon(color, border_color):
+    import base64
+    import io
+    from PIL import Image, ImageDraw, ImageOps    
+    # Create a square shape
+    square_size = 20
+    
+    # Create a blank image
+    image = Image.new('RGBA', (square_size, square_size), color=(0, 0, 0, 0))
+    
+    # Draw the square shape on the image
+    draw = ImageDraw.Draw(image)
+    draw.rectangle([(0, 0), (square_size, square_size)], fill=color)
+    
+    # Add a black border to the square
+    border_size = 2
+    border_image = ImageOps.expand(image, border=border_size, fill=border_color)
+    
+    # Convert the image to base64
+    buffered = io.BytesIO()
+    border_image.save(buffered, format="PNG")
+    base64_icon = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    
+    return "data:image/png;base64," + base64_icon
+
+def create_square_marker(color, border_color):
+    square_icon = create_square_icon(color, border_color)
+    return dict(type="custom", iconUrl=square_icon)
+
+def create_diamond_icon(color, border_color):
+    import base64
+    import io
+    from PIL import Image, ImageDraw, ImageOps     
+    # Create a diamond shape
+    diamond_size = 20
+    diamond_path = "M0,0 L" + str(diamond_size) + ",0 L" + str(diamond_size) + "," + str(diamond_size) + " L0," + str(diamond_size) + " Z"
+    
+    # Create a blank image
+    image = Image.new('RGBA', (diamond_size, diamond_size), color=(0, 0, 0, 0))
+    
+    # Draw the diamond shape on the image
+    draw = ImageDraw.Draw(image)
+    draw.polygon([(0, 0), (diamond_size, 0), (diamond_size, diamond_size), (0, diamond_size)], fill=color)
+    
+    # Rotate the diamond image by 90 degrees
+    #rotated_image = image.rotate(45, expand=True)
+    
+    # Add a black border to the diamond
+    border_size = 2
+    #border_image = ImageOps.expand(rotated_image, border=border_size, fill=border_color)
+    border_image = ImageOps.expand(image, border=border_size, fill=border_color)
+
+
+    # Rotate the border image back by 45 degrees
+    border_image = border_image.rotate(45, expand=True)
+    
+    # Convert the image to base64
+    buffered = io.BytesIO()
+    border_image.save(buffered, format="PNG")
+    base64_icon = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    
+    return "data:image/png;base64," + base64_icon
+
+
+def create_diamond_marker(color, border_color):
+    diamond_icon = create_diamond_icon(color, border_color)
+    return dict(type="custom", iconUrl=diamond_icon)
+
 def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, StopsCoords=[], CowFlags=[]):
 
     radius_max = 1
@@ -1041,6 +1156,11 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
             )
 
     Total_CO2 = result['CO2'].sum()
+    temp = result.loc[result['Rem_work'] == 1]
+    Total_CO2_remote = temp['CO2'].sum() # this will be used later
+    temp = result.loc[result['Coworking'] == 1]
+    Total_CO2_cowork = temp['CO2'].sum() # this will be used later
+
     Total_CO2_worst_case = result['CO2_worst_case'].sum()
     
     cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
@@ -1139,6 +1259,8 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
             'CowFlags': CowFlags,
             'StopsCoords': StopsCoords,
             'Total_CO2': Total_CO2,
+            'Total_CO2_remote': Total_CO2_remote,
+            'Total_CO2_cowork': Total_CO2_cowork,
             'Total_CO2_worst_case': Total_CO2_worst_case,
             'counts': df["counts"].tolist(), 
             'Transport_share_labels': df["Mode"].tolist(),
@@ -1150,85 +1272,84 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     print('new scenarios: ')
     print(new_scenarios)
 
-    baseline_scenario = next(item for item in new_scenarios if item["name"] == "baseline")
     new_stored_scenarios = json.dumps(new_scenarios, cls=NumpyEncoder)
-
+    baseline_scenario = next(item for item in new_scenarios if item["name"] == "baseline")
+    
     BS_TS_df = pd.DataFrame({'counts': baseline_scenario['counts']}, index = baseline_scenario['Transport_share_labels'])
     BS_DS_df = pd.DataFrame({'distance_km': baseline_scenario['distance_km']}, index = baseline_scenario['Distance_share_labels'])
-    print()
-    print('check BS_TS_df:')
-    print(BS_TS_df.head())
-    print('check BS_DS_df:')
-    print(BS_DS_df.head())
-    print() 
 
     temp_df = df.copy()
     temp_Contribs = Contribs.copy()
     diff_TS_df = temp_df[['Mode','counts']].set_index('Mode').subtract(BS_TS_df)
     diff_DS_df = temp_Contribs[['Mode','distance_km']].set_index('Mode').subtract(BS_DS_df)
 
-    print() 
-    print('Before plots?')   
-    print(df['counts'])
-    print(Contribs['distance_km'])
+
     temp_df = pd.DataFrame({'counts': df['counts'].tolist()}, index=df['Mode'].tolist())
     temp_Contribs = pd.DataFrame({'distance_km': Contribs['distance_km'].tolist()}, index=Contribs['Mode'].tolist())
-    print('aux vars:')
-    print(temp_df)
-    print(temp_Contribs)
 
     TS_diff_perc = 100*diff_TS_df.loc[diff_TS_df.index, ['counts']] / temp_df.loc[temp_df.index, ['counts']]
     DS_diff_perc = 100*diff_DS_df.loc[diff_DS_df.index, ['distance_km']] / temp_Contribs.loc[temp_Contribs.index, ['distance_km']]
-    print()
-    print('original data')
-    print(df)
-    print()
-    print('Difference')
-    print(diff_TS_df)
-    print()
-    print('Ratio:')
-    print(TS_diff_perc)
-    print()
-    print()
-    print('original data')
-    print(Contribs)
-    print()
-    print('Difference')
-    print(diff_DS_df)
-    print()
-    print('Ratio:')
-    print(DS_diff_perc)
 
-    fig5 = go.Bar(
+    y_diff = [Total_CO2_remote-baseline_scenario['Total_CO2_remote'], Total_CO2_cowork-baseline_scenario['Total_CO2_cowork'], Total_CO2-baseline_scenario['Total_CO2']]
+    totals = [baseline_scenario['Total_CO2_remote']+1, baseline_scenario['Total_CO2_cowork']+1, baseline_scenario['Total_CO2']]
+    y_perc = [100*i / j for i, j in zip(y_diff, totals)]
+    colors = ['#f1948a' if x > 0 else '#abebc6' for x in y_diff]
+    y_CO2 = [Total_CO2_remote, Total_CO2_cowork, Total_CO2]
+    print()
+    print('baseline:')
+    print(totals)
+    print('present calc.:')
+    print([Total_CO2_remote, Total_CO2_cowork, Total_CO2])
+    print('Diff:')
+    print(y_diff)
+
+    #            y=y_perc[:2],    
+    fig2 = go.Bar(
+                y=y_diff[:2],
+                x=['Remote','Coworking'],
+                marker_color=colors[:2])
+    fig22 = go.Bar(
+                y=[y_perc[2]],
+                x=['Total'],                
+                marker_color=colors[2])
+
+    fig3 = go.Bar(
                 y=TS_diff_perc['counts'],
                 x=df['Mode'],
                 marker_color=df['color'])
 
-    fig6 = go.Bar(
+    fig4 = go.Bar(
                 y=DS_diff_perc['distance_km'],
                 x=Contribs['Mode'],
                 marker_color=Contribs['color'])
 
 
-    row_titles = ("Interventions", "Transport share difference WRT baseline (%)", "Distance share difference WRT baseline (%)")
+    row_titles = ("Interventions","CO2 emissions difference WRT baseline","Transport share difference WRT baseline (%)", "Distance share difference WRT baseline (%)")
 
-    fig_comp = make_subplots(rows=3, cols=1, 
+    fig_comp = make_subplots(rows=4, cols=1, 
                         specs=[[{"type": "scatterpolar"}], 
+                               [{"secondary_y": True}],
                                [{"type": "bar"}],
                                [{"type": "bar"}]],
-                        row_heights=[2,1,1],
+                        row_heights=[2,1,1,1],
                         subplot_titles=row_titles
                         ) #-> row height is used to re-size plots of specific rows
     #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
     fig_comp.for_each_annotation(lambda a:  a.update(x = 0.5) if a.text in row_titles else())
-    fig_comp.append_trace(fig1, 1, 1)
-    fig_comp.append_trace(fig5, 2, 1)
-    fig_comp.append_trace(fig6, 3, 1)
+    fig_comp.add_trace(fig1, 1, 1)
+    fig_comp.add_trace(fig2, 2, 1, secondary_y=False)
+    fig_comp.add_trace(fig22, 2, 1, secondary_y=True)
+    fig_comp.add_trace(fig3, 3, 1)
+    fig_comp.add_trace(fig4, 4, 1)
     fig_comp.update_annotations(font_size=18)
     fig_comp.update_layout(showlegend=False)    
-    #fig_comp.update_layout(polar=dict(radialaxis=dict(visible=False)))
-    #fig_comp.update_polars(radialaxis=dict(range=[0, radius_max]))
+    fig_comp.update_layout(polar=dict(radialaxis=dict(visible=False)))
+    fig_comp.update_polars(radialaxis=dict(range=[0, radius_max]))
     fig_comp.update_layout(title_text='Calculated scenario')
+    fig_comp.update_yaxes(secondary_y=False, title_text="Remote, Coworking (kg/week)", row=2, col=1)  
+    fig_comp.update_yaxes(secondary_y=True, title_text="Total (%)", row=2, col=1)      
+    fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=3, col=1)
+    fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=4, col=1)
 
 
 
@@ -1358,7 +1479,6 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
             marker_color=Contribs['color'])
     max_dist_2 = Contribs['distance_km'].max()
 
-
     temp = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0)]
     if not temp.empty:
         temp['distance_km'] = temp['distance_week']/1000.
@@ -1377,7 +1497,6 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
             orientation='h',
             marker_color=Contribs['color'])
     max_dist_3 = Contribs['distance_km'].max()
-
     max_distance = max(max_dist_1,max_dist_2,max_dist_3)
 
     #family_types = ['Hogar de una persona', 'Otros hogares sin niños', '2 adultos',
@@ -1390,6 +1509,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
             y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
             marker_color=['red','orange'],
             marker=dict(cornerradius="30%"))
+    max_families_1 = max(len(no_kids_df['CO2'].index),len(kids_df['CO2'].index))
 
     no_kids_df = result.loc[(result['Coworking'] == 1) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
     kids_df    = result.loc[(result['Coworking'] == 1) &(result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
@@ -1398,6 +1518,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
             y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
             marker_color=['red','orange'],
             marker=dict(cornerradius="30%"))
+    max_families_2 = max(len(no_kids_df['CO2'].index),len(kids_df['CO2'].index))
 
     no_kids_df = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
     kids_df    = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0) & (result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
@@ -1406,7 +1527,9 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
             y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
             marker_color=['red','orange'],
             marker=dict(cornerradius="30%"))
+    max_families_3 = max(len(no_kids_df['CO2'].index),len(kids_df['CO2'].index))
 
+    max_families = max(max_families_1,max_families_2,max_families_3)
 
     column_titles = ['Remote working', 'Coworking', 'Rest']
     row_titles = ['CO2 emissions', 'Transport share', 'Distance share (km)', 'Using car']
@@ -1446,10 +1569,11 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     fig_decomp.update_xaxes(showgrid=True, row=3, col=1, range=[0, max_distance])
     fig_decomp.update_xaxes(showgrid=True, row=3, col=2, range=[0, max_distance])
     fig_decomp.update_xaxes(showgrid=True, row=3, col=3, range=[0, max_distance])
+    fig_decomp.update_yaxes(showgrid=True, row=4, col=1, range=[0, max_families])
+    fig_decomp.update_yaxes(showgrid=True, row=4, col=2, range=[0, max_families])
+    fig_decomp.update_yaxes(showgrid=True, row=4, col=3, range=[0, max_families])
 
-    #children = [dl.TileLayer()]
-    #maxCO2 = result['CO2'].max()
-    #maxCO2_worst_case = result['CO2_worst_case'].max()
+
     Total_CO2 = result['CO2'].sum()
     Total_CO2_worst_case = result['CO2_worst_case'].sum()
     markers_all_1 = []
@@ -1487,8 +1611,8 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
         #text = i_pred.Mode
         text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance_week/1000) + ' Km'
         #text = text + '<br>' + 'Remote working: ' + str(i_pred.Rem_work)
-        n_cw = int(i_pred.Rem_work)
-        text = text + '<br>' + 'Remote working: ' + (['Yes']*n_cw + ['No'])[n_cw-1]
+        n_rw = int(i_pred.Rem_work)
+        text = text + '<br>' + 'Remote working: ' + (['Yes']*n_rw + ['No'])[n_rw-1] 
         try:
             n_cw = int(i_pred.Coworking)
         except:
@@ -1510,29 +1634,88 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
 
         try:
             if  i_pred.Rem_work > 0.0:
-                marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
-                                     position=[i_pred.geometry.y, i_pred.geometry.x], 
-                                     icon=custom_icon_home, 
-                                     id=str(i_pred))
+                #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
+                #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
+                #                     icon=custom_icon_home, 
+                #                     id=str(i_pred))
+                marker_i = dl.Marker(
+                    id=str(i_pred),
+                    children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
+                    position=[i_pred.geometry.y, i_pred.geometry.x],
+                    icon=create_diamond_marker(color, (0, 0, 0))
+                )
                 markers_remote_1.append(marker_i)
         except:
             pass
         try:
             if  i_pred.Coworking > 0.0:
-                marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
-                                     position=[i_pred.geometry.y, i_pred.geometry.x], 
-                                     icon=custom_icon_coworking, 
-                                     id=str(i_pred))
+                #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
+                #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
+                #                     icon=custom_icon_coworking, 
+                #                     id=str(i_pred))
+                marker_i = dl.Marker(
+                        id=str(i_pred),
+                        children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
+                        position=[i_pred.geometry.y, i_pred.geometry.x],
+                        icon=create_square_marker(color, (0, 0, 0))
+                )                     
                 markers_cow_1.append(marker_i)
         except:
             pass    
         markers_all_1.append(marker_i)  
 
     markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )
-
     
+    Legend =  html.Div(
+        style={
+            'position': 'absolute',
+            'top': '650px',
+            'left': '700px',
+            'zIndex': 1000,  # Adjust the z-index as needed
+            },
+        children=[
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '10px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '25px',
+                            'height': '25px',
+                            'backgroundColor': '#f1948a',
+                            "border":"2px black solid",
+                            "transform": "rotate(45deg)"                            
+                        }
+                    ),
+                    html.Span('Remote working')
+                ]
+            ),
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '10px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '25px',
+                            'height': '25px',
+                            "border":"2px black solid",
+                            'backgroundColor': '#f1948a',
+                        }
+                    ),
+                    html.Span('Coworking')
+                ]
+            )
+        ]
+    )
+
     #children.append(dl.ScaleControl(position="topright"))
-    children = [ dl.TileLayer(),
+    children = [ 
+                Legend,
+                dl.TileLayer(),
                 dl.ScaleControl(position="topright"),
                 dl.LayersControl(
                                 [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
@@ -1543,9 +1726,11 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                                 [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", id= 'markers_all_1', checked=True),
                                  dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote",id= 'markers_remote_1', checked=True),
                                  dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking",id= 'markers_cow_1', checked=True), 
-                                 dl.Overlay(dl.LayerGroup(markers_comm_1), name="home-headquarters",id= 'markers_comm_1', checked=True)], 
+                                 dl.Overlay(dl.LayerGroup(markers_comm_1), name="home-headquarters",id= 'markers_comm_1', checked=True),
+
+                                 ], 
                                 id="lc_1"
-                                )
+                                )                      
                 ]
 
     if CowFlags:
@@ -1562,445 +1747,6 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
 
     #return [Total_CO2/Total_CO2_worst_case, fig_total, fig_decomp, new_map]
     return [fig_total, new_map, fig_decomp, fig_comp, new_stored_scenarios]
-
-"""
-def plot_comparison(current, loaded):
-
-    scenario_c = current[0]
-    NremDays_c = current[1]
-    NremWork_c = current[2]
-    Nbuses_c = current[3]
-    StopsCoords_c = current[4]
-    CowFlags_c = current[5]
-
-    scenario_l = loaded[0]
-    NremDays_l = loaded[1]
-    NremWork_l = loaded[2]
-    Nbuses_l = loaded[3]
-    StopsCoords_l = loaded[4]
-    CowFlags_l = loaded[5]
-
-    radius_max = 1
-    x0_c = NremDays_c
-    x1_c = NremWork_c
-    x2_c = sum(CowFlags_c)
-    x3_c = CowDays
-    x4_c = Nbuses_c
-    x5_c = len(StopsCoords_c) - sum(CowFlags_c) 
-    x0_l = NremDays_l
-    x1_l = NremWork_l
-    x2_l = sum(CowFlags_l)
-    x3_l = Nbuses_l
-    x4_l = len(StopsCoords_l) - sum(CowFlags_l)     
-
-    x0_max = 5
-    x1_max = 100
-    x2_max = 3
-    x3_max = 3
-    x4_max = 10
-    x5_max = 15
-    fig1_c = go.Scatterpolar(
-                r=[radius_max*x0_c/x0_max, radius_max*x1_c/x1_max, radius_max*x2_c/x2_max, radius_max*x3_c/x3_max, radius_max*x4_c/x4_max],
-                theta=['Remote working days',
-                    'Remote working persons (%)',
-                    'Coworking hubs', 
-                    'Bus routes',
-                    'Bus stops'],
-                hovertext= [str(x0_c),str(x1_c), str(x2_c), str(x3_c), str(x4_c)],
-                fill='toself'
-            )
-    fig1_l = go.Scatterpolar(
-                r=[radius_max*x0_l/x0_max, radius_max*x1_l/x1_max, radius_max*x2_l/x2_max, radius_max*x3_l/x3_max, radius_max*x4_l/x4_max],
-                theta=['Remote working days',
-                    'Remote working persons (%)',
-                    'Coworking hubs', 
-                    'Bus routes',
-                    'Bus stops'],
-                hovertext= [str(x0_l),str(x1_l), str(x2_l), str(x3_l), str(x4_l)],
-                fill='toself'
-            )
-
-    print()
-    print('Loaded scenario:')
-    #print(scenario_c)
-    print(scenario_c.head())
-    print()
-    Total_CO2_c = scenario_c['CO2'].sum()
-    Total_CO2_l = scenario_l['CO2'].sum()
-    #Total_CO2_worst_case = result['CO2_worst_case'].sum()
-    cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
-    interv = np.linspace(0,1,cmap.N)
-    j = 0
-    steps_gauge = []
-    for i in range(cmap.N-1):
-        rgba = cmap(i)
-        t = {'range':[interv[j],interv[j+1]],'color': matplotlib.colors.rgb2hex(rgba)}
-        j+=1
-        steps_gauge.append(t)
-
-    fig2 = go.Indicator(mode = "gauge+number",
-                        value = (Total_CO2_l-Total_CO2_c)/Total_CO2_l,
-                        domain = {'x': [0, 1], 'y': [0, 1]},        
-                        gauge  = {
-                                    'steps':steps_gauge,
-                                    'axis':{'range':[0,1]},
-                                    'bar':{
-                                            'color':'black',
-                                            'thickness':0.5
-                                        }
-                                    }
-                        )
-
-    predicted = scenario_c['prediction']
-    unique_labels, counts = np.unique(predicted, return_counts=True)
-    d = {'Mode': unique_labels, 'counts':counts}
-    df_c = pd.DataFrame(data=d)
-    df_c['Mode'] = df_c['Mode'].map({0:'Walk',1:'PT',2:'Car'})
-    #df_c['color'] = df_c['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
-
-
-    predicted = scenario_l['prediction']
-    unique_labels, counts = np.unique(predicted, return_counts=True)
-    d = {'Mode': unique_labels, 'counts':counts}
-    df_l = pd.DataFrame(data=d)
-    df_l['Mode'] = df_l['Mode'].map({0:'Walk',1:'PT',2:'Car'})
-    #df_l['color'] = df_l['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
-
-    diff = df_l.set_index('Mode').subtract(df_c.set_index('Mode'))
-    diff = diff.reset_index().rename(columns={"index":"Mode"})	
-    diff['color'] = diff['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
-
-    fig3 = go.Pie(  labels=diff["Mode"],
-                    values=diff["counts"],
-                    showlegend=False,
-                    textposition='inside',
-                    textinfo='label+percent',
-                    marker=dict(colors=diff['color']))
-
-    temp = scenario_c.copy()
-    temp['distance_km'] = temp['distance_week']/1000.
-    temp = temp[['Mode','distance_km']]
-    Contribs_c = temp.groupby(['Mode']).sum() 
-    Contribs_c = Contribs_c.reset_index()
-    temp = scenario_l.copy()
-    temp['distance_km'] = temp['distance_week']/1000.
-    temp = temp[['Mode','distance_km']]
-    Contribs_l = temp.groupby(['Mode']).sum() 
-    Contribs_l = Contribs_l.reset_index()
-
-    diff = Contribs_l.set_index('Mode').subtract(Contribs_c.set_index('Mode'))
-    diff = diff.reset_index().rename(columns={"index":"Mode"})	
-
-    diff['color'] = diff['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
-
-    fig4 = go.Bar(
-                x=diff['distance_km'],
-                y=diff['Mode'],
-                orientation='h',
-                marker_color=diff['color'])
-
-    row_titles = ("Interventions", "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
-    column_titles = ()
-
-    fig_total = make_subplots(rows=4, cols=1, 
-                        specs=[
-                                [{"type": "scatterpolar"}], [{"type": "indicator"}],
-                                [{"type": "pie"}], [{"type": "bar"}]],
-                        row_heights=[2,1,2,1],
-                        subplot_titles=row_titles
-                        ) #-> row height is used to re-size plots of specific rows
-    #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
-    fig_total.for_each_annotation(lambda a:  a.update(x = 0.2) if a.text in row_titles else())
-    fig_total.append_trace(fig1_c, 1, 1)
-    fig_total.append_trace(fig1_l, 1, 1)    
-    fig_total.append_trace(fig2, 2, 1)
-    fig_total.append_trace(fig3, 3, 1)
-    fig_total.append_trace(fig4, 4, 1)   
-
-    #fig.update_yaxes(title_text="CO2 emissions", row=1, col=1)
-    #fig.update_yaxes(title_text="Transport share", row=2, col=1)
-    #fig.update_yaxes(title_text="Distance share", row=3, col=1)
-    fig_total.update_annotations(font_size=18)
-    fig_total.update_layout(showlegend=False)    
-    fig_total.update_layout(polar=dict(radialaxis=dict(visible=False)))
-    fig_total.update_polars(radialaxis=dict(range=[0, radius_max]))
-
-
-    temp = scenario_c.loc[scenario_c['Coworking'] == 1]
-    Total_CO2 = temp['CO2'].sum()
-    Total_CO2_worst_case = temp['CO2_worst_case'].sum()
-    fig1 = go.Indicator(mode = "gauge+number",
-                        value = Total_CO2/Total_CO2_worst_case,
-                       domain = {'x': [0, 1], 'y': [0, 1]},        
-                        gauge= {
-                                'steps':steps_gauge,
-                                'axis':{'range':[0,1]},
-                                'bar':{
-                                        'color':'black',
-                                        'thickness':0.5
-                                      }
-                                })
-
-    temp = scenario_c.loc[scenario_c['Rem_work'] == 1]
-    Total_CO2 = temp['CO2'].sum()
-    Total_CO2_worst_case = temp['CO2_worst_case'].sum()
-    fig2 = go.Indicator(mode = "gauge+number",
-                       value = Total_CO2/Total_CO2_worst_case,
-                       domain = {'x': [0, 1], 'y': [0, 1]},      
-                        gauge= {
-                                'steps':steps_gauge,
-                                'axis':{'range':[0,1]},
-                                'bar':{
-                                        'color':'black',
-                                        'thickness':0.5
-                                      }
-                                })
-        
-    temp = scenario_c.loc[(scenario_c['Rem_work'] == 0) & (scenario_c['Coworking'] == 0)]
-    Total_CO2 = temp['CO2'].sum()
-    Total_CO2_worst_case = temp['CO2_worst_case'].sum()
-    fig3 = go.Indicator(mode = "gauge+number",
-                       value = Total_CO2/Total_CO2_worst_case,
-                       domain = {'x': [0, 1], 'y': [0, 1]},        
-                       gauge= {
-                                'steps':steps_gauge,
-                                'axis':{'range':[0,1]},
-                                'bar':{
-                                        'color':'black',
-                                        'thickness':0.5
-                                      }
-                                })
-
-    predicted = scenario_c.loc[scenario_c['Rem_work'] == 1, 'prediction']   
-    unique_labels, counts = np.unique(predicted, return_counts=True)
-    d = {'Mode': unique_labels, 'counts':counts}
-    df = pd.DataFrame(data=d)
-    df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'}) 
-    df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'}) 
-    fig4 = go.Pie(labels=df["Mode"],
-                  values=df["counts"],
-                  showlegend=False,
-                  textposition='inside',
-                  textinfo='label+percent',
-                  marker=dict(colors=df['color']))
-
-    predicted = scenario_c.loc[scenario_c['Coworking'] == 1, 'prediction']
-    unique_labels, counts = np.unique(predicted, return_counts=True)
-    d = {'Mode': unique_labels, 'counts':counts}
-    df = pd.DataFrame(data=d)
-    df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'}) 
-    df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})     
-    fig5 = go.Pie(labels=df["Mode"],
-                  values=df["counts"],
-                  showlegend=False,
-                  textposition='inside',
-                  textinfo='label+percent',
-                  marker=dict(colors=df['color']))
- 
-    predicted = scenario_c.loc[(scenario_c['Rem_work'] == 0) & (scenario_c['Coworking'] == 0), 'prediction']  
-    unique_labels, counts = np.unique(predicted, return_counts=True)
-    d = {'Mode': unique_labels, 'counts':counts}
-    df = pd.DataFrame(data=d)
-    df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'}) 
-    df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'}) 
-    fig6 = go.Pie(labels=df["Mode"],
-                  values=df["counts"],
-                  showlegend=False,
-                  textposition='inside',
-                  textinfo='label+percent',
-                  marker=dict(colors=df['color']))
-
-    temp = scenario_c.loc[scenario_c['Rem_work'] == 1]
-    temp['distance_km'] = temp['distance_week']/1000.
-    temp = temp[['Mode','distance_km']]
-    Contribs = temp.groupby(['Mode']).sum() 
-    Contribs = Contribs.reset_index()
-    Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
-    print(Contribs.head())
-    fig7 = go.Bar(
-            x=Contribs['distance_km'],
-            y=Contribs['Mode'],
-            orientation='h',
-            marker_color=Contribs['color'])
-
-    temp = scenario_c.loc[scenario_c['Coworking'] == 1]
-    temp['distance_km'] = temp['distance_week']/1000.
-    temp = temp[['Mode','distance_km']]
-    Contribs = temp.groupby(['Mode']).sum() 
-    Contribs = Contribs.reset_index()
-    Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
-    print(Contribs.head())
-    fig8 = go.Bar(
-            x=Contribs['distance_km'],
-            y=Contribs['Mode'],
-            orientation='h',
-            marker_color=Contribs['color'])
-
-
-    temp = scenario_c.loc[(scenario_c['Rem_work'] == 0) & (scenario_c['Coworking'] == 0)]
-    temp['distance_km'] = temp['distance_week']/1000.
-    temp = temp[['Mode','distance_km']]
-    Contribs = temp.groupby(['Mode']).sum() 
-    Contribs = Contribs.reset_index()
-    Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
-    print(Contribs.head())
-    fig9 = go.Bar(
-            x=Contribs['distance_km'],
-            y=Contribs['Mode'],
-            orientation='h',
-            marker_color=Contribs['color'])
-
-
-    #family_types = ['Hogar de una persona', 'Otros hogares sin niños', '2 adultos',
-    #                '2 adultos con niño(s)', '1 adulto con niño(s)',
-    #                'Otros hogares con niños']    
-    no_kids_df = scenario_c.loc[(scenario_c['Rem_work'] == 1) & (scenario_c['Tipo_familia'] <3) & (scenario_c['Mode'] == 'Car')]
-    kids_df    = scenario_c.loc[(scenario_c['Rem_work'] == 1) &(scenario_c['Tipo_familia'] >2) & (scenario_c['Mode'] == 'Car')]
-    fig10 = go.Bar(
-            x=['No kids', 'Kids'],
-            y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
-            marker_color=['red','orange'])
-
-    no_kids_df = scenario_c.loc[(scenario_c['Coworking'] == 1) & (scenario_c['Tipo_familia'] <3) & (scenario_c['Mode'] == 'Car')]
-    kids_df    = scenario_c.loc[(scenario_c['Coworking'] == 1) &(scenario_c['Tipo_familia'] >2) & (scenario_c['Mode'] == 'Car')]
-    fig11 = go.Bar(
-            x=['No kids', 'Kids'],
-            y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
-            marker_color=['red','orange'])
-
-    no_kids_df = scenario_c.loc[(scenario_c['Rem_work'] == 0) & (scenario_c['Coworking'] == 0) & (scenario_c['Tipo_familia'] <3) & (scenario_c['Mode'] == 'Car')]
-    kids_df    = scenario_c.loc[(scenario_c['Rem_work'] == 0) & (scenario_c['Coworking'] == 0) & (scenario_c['Tipo_familia'] >2) & (scenario_c['Mode'] == 'Car')]
-    fig12 = go.Bar(
-            x=['No kids', 'Kids'],
-            y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
-            marker_color=['red','orange'])
-
-
-    column_titles = ['Remote working', 'Coworking', 'Rest']
-    row_titles = ['CO2 emissions', 'Transport share', 'Distance share (km)', 'Using car']
-    #fig = make_subplots(rows=1, cols=3)
-    fig_decomp = make_subplots(rows=4, cols=3, 
-                        specs=[
-                               [{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}],
-                               [{"type": "pie"}, {"type": "pie"}, {"type": "pie"}],
-                               [{"type": "bar"}, {"type": "bar"}, {"type": "bar"}],
-                               [{"type": "bar"}, {"type": "bar"}, {"type": "bar"}]],
-                        column_titles = column_titles,
-                        row_titles = row_titles,
-                        row_heights=[1, 2, 2, 2],
-                        vertical_spacing = 0.1
-                        ) #-> row height is used to re-size plots of specific rows
-    
-    #fig = make_subplots(rows=2, cols=3)
-    fig_decomp.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
-    fig_decomp.append_trace(fig1, 1, 1)
-    fig_decomp.append_trace(fig2, 1, 2)
-    fig_decomp.append_trace(fig3, 1, 3)
-    fig_decomp.append_trace(fig4, 2, 1)
-    fig_decomp.append_trace(fig5, 2, 2)
-    fig_decomp.append_trace(fig6, 2, 3)
-    fig_decomp.append_trace(fig7, 3, 1)
-    fig_decomp.append_trace(fig8, 3, 2)
-    fig_decomp.append_trace(fig9, 3, 3)
-    fig_decomp.append_trace(fig10, 4, 1)
-    fig_decomp.append_trace(fig11, 4, 2)
-    fig_decomp.append_trace(fig12, 4, 3)      
-
-    fig.update_xaxes(title_text="Total weekly distance (km)", showgrid=True, row=3, col=1)
-    fig.update_xaxes(title_text="Total weekly distance (km)", showgrid=True, row=3, col=2)
-    fig.update_xaxes(title_text="Total weekly distance (km)", showgrid=True, row=3, col=3)        
-    fig_decomp.update_annotations(font_size=28)
-    fig_decomp.update_layout(showlegend=False)    
-
-    #children = [dl.TileLayer()]
-    #maxCO2 = result['CO2'].max()
-    #maxCO2_worst_case = result['CO2_worst_case'].max()
-    Total_CO2 = scenario_c['CO2'].sum()
-    Total_CO2_worst_case = scenario_c['CO2_worst_case'].sum()
-    markers_all_1 = []
-    markers_remote_1 = []
-    markers_cow_1 = []
-    markers_comm_1 = []
-    for i_pred in scenario_c.itertuples():
-        
-        maxCO2 = scenario_c.groupby("Mode")['CO2'].max()[i_pred.Mode]
-        color = generate_color_gradient(maxCO2,i_pred.CO2, i_pred.Mode) 
-
-        text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance_week/1000) + ' Km'
-        #text = text + '<br>' + 'Remote working: ' + str(i_pred.Rem_work)
-        n_cw = int(i_pred.Rem_work)
-        text = text + '<br>' + 'Remote working: ' + (['Yes']*n_cw + ['No'])[n_cw-1]
-        try:
-            n_cw = int(i_pred.Coworking)
-        except:
-            n_cw = 0    
-        text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]          
-        marker_i = dl.CircleMarker(
-                        id=str(i_pred),
-                        children=[dl.Tooltip(content=text)],
-                        center=[i_pred.geometry.y, i_pred.geometry.x],
-                        radius=10,
-                        fill=True,
-                        fillColor=color,
-                        fillOpacity=1.0,                            
-                        stroke=True,
-                        weight = 2.0,
-                        color='black'
-                        )
-        #children.append(marker_i)
-        markers_all_1.append(marker_i)  
-        #print('remote_work_i: ', i_pred.Rem_work)
-        try:
-            if  i_pred.Rem_work > 0.0:
-                markers_remote_1.append(marker_i)
-        except:
-            pass
-        try:
-            if  i_pred.Coworking > 0.0:
-                markers_cow_1.append(marker_i)
-        except:
-            pass    
-    markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )
-
-    
-    #children.append(dl.ScaleControl(position="topright"))
-    children = [ dl.TileLayer(),
-                dl.ScaleControl(position="topright"),
-                dl.LayersControl(
-                                [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
-                                 dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_target', checked=False),
-                                 #dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
-                                 dl.BaseLayer(dl.TileLayer(), name='Has a bus stop', checked=False),
-                                 dl.BaseLayer(dl.TileLayer(), name='Family type', checked=False)] +
-                                [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", id= 'markers_all_1', checked=True),
-                                 dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote",id= 'markers_remote_1', checked=True),
-                                 dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking",id= 'markers_cow_1', checked=True), 
-                                 dl.Overlay(dl.LayerGroup(markers_comm_1), name="home-headquarters",id= 'markers_comm_1', checked=True)], 
-                                id="lc_1"
-                                )
-                ]
-
-    if CowFlags_c:
-        custom_icon_coworking = dict(
-        iconUrl= "https://i.ibb.co/J2qXGKN/coworking-icon.png",
-        iconSize=[40,40],
-        iconAnchor=[22, 40]
-        )    
-        Cow_markers = []
-        for i, pos in enumerate(StopsCoords_c): 
-            if CowFlags_c[i]==1:
-                custom_icon = custom_icon_coworking
-                tmp = dl.Marker(dl.Tooltip("Coworking hub"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
-                Cow_markers.append(tmp)  
-        children = children + Cow_markers
-
-    new_map = dl.Map(children, center=center,
-                                     zoom=12,                        
-                                     id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-
-    #return [Total_CO2/Total_CO2_worst_case, fig_total, fig_decomp, new_map]
-    return [fig_total, fig_decomp, new_map]
-"""
 
 
 def categorize_Mode(code):
@@ -2152,7 +1898,13 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
                 fill='toself'
             )
 
+
     Total_CO2 = scenario['CO2'].sum()
+    temp = scenario.loc[scenario['Rem_work'] == 1]
+    Total_CO2_remote = temp['CO2'].sum() # this will be used later
+    temp = scenario.loc[scenario['Coworking'] == 1]
+    Total_CO2_cowork = temp['CO2'].sum() # this will be used later
+
     Total_CO2_worst_case = scenario['CO2_worst_case'].sum()
     
     
@@ -2204,35 +1956,6 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
                 orientation='h',
                 marker_color=Contribs['color'])
 
-
-    """
-    row_titles = ("Interventions", "CO2 emissions", "Transport share (%)", "Weekly distance share (km)", "Difference WRT baseline (%)")
-
-    fig_total = make_subplots(rows=5, cols=1, 
-                        specs=[
-                                [{"type": "scatterpolar"}], [{"type": "indicator"}],
-                                [{"type": "pie"}], [{"type": "bar"}], [{"type": "bar"}]],
-                        row_heights=[2,1,2,1,1],
-                        subplot_titles=row_titles
-                        ) #-> row height is used to re-size plots of specific rows
-    #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
-    fig_total.for_each_annotation(lambda a:  a.update(x = 0.2) if a.text in row_titles else())
-    fig_total.append_trace(fig1, 1, 1)
-    fig_total.append_trace(fig2, 2, 1)
-    fig_total.append_trace(fig3, 3, 1)
-    fig_total.append_trace(fig4, 4, 1) 
-    fig_total.append_trace(fig5, 5, 1)   
-
-    #fig.update_yaxes(title_text="CO2 emissions", row=1, col=1)
-    #fig.update_yaxes(title_text="Transport share", row=2, col=1)
-    #fig.update_yaxes(title_text="Distance share", row=3, col=1)
-    fig_total.update_annotations(font_size=18)
-    fig_total.update_layout(showlegend=False)    
-    fig_total.update_layout(polar=dict(radialaxis=dict(visible=False)))
-    fig_total.update_polars(radialaxis=dict(range=[0, radius_max]))
-    fig_total.update_layout(title_text=scenario_name)
-    """
-
     try:
         new_scenarios = json.loads(stored_scenarios)
         from datetime import datetime
@@ -2258,6 +1981,8 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
             'CowFlags': CowFlags,
             'StopsCoords': StopsCoords,
             'Total_CO2': Total_CO2,
+            'Total_CO2_remote': Total_CO2_remote,
+            'Total_CO2_cowork': Total_CO2_cowork,
             'Total_CO2_worst_case': Total_CO2_worst_case,
             'counts': df["counts"].tolist(), 
             'Transport_share_labels': df["Mode"].tolist(),
@@ -2269,86 +1994,75 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
     print('new scenarios: ')
     print(new_scenarios)
 
-    baseline_scenario = next(item for item in new_scenarios if item["name"] == "baseline")
     new_stored_scenarios = json.dumps(new_scenarios, cls=NumpyEncoder)
-
+    baseline_scenario = next(item for item in new_scenarios if item["name"] == "baseline")
+    
     BS_TS_df = pd.DataFrame({'counts': baseline_scenario['counts']}, index = baseline_scenario['Transport_share_labels'])
     BS_DS_df = pd.DataFrame({'distance_km': baseline_scenario['distance_km']}, index = baseline_scenario['Distance_share_labels'])
-    print()
-    print('check BS_TS_df:')
-    print(BS_TS_df.head())
-    print('check BS_DS_df:')
-    print(BS_DS_df.head())
-    print() 
 
     temp_df = df.copy()
     temp_Contribs = Contribs.copy()
     diff_TS_df = temp_df[['Mode','counts']].set_index('Mode').subtract(BS_TS_df)
     diff_DS_df = temp_Contribs[['Mode','distance_km']].set_index('Mode').subtract(BS_DS_df)
 
-    print() 
-    print('Before plots?')   
-    print(df['counts'])
-    print(Contribs['distance_km'])
+
     temp_df = pd.DataFrame({'counts': df['counts'].tolist()}, index=df['Mode'].tolist())
     temp_Contribs = pd.DataFrame({'distance_km': Contribs['distance_km'].tolist()}, index=Contribs['Mode'].tolist())
-    print('aux vars:')
-    print(temp_df)
-    print(temp_Contribs)
 
     TS_diff_perc = 100*diff_TS_df.loc[diff_TS_df.index, ['counts']] / temp_df.loc[temp_df.index, ['counts']]
     DS_diff_perc = 100*diff_DS_df.loc[diff_DS_df.index, ['distance_km']] / temp_Contribs.loc[temp_Contribs.index, ['distance_km']]
-    print()
-    print('original data')
-    print(df)
-    print()
-    print('Difference')
-    print(diff_TS_df)
-    print()
-    print('Ratio:')
-    print(TS_diff_perc)
-    print()
-    print()
-    print('original data')
-    print(Contribs)
-    print()
-    print('Difference')
-    print(diff_DS_df)
-    print()
-    print('Ratio:')
-    print(DS_diff_perc)
 
+    y_diff = [Total_CO2_remote-baseline_scenario['Total_CO2_remote'], Total_CO2_cowork-baseline_scenario['Total_CO2_cowork'], Total_CO2-baseline_scenario['Total_CO2']]
+    totals = [baseline_scenario['Total_CO2_remote']+1, baseline_scenario['Total_CO2_cowork']+1, baseline_scenario['Total_CO2']]
+    y_perc = [100*i / j for i, j in zip(y_diff, totals)]
+    colors = ['#f1948a' if x > 0 else '#abebc6' for x in y_diff]
+    fig2 = go.Bar(
+                y=y_perc[:2],
+                x=['Remote','Coworking'],
+                marker_color=colors[:2])
+    fig22 = go.Bar(
+                y=[y_perc[2]],
+                x=['Total'],                
+                marker_color=colors[2])
 
-
-    fig5 = go.Bar(
+    fig3 = go.Bar(
                 y=TS_diff_perc['counts'],
                 x=df['Mode'],
                 marker_color=df['color'])
 
-    fig6 = go.Bar(
+    fig4 = go.Bar(
                 y=DS_diff_perc['distance_km'],
                 x=Contribs['Mode'],
                 marker_color=Contribs['color'])
 
-    row_titles = ("Interventions", "Transport share difference WRT baseline (%)", "Distance share difference WRT baseline (%)")
 
-    fig_comp = make_subplots(rows=3, cols=1, 
+    row_titles = ("Interventions","CO2 emissions difference WRT baseline (%)","Transport share difference WRT baseline (%)", "Distance share difference WRT baseline (%)")
+
+    fig_comp = make_subplots(rows=4, cols=1, 
                         specs=[[{"type": "scatterpolar"}], 
+                               [{"secondary_y": True}],
                                [{"type": "bar"}],
                                [{"type": "bar"}]],
-                        row_heights=[2,1,1],
+                        row_heights=[2,1,1,1],
                         subplot_titles=row_titles
                         ) #-> row height is used to re-size plots of specific rows
     #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
-    fig_comp.for_each_annotation(lambda a:  a.update(x = 0.2) if a.text in row_titles else())
-    fig_comp.append_trace(fig1, 1, 1)
-    fig_comp.append_trace(fig5, 2, 1)
-    fig_comp.append_trace(fig6, 3, 1)
+    fig_comp.for_each_annotation(lambda a:  a.update(x = 0.5) if a.text in row_titles else())
+    fig_comp.add_trace(fig1, 1, 1)
+    fig_comp.add_trace(fig2, 2, 1, secondary_y=False)
+    fig_comp.add_trace(fig22, 2, 1, secondary_y=True)
+    fig_comp.add_trace(fig3, 3, 1)
+    fig_comp.add_trace(fig4, 4, 1)
     fig_comp.update_annotations(font_size=18)
     fig_comp.update_layout(showlegend=False)    
-    #fig_comp.update_layout(polar=dict(radialaxis=dict(visible=False)))
-    #fig_comp.update_polars(radialaxis=dict(range=[0, radius_max]))
-    fig_comp.update_layout(title_text='Calculated scenario')  
+    fig_comp.update_layout(polar=dict(radialaxis=dict(visible=False)))
+    fig_comp.update_polars(radialaxis=dict(range=[0, radius_max]))
+    fig_comp.update_layout(title_text='Calculated scenario')
+    fig_comp.update_yaxes(secondary_y=False, title_text="Remote, Coworking", row=2, col=1)  
+    fig_comp.update_yaxes(secondary_y=True, title_text="Total", row=2, col=1)      
+    fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=3, col=1)
+    fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=4, col=1)
+
 
     indicators_n = html.Div(
             [              
@@ -2371,6 +2085,17 @@ def toggle_collapse(n, is_open):
     if n:
         return not is_open
     return is_open
+
+@callback(
+    Output("Run_baseline_panel_1", "is_open"),
+    [Input("Run_baseline_button_1", "n_clicks")],
+    [State("Run_baseline_panel_1", "is_open")],
+)
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
 
 @callback(
     Output("Intervention_type_panel_1", "is_open"),
@@ -2459,9 +2184,10 @@ def update_coworking(cow_days):
           State('choose_CO2_lt_1','value'),
           State('Tab_3', 'children')
           ],
-          Input('run_MCM_1', 'n_clicks'),
+          [Input('run_baseline_1','n_clicks'),
+           Input('run_MCM_1', 'n_clicks')],
           prevent_initial_call=True)
-def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork, RouteOptDone, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, gkm_car, gkm_bus, co2lt, Tab3, Nclicks):
+def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork, RouteOptDone, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, gkm_car, gkm_bus, co2lt, Tab3, Nclicks_base, Nclicks):
     print('Cow. Flags:')
     print(CowoFlags)
     CowoIn = np.nonzero(CowoFlags)[0]
@@ -2513,6 +2239,149 @@ def switch_layer(Scen, layer):
     markers_remote_1 = []
     markers_cow_1 = []
     markers_comm_1 = []
+
+    Legend_workers =  html.Div(
+        style={
+            'position': 'absolute',
+            'top': '650px',
+            'left': '700px',
+            'zIndex': 1000,  # Adjust the z-index as needed
+            },
+        children=[
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '10px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '25px',
+                            'height': '25px',
+                            'backgroundColor': '#f1948a',
+                            "border":"2px black solid",
+                            "transform": "rotate(45deg)"                            
+                        }
+                    ),
+                    html.Span('Remote working')
+                ]
+            ),
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '10px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '25px',
+                            'height': '25px',
+                            "border":"2px black solid",
+                            'backgroundColor': '#f1948a',
+                        }
+                    ),
+                    html.Span('Coworking')
+                ]
+            )
+        ]
+    )
+
+    Legend_bus_stops =  html.Div(
+        style={
+            'position': 'absolute',
+            'top': '650px',
+            'left': '700px',
+            'zIndex': 1000,  # Adjust the z-index as needed
+            },
+        children=[
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '10px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '25px',
+                            'height': '25px',
+                            'borderRadius': '50%',
+                            'backgroundColor': '#cb4335',
+                            "border":"2px black solid"                            
+                        }
+                    ),
+                    html.Span('bus stops')
+                ]
+            ),
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '10px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '25px',
+                            'height': '25px',
+                            'borderRadius': '50%',
+                            "border":"2px black solid",
+                            'backgroundColor': '#f4d03f',
+                        }
+                    ),
+                    html.Span('no bus stops')
+                ]
+            )
+        ]
+    )
+
+    Legend_family =  html.Div(
+        style={
+            'position': 'absolute',
+            'top': '650px',
+            'left': '700px',
+            'zIndex': 1000,  # Adjust the z-index as needed
+            },
+        children=[
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '10px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '25px',
+                            'height': '25px',
+                            'borderRadius': '50%',
+                            'backgroundColor': '#cb4335',
+                            "border":"2px black solid"                            
+                        }
+                    ),
+                    html.Span('no kids')
+                ]
+            ),
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '10px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '25px',
+                            'height': '25px',
+                            'borderRadius': '50%',
+                            "border":"2px black solid",
+                            'backgroundColor': '#f4d03f',
+                        }
+                    ),
+                    html.Span('kids')
+                ]
+            )
+        ]
+    )
+
+    Legend = Legend_workers
+    
     if Scen:
         scen_df = pd.DataFrame(Scen)
         scen_df = geopandas.GeoDataFrame(
@@ -2553,9 +2422,9 @@ def switch_layer(Scen, layer):
                 else:
                    color = '#f4d03f'
 
-
                 text = 'N. bus stops: ' + '{0:2d}'.format(int(i_pred.n_close_stops)) + ' ( using: ' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance_week/1000) + ' Km'  
-            
+                Legend = Legend_bus_stops
+
             else:
                 family_types = ['Hogar de una persona', 'Otros hogares sin niños', '2 adultos',
                                 '2 adultos con niño(s)', '1 adulto con niño(s)',
@@ -2564,7 +2433,10 @@ def switch_layer(Scen, layer):
                 color = colors[i_pred.Tipo_familia-1]
                 if i_pred.Tipo_familia in range(3) and i_pred.Mode == 'Car':
                     color = '#C0392B'
+                else:
+                    color = '#f4d03f'                    
                 text = 'Family type: ' + family_types[i_pred.Tipo_familia-1] + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance_week/1000) + ' Km'  
+                Legend = Legend_family
 
             n_rw = int(i_pred.Rem_work)
             text = text + '<br>' + 'Remote working: ' + (['Yes']*n_rw + ['No'])[n_rw-1]
@@ -2587,26 +2459,36 @@ def switch_layer(Scen, layer):
                             weight = 2.0,
                             color='black' 
                             )
-            #children.append(marker_i)
-            markers_all_1.append(marker_i)  
-            
+           
             try:
                 if  i_pred.Rem_work > 0.0:
-                    #marker_i = dl.Marker(dl.Tooltip(""), position=(i_pred.geometry.y, i_pred.geometry.x), icon=custom_icon_remote, id={'type': 'marker', 'index': str(i_pred.Index)})    
-                    #markers.append(tmp)  
+                    marker_i = dl.Marker(
+                        id=str(i_pred),
+                        children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
+                        position=[i_pred.geometry.y, i_pred.geometry.x],
+                        icon=create_diamond_marker(color, (0, 0, 0))
+                    )
                     markers_remote_1.append(marker_i)
             except:
                 pass
-    
             try:
                 if  i_pred.Coworking > 0.0:
-
-
+                    #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
+                    #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
+                    #                     icon=custom_icon_coworking, 
+                    #                     id=str(i_pred))
+                    marker_i = dl.Marker(
+                            id=str(i_pred),
+                            children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
+                            position=[i_pred.geometry.y, i_pred.geometry.x],
+                            icon=create_square_marker(color, (0, 0, 0))
+                    )                     
                     markers_cow_1.append(marker_i)
             except:
-                pass
+                pass    
+            markers_all_1.append(marker_i)  
 
-            markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )      
+    markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )
 
     Baselayer = [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
                  dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_target', checked=False),
@@ -2619,7 +2501,8 @@ def switch_layer(Scen, layer):
     OL3 = dl.LayerGroup(markers_cow_1)
     OL4 = dl.LayerGroup(markers_comm_1)
   
-    children = [ dl.TileLayer(),
+    children = [    Legend,
+                    dl.TileLayer(),
                     dl.ScaleControl(position="topright"),
                     dl.LayersControl(Baselayer +
                                     [dl.Overlay(OL1, name="all", checked=True),
