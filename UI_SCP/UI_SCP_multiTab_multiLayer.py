@@ -15,6 +15,7 @@ import dash_leaflet.express as dlx
 import dash_daq as daq
 
 from flask import Flask
+from flask import request
 
 import plotly.express as px
 # plot test data
@@ -47,31 +48,24 @@ import os
 from os import listdir
 import shutil
 
-
-
-
-root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-#root_dir = '/home/cslgipuzkoa/virtual_machine_disk/UI_SCP/assets/'
-#sys.path.append('/content/drive/MyDrive/Colab Notebooks')
-sys.path.append(root_dir + 'modules')
-#"/content/drive/MyDrive/Colab Notebooks/calcroutes_module.py"
-#import calcroutes_module -> import inside callback function
-#import generate_GTFS_module -> import inside callback function
-
-print()
-print('Cleaning folders...')
-shutil.rmtree(root_dir + 'data/input_data_MCM/GTFS_feeds')
-shutil.rmtree(root_dir + 'data/input_data_MCM/transit_together_24h')
-shutil.copytree(root_dir + 'data/input_data_MCM/GTFS_feeds_backup', root_dir + 'data/input_data_MCM/GTFS_feeds')
-shutil.copytree(root_dir + 'data/input_data_MCM/transit_together_24h_backup', root_dir + 'data/input_data_MCM/transit_together_24h')
-print('done!')
-print()
+import time
+import getpass
 
 from dash.long_callback import DiskcacheLongCallbackManager
 ## Diskcache
 import diskcache
 cache = diskcache.Cache("./cache")
 long_callback_manager = DiskcacheLongCallbackManager(cache)
+
+server = Flask(__name__)
+#app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
+app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME, dbc.icons.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
+
+
+# Generate a timestamp-based ID
+timestamp_id = str(int(time.time()))
+root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+#root_dir = '/home/cslgipuzkoa/virtual_machine_disk/UI_SCP/assets/'
 
 print('Code restarted!')
 
@@ -95,8 +89,6 @@ from PIL import Image
 image1 = Image.open(im1)
 #image2 = Image.open(im2)
 #image3 = Image.open(im3)
-
-
 
 
 stops_df = pd.read_csv(stops_file, encoding='latin-1')
@@ -125,24 +117,7 @@ custom_icon_coworking = dict(
     iconAnchor=[22, 40]
 )
 
-server = Flask(__name__)
-#app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
-app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME, dbc.icons.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
 
-#app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP],prevent_initial_callbacks=True)
-
-"""
-app.layout = html.Div([
-    html.Img(src=image1,style={'width':'40%', "display": "inlineBlock", "verticalAlign": "top"}),
-    html.Img(src=image2,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"}),
-    html.Div(dl.Map([dl.TileLayer()],
-                     center=center, zoom=12, id="map",
-                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})),
-    dbc.Button("Load stops", id="load_stops", n_clicks=0),
-    html.Div(id='clickdata'),
-    dcc.Store(id='internal-value', data=[])
-])
-"""
 SIDEBAR_STYLE = {
     "position": "fixed",
     "top": 60,
@@ -516,7 +491,9 @@ sidebar_1 =  html.Div(
                             #width="auto"
               ),  
 
-        html.Div(id='outdata_1', style={"margin-top": "15px"}),   
+        html.Div(id='outdata_1', style={"margin-top": "15px"}), 
+        dcc.Location(id='url'), 
+        dcc.Store(id='user_ip', data=0),         
         dcc.Store(id='worker_data_1', data=[]),
         dcc.Store(id='root_dir_1', data = root_dir),         
         dcc.Store(id='internal-value_route_opt_done_1', data=0),   
@@ -836,8 +813,6 @@ app.layout = html.Div([tabs])
 # Folder navigator ###############################################################
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
-    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    #temp_file = root_dir + 'data/temp_workers_data.csv'
     decoded = base64.b64decode(content_string)
     try:
         if 'csv' in filename:
@@ -1302,7 +1277,6 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     totals = [baseline_scenario['Total_CO2_remote']+1, baseline_scenario['Total_CO2_cowork']+1, baseline_scenario['Total_CO2']]
     y_perc = [100*i / j for i, j in zip(y_diff, totals)]
     colors = ['#f1948a' if x > 0 else '#abebc6' for x in y_diff]
-    y_CO2 = [Total_CO2_remote, Total_CO2_cowork, Total_CO2]
     print()
     print('baseline:')
     print(totals)
@@ -1381,8 +1355,9 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
 
 
 
-    Total_CO2_worst_case = result['CO2_worst_case'].sum()
+    #Total_CO2_worst_case = result['CO2_worst_case'].sum()
     temp = result.loc[result['Rem_work'] == 1]
+    Total_CO2_worst_case = temp['CO2_worst_case'].sum() + 0.000001 # to avoid div. by 0
     Total_CO2 = temp['CO2'].sum()
     fig1 = go.Indicator(mode = "gauge+number",
                         value = Total_CO2/Total_CO2_worst_case,
@@ -1397,6 +1372,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                                 })
 
     temp = result.loc[result['Coworking'] == 1]
+    Total_CO2_worst_case = temp['CO2_worst_case'].sum() + 0.000001 # to avoid div. by 0
     Total_CO2 = temp['CO2'].sum()
     fig2 = go.Indicator(mode = "gauge+number",
                        value = Total_CO2/Total_CO2_worst_case,
@@ -1411,6 +1387,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                                 })
         
     temp = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0)]
+    Total_CO2_worst_case = temp['CO2_worst_case'].sum() + 0.000001 # to avoid div. by 0
     Total_CO2 = temp['CO2'].sum()
     fig3 = go.Indicator(mode = "gauge+number",
                        value = Total_CO2/Total_CO2_worst_case,
@@ -1821,6 +1798,66 @@ def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, gkm_car=1./12, gkm_bus=1.1
     prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir)  
     return prediction
  
+
+@app.callback(
+    [Output('user_ip', 'data'),
+     Output('root_dir_1','data')],
+    [Input('url', 'pathname'), Input('user_ip', 'data')],
+    [State('user_ip', 'modified_timestamp')]
+)
+def update_user_ip(pathname, user_ip, modified_timestamp):
+    #if not modified_timestamp:
+    user_ip = request.remote_addr
+    #user_ip1 = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+    #user_ip2 = request.environ.get('REMOTE_ADDR')
+    #user_ip3 = request.access_route[0]
+    print()
+    print()
+    print('user IP: ', user_ip)   
+    print()
+    print()
+    root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+    #root_dir = '/home/cslgipuzkoa/virtual_machine_disk/UI_SCP/assets/'
+    #new_root_dir = root_dir[:-1] + '_' + timestamp_id + '/'
+    #new_root_dir = root_dir[:-1] + '_' + user_id + '/'
+    new_root_dir = root_dir[:-1] + '_' + user_ip + '/'
+
+    if os.path.exists(new_root_dir):
+        # Delete Folder code
+        shutil.rmtree(new_root_dir)
+        print("The folder has been deleted successfully!")
+        print()
+    print('Generating a user-specific copy of the root directory...')
+    shutil.copytree(root_dir, new_root_dir)
+    root_dir = new_root_dir
+    print(root_dir)
+    print('done!')
+
+    #sys.path.append('/content/drive/MyDrive/Colab Notebooks')
+    sys.path.append(root_dir + 'modules')
+    #"/content/drive/MyDrive/Colab Notebooks/calcroutes_module.py"
+    #import calcroutes_module -> import inside callback function
+    #import generate_GTFS_module -> import inside callback function
+
+    print()
+    print('Cleaning folders...')
+    shutil.rmtree(root_dir + 'data/input_data_MCM/GTFS_feeds')
+    shutil.rmtree(root_dir + 'data/input_data_MCM/transit_together_24h')
+    shutil.copytree(root_dir + 'data/input_data_MCM/GTFS_feeds_backup', root_dir + 'data/input_data_MCM/GTFS_feeds')
+    shutil.copytree(root_dir + 'data/input_data_MCM/transit_together_24h_backup', root_dir + 'data/input_data_MCM/transit_together_24h')
+    print('done!')
+    print()
+    return [user_ip, root_dir]
+
+
+@app.callback(
+    Output('user_ip', 'modified_timestamp'),
+    [Input('url', 'pathname')]
+)
+def set_modified_timestamp(pathname):
+    from datetime import datetime
+    return datetime.now().timestamp()
+
 
 @callback(
     [Output("Tab_3", "children",allow_duplicate=True),
@@ -2615,8 +2652,7 @@ def download_stops(StopsCoords, CowoFlags, Nclicks):
             State('upload-data_1', 'filename'),
             State('upload-data_1', 'last_modified')],
               prevent_initial_call=True)
-def load_worker_data(list_of_contents, list_of_names, list_of_dates):
-    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'        
+def load_worker_data(list_of_contents, list_of_names, list_of_dates):       
     if list_of_contents is not None:
         children = [
             parse_contents(c, n, d) for c, n, d in
@@ -2724,16 +2760,10 @@ def load_scenario(contents, names, dates):
               )
 def propose_stops(n_clusters,workerData, root_dir, Nclick):
     if Nclick > 0:  
-        #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-        #root_dir = json.loads(root_dir)['root_dir']
         sys.path.append(root_dir + 'modules')      
         import find_stops_module   
         n_clusters  = int(n_clusters)
-        cutoff = 0.8 # cutoff for maximum density: take maxima which are at least cutoff*max
-        #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-        #workers_DF = pd.read_csv(root_dir + "workers.csv", encoding='latin-1')
-        #temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
-        #workers_DF = pd.read_csv(temp_file)    
+        cutoff = 0.8 # cutoff for maximum density: take maxima which are at least cutoff*max  
         workers_DF = pd.DataFrame.from_dict(workerData)
         stops_DF = pd.read_csv(root_dir + 'data/'+ "all_bus_stops.csv", encoding='latin-1')
         bus_stops_df,model,yhat = find_stops_module.FindStops(workers_DF, stops_DF, n_clusters, cutoff)
@@ -2763,9 +2793,6 @@ def propose_stops(n_clusters,workerData, root_dir, Nclick):
               prevent_initial_call=True
               )
 def show_workers(n_clusters,workerData, N):
-    #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
-    #temp_file = root_dir + 'data/temp_workers_data.csv'
-    #workers_DF = pd.read_csv(temp_file)
     workers_DF = pd.DataFrame.from_dict(workerData)
     """
     St = []
@@ -2924,7 +2951,6 @@ def calc_routes(Nroutes,St,Cow,CO2km, root_Dir, Nclick):
     print()
     print('inside calc_routes!')
     if Nclick > 0:
-      #root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
       root_dir = root_Dir
       sys.path.append(root_dir + 'modules')
       print()
@@ -3174,4 +3200,6 @@ def change_marker(St, Cow, stop_operation, *args):
 
 if __name__ == '__main__':
     #app.run(debug=True,port=80)
-    app.run_server(debug=True, host='0.0.0.0', port=80)
+    #app.run_server(debug=True, dev_tools_hot_reload=False, use_reloader=False, host='0.0.0.0', port=80)
+    #app.run_server(debug=True, use_reloader=False, host='0.0.0.0', port=80)
+    app.run_server(use_reloader=False, host='0.0.0.0', port=80)
