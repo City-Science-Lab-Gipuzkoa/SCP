@@ -59,7 +59,8 @@ long_callback_manager = DiskcacheLongCallbackManager(cache)
 
 server = Flask(__name__)
 #app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
-app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME, dbc.icons.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
+app = Dash(name = 'SCP_app', server = server,
+           external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME, dbc.icons.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
 
 
 # Generate a timestamp-based ID
@@ -287,14 +288,16 @@ sidebar_1 =  html.Div(
                  
         dbc.Row([
             dbc.Col([
-                        html.P([Step_1_text],style={"font-weight": "bold","white-space": "pre"}),
+                    html.P([Step_1_text],style={"font-weight": "bold","white-space": "pre"})
                     ],
-                    style={'height': '80px'},width=8),
+                    #style={'height': '80px'},width=8),
+                    md=8),                    
             dbc.Col([        
                         collapse_button_1,
                     ],
-                    style={'height': '80px'},width=3
-                    )                    
+                    #style={'height': '80px'},width=3),
+                    md=3),                    
+                                       
         ]),
         dbc.Row([
                 dbc.Collapse([
@@ -316,8 +319,9 @@ sidebar_1 =  html.Div(
                             # Allow multiple files to be uploaded
                             multiple=True),
                             dbc.Button("Visualize clusters of workers", id="show_workers_1", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
-                            html.Br(),        
-                            html.P([ html.Br(),'Choose number of clusters'],id='cluster_num_1',style={"margin-top": "15px","font-weight": "bold"}),        
+                            #html.Br(),        
+                            #html.P([html.Br(),'Choose number of clusters'],id='cluster_num_1',style={"margin-top": "15px","font-weight": "bold"}),        
+                            html.P([ 'Choose number of clusters'],id='cluster_num_1',style={"margin-top": "15px","font-weight": "bold"}),        
                             dbc.Popover(
                                 dbc.PopoverBody(mouse_over_mess_clusters), 
                                 target="n_clusters_1",
@@ -332,7 +336,7 @@ sidebar_1 =  html.Div(
                             marks=None,
                             tooltip={"placement": "bottom", "always_visible": True}
                             ),
-                            html.Br(),   
+                            #html.Br(),   
                         html.Div([
                                 dbc.Button("Download data template", id="button_download_template_1", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),               
                                 Download(id="download_template_1"),
@@ -349,11 +353,13 @@ sidebar_1 =  html.Div(
             dbc.Col([
                         html.P([Step_2_text],style={"font-weight": "bold","white-space": "pre"}),
                     ],
-                    style={'height': '80px'},width=8),
+                    #style={'height': '80px'},width=8),
+                    md=8),
             dbc.Col([        
                         collapse_button_2,
                     ],
-                    style={'height': '80px'},width=3
+                    #style={'height': '80px'},width=3
+                    md=3
                     )                    
         ]),
         dbc.Row([
@@ -376,17 +382,20 @@ sidebar_1 =  html.Div(
             dbc.Col([
                         html.P([Step_3_text],style={"font-weight": "bold","white-space": "pre"}),
                     ],
-                    style={'height': '80px'},width=8),
+                    #style={'height': '80px'},width=8),
+                    md=8),
             dbc.Col([        
                         collapse_button_3,
                     ],
-                    style={'height': '80px'},width=3
+                    #style={'height': '80px'},width=3
+                    md=3
                     )                    
         ]),
         dbc.Row([
             dbc.Collapse([
             dcc.Dropdown(interventions, multi=False,style={"margin-top": "15px"}, id='choose_intervention_1'),
-            html.P([ html.Br(),'Select action for markers'],id='action_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
+            #html.P([ html.Br(),'Select action for markers'],id='action_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
+            html.P(['Select action for markers'],id='action_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
             dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action_1'),           
             html.Div(id='sidebar_intervention_1', style={"margin-top": "15px"})
             ],
@@ -400,11 +409,13 @@ sidebar_1 =  html.Div(
             dbc.Col([
                         html.P([Step_4_text],style={"font-weight": "bold","white-space": "pre"}),
                     ],
-                    style={'height': '80px'},width=8),
+                    #style={'height': '80px'},width=8),
+                    md=8),
             dbc.Col([        
                         collapse_button_4,
                     ],
-                    style={'height': '80px'},width=3
+                    #style={'height': '80px'},width=3
+                    md=3
                     )                    
         ]),
         dbc.Row([
@@ -420,31 +431,37 @@ sidebar_1 =  html.Div(
             dbc.Col([
                         html.P(['Advanced_settings'],style={"font-weight": "bold","white-space": "pre"}),
                     ],
-                    style={'height': '80px'},width=8),
+                    #style={'height': '80px'},width=8),
+                    md=8),
             dbc.Col([        
                         collapse_button_5,
                     ],
-                    style={'height': '80px'},width=3
+                    #style={'height': '80px'},width=3
+                    md=3
                     )                    
         ]),
-        html.Br(),
+        #html.Br(),
         dbc.Row([
             dbc.Collapse([
-                html.P([ html.Br(),'Liters of gasoline per kilometer (car)'],id='gas_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
+                #html.P([ html.Br(),'Liters of gasoline per kilometer (car)'],id='gas_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
+                html.P(['Liters of gasoline per kilometer (car)'],id='gas_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
                 dcc.Slider(0, 5,0.02,
                     value=1./12,
                     id='choose_gas_km_car_1',
                     marks=None,
                     tooltip={"placement": "bottom", "always_visible": True}
                 ),                   
-                html.P([ html.Br(),'Liters of gasoline per kilometer (bus)'],id='gas_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
+                #html.P([ html.Br(),'Liters of gasoline per kilometer (bus)'],id='gas_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
+                html.P(['Liters of gasoline per kilometer (bus)'],id='gas_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
                 dcc.Slider(0, 10,0.05,
                     value=1.12,
                     id='choose_gas_km_bus_1',
                     marks=None,
                     tooltip={"placement": "bottom", "always_visible": True}
                 ),                    
-                html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt_1',style={"margin-top": "15px","font-weight": "bold"}),
+                #html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt_1',style={"margin-top": "15px","font-weight": "bold"}),
+                html.P(['CO2 Kg per lt'],id='CO2_lt_1',style={"margin-top": "15px","font-weight": "bold"}),
+
                 dcc.Slider(0, 10,0.05,
                     value=2.3,
                     id='choose_CO2_lt_1',
@@ -746,9 +763,12 @@ Tab_1 = dbc.Card(
         [
         dbc.Row(
             [
-                dbc.Col(sidebar_1, width=2, className='bg-light'),
-                dbc.Col(central_panel_1, width=7),
-                dbc.Col(indicators_1, width=3)
+                #dbc.Col(sidebar_1, width=2, className='bg-light'),
+                dbc.Col(sidebar_1, md=2, className='bg-light'),
+                #dbc.Col(central_panel_1, width=7),
+                dbc.Col(central_panel_1, md=7),
+                #dbc.Col(indicators_1, width=3)
+                dbc.Col(indicators_1, md=3)
             ])
         ]
     ),
@@ -807,8 +827,7 @@ tabs = dbc.Tabs(
     ]
 )
 
-app.layout = html.Div([tabs])
-
+app.layout = html.Div(children=[tabs])
 
 # Folder navigator ###############################################################
 def parse_contents(contents, filename, date):
@@ -1103,6 +1122,91 @@ def create_diamond_marker(color, border_color):
     diamond_icon = create_diamond_icon(color, border_color)
     return dict(type="custom", iconUrl=diamond_icon)
 
+"""
+def create_triangle_icon(color, border_color):
+    import base64
+    import io
+    from PIL import Image, ImageDraw, ImageOps 
+    # Create a triangle shape
+    triangle_size = 30
+    triangle_points = [(0, triangle_size), (triangle_size // 2, 0), (triangle_size, triangle_size)]
+    
+    # Create a blank image
+    image = Image.new('RGBA', (triangle_size, triangle_size), color=(0, 0, 0, 0))
+    
+    # Draw the triangle shape on the image
+    draw = ImageDraw.Draw(image)
+    draw.polygon(triangle_points, fill=color)
+    
+    # Add a triangular border to the triangle
+    border_size = 5
+    border_image = Image.new('RGBA', (triangle_size + border_size * 2, triangle_size + border_size * 2), color=(0, 0, 0, 0))
+
+    #border_image = ImageOps.expand(rotated_image, border=border_size, fill=border_color)
+    border_image = ImageOps.expand(image, border=border_size, fill=border_color)
+    border_draw = ImageDraw.Draw(border_image)
+    #border_points = [(border_size, triangle_size + border_size), (triangle_size // 2 + border_size, border_size), (triangle_size + border_size, triangle_size + border_size)]
+    #border_points = [(border_size, triangle_size + border_size), (triangle_size // 2 + border_size, border_size + border_size), (triangle_size + border_size, triangle_size + border_size - border_size)]
+    border_points = [(border_size, triangle_size + border_size), (triangle_size // 2 + border_size, border_size + border_size), (triangle_size + border_size, border_size + border_size)]
+    border_draw.polygon(border_points, outline=border_color)
+    #border_draw.pieslice([(border_size, border_size), (triangle_size + border_size, triangle_size + border_size)], 0, 180, outline=border_color)
+    #border_draw.pieslice([(border_size, triangle_size + border_size), (triangle_size // 2 + border_size, triangle_size + border_size)], 180, 360, outline=border_color)    
+    #border_draw.pieslice([(border_size, border_size), (triangle_size + border_size, triangle_size + border_size)], 360, 540, outline=border_color)
+    # Composite the triangle and border images
+    result_image = Image.alpha_composite(border_image.resize(image.size), image)
+    
+    # Crop the result image to remove the extra border
+    result_image = result_image.crop((border_size, border_size, triangle_size + border_size, triangle_size + border_size))
+
+    # Convert the image to base64
+    buffered = io.BytesIO()
+    result_image.save(buffered, format="PNG")
+    base64_icon = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    
+    return "data:image/png;base64," + base64_icon  
+"""
+
+def create_triangle_icon(color, border_color):
+    import base64
+    import io
+    from PIL import Image, ImageDraw, ImageOps
+
+    # Create a triangle shape
+    triangle_size = 30
+    #triangle_points = [(0, 0), (triangle_size, triangle_size // 2), (0, triangle_size)]
+    triangle_points = [(0, 0), (triangle_size // 2, triangle_size), (triangle_size, 0)]
+
+    # Create a blank image
+    image = Image.new('RGBA', (triangle_size, triangle_size), color=(0, 0, 0, 0))
+
+    # Draw the triangle shape on the image
+    draw = ImageDraw.Draw(image)
+    draw.polygon(triangle_points, fill=color)
+
+    # Create a border around the triangle
+    border_size = 1
+    border_image = Image.new('RGBA', (triangle_size + border_size * 2, triangle_size + border_size * 2), color=(0, 0, 0, 0))
+    border_draw = ImageDraw.Draw(border_image)
+    border_points = [(border_size, border_size), (triangle_size + border_size, border_size), (triangle_size // 2 + border_size, triangle_size + border_size)]
+    border_draw.polygon(border_points, outline=border_color)
+    # Resize the border image to match the size of the image
+    border_image = border_image.resize((triangle_size, triangle_size))
+
+    # Composite the triangle and border images
+    result_image = Image.alpha_composite(image, border_image)
+
+    buffered = io.BytesIO()
+    result_image.save(buffered, format="PNG")
+    base64_icon = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+    return "data:image/png;base64," + base64_icon
+
+
+def create_triangle_marker(color, border_color):
+    triangle_icon = create_triangle_icon(color, border_color)
+    return dict(type="custom", iconUrl=triangle_icon)
+
+
 def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, StopsCoords=[], CowFlags=[]):
 
     radius_max = 1
@@ -1326,34 +1430,82 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                 marker_color=Contribs['color'])
 
 
-    row_titles = ("Interventions","CO2 emissions difference WRT baseline","Transport share difference WRT baseline (%)", "Distance share difference WRT baseline (%)")
+    row_titles = ("Interventions","CO2 emissions difference WRT baseline","", "Transport share difference WRT baseline (%)", "Distance share difference WRT baseline (%)")
 
+    fig_comp = make_subplots(
+        rows=4, cols=2,
+        specs=[[{"type": "scatterpolar","colspan": 2}, None],
+               [{"type": "bar"}, {"type": "bar"}],
+               [{"type": "bar","colspan": 2}, None],
+               [{"type": "bar","colspan": 2}, None]],
+               row_heights=[2,1,1,1],
+               subplot_titles=row_titles,
+               horizontal_spacing=0.07,
+                ) 
+
+    fig_comp.add_trace(fig1, 1, 1)    
+    fig_comp.add_trace(fig2, 2, 1)
+    fig_comp.add_trace(fig22, 2, 2)
+    fig_comp.add_trace(fig3, 3, 1)    
+    fig_comp.add_trace(fig4, 4, 1)    
+
+    fig_comp.update_annotations(font_size=18)
+    fig_comp.update_layout(showlegend=False)    
+    fig_comp.update_layout(polar=dict(radialaxis=dict(visible=False)))
+    fig_comp.update_polars(radialaxis=dict(range=[0, radius_max]))
+    fig_comp.update_layout(title_text='Calculated scenario')
+    #fig_comp.update_yaxes(secondary_y=False, title_text="Remote, Coworking (kg/week)", row=2, col=1)  
+    #fig_comp.update_yaxes(title_text="Remote, Coworking (kg/week)", row=2, col=1)  
+    #fig_comp.update_yaxes(secondary_y=True, title_text="Total (%)", row=2, col=1)           
+
+    fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=3, col=1)
+    fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=4, col=1)
+    #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
+
+    """
+    fig_comp = make_subplots(rows=4, cols=2, 
+                        specs=[[{"type": "scatterpolar", "colspan": 2},None], 
+                               [{"type": "bar"},{"secondary_y": True}],
+                               [{"colspan": 2},None],
+                               [{"colspan": 2},None]],
+                        row_heights=[2,1,1,1],
+                        subplot_titles=row_titles,
+                        horizontal_spacing=0.07,
+                        ) 
     fig_comp = make_subplots(rows=4, cols=1, 
                         specs=[[{"type": "scatterpolar"}], 
                                [{"secondary_y": True}],
                                [{"type": "bar"}],
                                [{"type": "bar"}]],
                         row_heights=[2,1,1,1],
-                        subplot_titles=row_titles
+                        subplot_titles=row_titles,
+                        horizontal_spacing=0.07,
                         ) #-> row height is used to re-size plots of specific rows
     #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
+    """
+    """
     fig_comp.for_each_annotation(lambda a:  a.update(x = 0.5) if a.text in row_titles else())
     fig_comp.add_trace(fig1, 1, 1)
-    fig_comp.add_trace(fig2, 2, 1, secondary_y=False)
-    fig_comp.add_trace(fig22, 2, 1, secondary_y=True)
+    #fig_comp.add_trace(fig2, 2, 1, secondary_y=False)
+    #fig_comp.add_trace(fig22, 2, 1, secondary_y=True)
+    fig_comp.add_trace(fig2, 2, 1)
+    fig_comp.add_trace(fig22, 2, 2, secondary_y=True)
     fig_comp.add_trace(fig3, 3, 1)
     fig_comp.add_trace(fig4, 4, 1)
+
+
     fig_comp.update_annotations(font_size=18)
     fig_comp.update_layout(showlegend=False)    
     fig_comp.update_layout(polar=dict(radialaxis=dict(visible=False)))
     fig_comp.update_polars(radialaxis=dict(range=[0, radius_max]))
     fig_comp.update_layout(title_text='Calculated scenario')
-    fig_comp.update_yaxes(secondary_y=False, title_text="Remote, Coworking (kg/week)", row=2, col=1)  
-    fig_comp.update_yaxes(secondary_y=True, title_text="Total (%)", row=2, col=1)      
+    #fig_comp.update_yaxes(secondary_y=False, title_text="Remote, Coworking (kg/week)", row=2, col=1)  
+    fig_comp.update_yaxes(title_text="Remote, Coworking (kg/week)", row=2, col=1)  
+    fig_comp.update_yaxes(secondary_y=True, title_text="Total (%)", row=2, col=1)           
+
     fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=3, col=1)
     fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=4, col=1)
-
-
+    """
 
     #Total_CO2_worst_case = result['CO2_worst_case'].sum()
     temp = result.loc[result['Rem_work'] == 1]
@@ -1584,6 +1736,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     markers_all_1 = []
     markers_remote_1 = []
     markers_cow_1 = []
+    markers_remote_cow_1 = []
     markers_comm_1 = []
 
 
@@ -1637,8 +1790,8 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                         color='black'
                         )
 
-        try:
-            if  i_pred.Rem_work > 0.0:
+        #try:
+        if  i_pred.Rem_work > 0.0 and i_pred.Coworking == 0.0:
                 #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
                 #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
                 #                     icon=custom_icon_home, 
@@ -1650,10 +1803,10 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                     icon=create_diamond_marker(color, (0, 0, 0))
                 )
                 markers_remote_1.append(marker_i)
-        except:
-            pass
-        try:
-            if  i_pred.Coworking > 0.0:
+        #except:
+        #    pass
+        #try:
+        if  i_pred.Coworking > 0.0 and i_pred.Rem_work == 0.0:
                 #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
                 #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
                 #                     icon=custom_icon_coworking, 
@@ -1665,8 +1818,25 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                         icon=create_square_marker(color, (0, 0, 0))
                 )                     
                 markers_cow_1.append(marker_i)
-        except:
-            pass    
+        #except:
+        #    pass  
+
+        #try:
+        if  i_pred.Coworking > 0.0 and i_pred.Rem_work > 0.0:
+                #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
+                #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
+                #                     icon=custom_icon_coworking, 
+                #                     id=str(i_pred))
+                marker_i = dl.Marker(
+                        id=str(i_pred),
+                        children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
+                        position=[i_pred.geometry.y, i_pred.geometry.x],
+                        icon=create_triangle_marker(color, (0, 0, 0))
+                )                     
+                markers_remote_cow_1.append(marker_i)
+        #except:
+        #    pass 
+
         markers_all_1.append(marker_i)  
 
     markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )
@@ -1682,7 +1852,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
             html.Div(
                 style={
                     'display': 'inline-block',
-                    'margin-right': '10px',
+                    'margin-right': '25px',
                 },
                 children=[
                     html.Div(
@@ -1694,13 +1864,13 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                             "transform": "rotate(45deg)"                            
                         }
                     ),
-                    html.Span('Remote working')
+                    html.Span('Remote', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
                 ]
             ),
             html.Div(
                 style={
                     'display': 'inline-block',
-                    'margin-right': '10px',
+                    'margin-right': '15px',
                 },
                 children=[
                     html.Div(
@@ -1711,9 +1881,28 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                             'backgroundColor': '#f1948a',
                         }
                     ),
-                    html.Span('Coworking')
+                    html.Span('Coworking', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
                 ]
-            )
+            ),
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '5px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '0',
+                            'height': '0',
+                            'borderTop': '28px solid #f1948a',
+                            'borderLeft': '22px solid transparent',
+                            'borderRight': '22px solid transparent',                        
+                        }
+                    ),
+                    html.Span('Remote and coworking', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
+                ]
+            ),
+
         ]
     )
 
@@ -1732,7 +1921,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                                  dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote",id= 'markers_remote_1', checked=True),
                                  dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking",id= 'markers_cow_1', checked=True), 
                                  dl.Overlay(dl.LayerGroup(markers_comm_1), name="home-headquarters",id= 'markers_comm_1', checked=True),
-
+                                 dl.Overlay(dl.LayerGroup(markers_remote_cow_1), name="remote+coworking",id= 'markers_remote_cow_1', checked=True),
                                  ], 
                                 id="lc_1"
                                 )                      
@@ -1807,8 +1996,9 @@ def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, gkm_car=1./12, gkm_bus=1.1
 )
 def update_user_ip(pathname, user_ip, modified_timestamp):
     #if not modified_timestamp:
-    user_ip = request.remote_addr
-    #user_ip1 = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+    #user_ip = request.remote_addr
+    #user_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+    user_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
     #user_ip2 = request.environ.get('REMOTE_ADDR')
     #user_ip3 = request.access_route[0]
     print()
@@ -1816,6 +2006,51 @@ def update_user_ip(pathname, user_ip, modified_timestamp):
     print('user IP: ', user_ip)   
     print()
     print()
+    """
+    print(request.__dict__)
+    print()
+    print('selected items:')
+    print(request.headers)
+    print(request.cookies)
+    print(request.data)
+    print(request.args)
+    print(request.form)
+    print(request.endpoint)
+    print(request.method)
+    print(request.remote_addr)
+
+    if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        print('no proxy?: ',request.environ['REMOTE_ADDR'])
+    else:
+        print('with proxy?: ',request.environ['HTTP_X_FORWARDED_FOR']) # if behind a proxy
+
+    #user_ip2 = request.environ.get('REMOTE_ADDR')
+    #user_ip3 = request.access_route[0]
+    print()
+    print()
+    print('user IP: ', user_ip)
+    print()
+    print()
+
+    import netifaces as nif
+
+    def mac_for_ip(ip):
+        'Returns a list of MACs for interfaces that have given IP, returns None if not found'
+        for i in nif.interfaces():
+            addrs = nif.ifaddresses(i)
+            try:
+               if_mac = addrs[nif.AF_LINK][0]['addr']
+               if_ip = addrs[nif.AF_INET][0]['addr']
+            except (IndexError, KeyError): #ignore ifaces that dont have MAC or IP
+               if_mac = if_ip = None
+            if if_ip == ip:
+               return if_mac
+        return None
+
+    print('MAC addr.?: ',mac_for_ip(user_ip))
+    """
+
+
     root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
     #root_dir = '/home/cslgipuzkoa/virtual_machine_disk/UI_SCP/assets/'
     #new_root_dir = root_dir[:-1] + '_' + timestamp_id + '/'
@@ -2300,6 +2535,7 @@ def switch_layer(Scen, layer):
     markers_all_1 = []
     markers_remote_1 = []
     markers_cow_1 = []
+    markers_remote_cow_1 = []
     markers_comm_1 = []
 
     Legend_workers =  html.Div(
@@ -2313,7 +2549,7 @@ def switch_layer(Scen, layer):
             html.Div(
                 style={
                     'display': 'inline-block',
-                    'margin-right': '10px',
+                    'margin-right': '25px',
                 },
                 children=[
                     html.Div(
@@ -2325,13 +2561,13 @@ def switch_layer(Scen, layer):
                             "transform": "rotate(45deg)"                            
                         }
                     ),
-                    html.Span('Remote working')
+                    html.Span('Remote', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
                 ]
             ),
             html.Div(
                 style={
                     'display': 'inline-block',
-                    'margin-right': '10px',
+                    'margin-right': '15px',
                 },
                 children=[
                     html.Div(
@@ -2342,9 +2578,28 @@ def switch_layer(Scen, layer):
                             'backgroundColor': '#f1948a',
                         }
                     ),
-                    html.Span('Coworking')
+                    html.Span('Coworking', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
                 ]
-            )
+            ),
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '5px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '0',
+                            'height': '0',
+                            'borderTop': '28px solid #f1948a',
+                            'borderLeft': '22px solid transparent',
+                            'borderRight': '22px solid transparent',                        
+                        }
+                    ),
+                    html.Span('Remote and coworking', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
+                ]
+            ),
+
         ]
     )
 
@@ -2371,7 +2626,7 @@ def switch_layer(Scen, layer):
                             "border":"2px black solid"                            
                         }
                     ),
-                    html.Span('bus stops')
+                    html.Span('bus stops',style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
                 ]
             ),
             html.Div(
@@ -2389,7 +2644,7 @@ def switch_layer(Scen, layer):
                             'backgroundColor': '#f4d03f',
                         }
                     ),
-                    html.Span('no bus stops')
+                    html.Span('no bus stops',style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
                 ]
             )
         ]
@@ -2418,7 +2673,7 @@ def switch_layer(Scen, layer):
                             "border":"2px black solid"                            
                         }
                     ),
-                    html.Span('no kids')
+                    html.Span('no kids',style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
                 ]
             ),
             html.Div(
@@ -2436,7 +2691,7 @@ def switch_layer(Scen, layer):
                             'backgroundColor': '#f4d03f',
                         }
                     ),
-                    html.Span('kids')
+                    html.Span('kids',style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
                 ]
             )
         ]
@@ -2510,31 +2765,35 @@ def switch_layer(Scen, layer):
             text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]  
        
             marker_i = dl.CircleMarker(
-                            id=str(i_pred.Index),
-                            children=[dl.Tooltip(content=text)],
-                            center=[i_pred.geometry.y, i_pred.geometry.x],
-                            radius=10,
-                            fill=True,
-                            fillColor=color,
-                            fillOpacity=1.0,
-                            stroke=True,
-                            weight = 2.0,
-                            color='black' 
-                            )
-           
+                        id=str(i_pred),
+                        children=[dl.Tooltip(content=text)],
+                        center=[i_pred.geometry.y, i_pred.geometry.x],
+                        radius=10,
+                        fill=True,
+                        fillColor=color,
+                        fillOpacity=1.0,                            
+                        stroke=True,
+                        weight = 2.0,
+                        color='black'
+                        )
+
             try:
-                if  i_pred.Rem_work > 0.0:
+                if  i_pred.Rem_work > 0.0 and i_pred.Coworking == 0.0:
+                    #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
+                    #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
+                    #                     icon=custom_icon_home, 
+                    #                     id=str(i_pred))
                     marker_i = dl.Marker(
                         id=str(i_pred),
                         children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
                         position=[i_pred.geometry.y, i_pred.geometry.x],
                         icon=create_diamond_marker(color, (0, 0, 0))
                     )
-                    markers_remote_1.append(marker_i)
+                    markers_remote_cow_1.append(marker_i)
             except:
                 pass
             try:
-                if  i_pred.Coworking > 0.0:
+                if  i_pred.Coworking > 0.0 and i_pred.Rem_work == 0.0:
                     #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
                     #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
                     #                     icon=custom_icon_coworking, 
@@ -2547,10 +2806,28 @@ def switch_layer(Scen, layer):
                     )                     
                     markers_cow_1.append(marker_i)
             except:
-                pass    
+                pass  
+
+            try:
+                if  i_pred.Coworking > 0.0 and i_pred.Rem_work > 0.0:
+                    #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
+                    #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
+                    #                     icon=custom_icon_coworking, 
+                    #                     id=str(i_pred))
+                    marker_i = dl.Marker(
+                            id=str(i_pred),
+                            children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
+                            position=[i_pred.geometry.y, i_pred.geometry.x],
+                            icon=create_triangle_marker(color, (0, 0, 0))
+                    )                     
+                    markers_remote_cow_1.append(marker_i)
+            except:
+                pass 
+
             markers_all_1.append(marker_i)  
 
     markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )
+
 
     Baselayer = [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
                  dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_target', checked=False),
@@ -2562,6 +2839,7 @@ def switch_layer(Scen, layer):
     OL2 = dl.LayerGroup(markers_remote_1)
     OL3 = dl.LayerGroup(markers_cow_1)
     OL4 = dl.LayerGroup(markers_comm_1)
+    OL5 = dl.LayerGroup(markers_remote_cow_1)
   
     children = [    Legend,
                     dl.TileLayer(),
@@ -2570,7 +2848,8 @@ def switch_layer(Scen, layer):
                                     [dl.Overlay(OL1, name="all", checked=True),
                                      dl.Overlay(OL2, name="remote", checked=False),
                                      dl.Overlay(OL3, name="coworking", checked=False),
-                                     dl.Overlay(OL4, name="home-headquarters", checked=False)], 
+                                     dl.Overlay(OL4, name="home-headquarters", checked=False),
+                                     dl.Overlay(OL5, name="remote and coworking", checked=False)], 
                                      id="lc_1"
                                     )
                     ]
@@ -2837,7 +3116,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scen
         sidebar_transport = html.Div(
             [           
             dbc.Button("Propose stops", id="propose_stops_1", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
-            html.Br(),
+            #html.Br(),
             dbc.Popover(dcc.Markdown(mouse_over_mess_stops, dangerously_allow_html=True),
                       target="propose_stops_1",
                       body=True,
@@ -2849,17 +3128,19 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scen
                       target="match_stops_1",
                       body=True,
                       trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
-            html.P([ html.Br(),'Choose number of buses'],id='bus_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+            #html.P([ html.Br(),'Choose number of buses'],id='bus_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+            html.P(['Choose number of buses'],id='bus_num_1',style={"margin-top": "15px","font-weight": "bold"}),
             #dcc.Input(id="choose_buses", type="text", value='3'),
             dcc.Slider(0, 10, 1,
                    value=Nbuses,
                    id='choose_buses_1'
             ),
             dbc.Button("Calculate routes", id="calc_routes_1",n_clicks=0, style={"margin-top": "15px"}),
-            html.P([ html.Br(),'Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
+            #html.P([ html.Br(),'Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
+            html.P(['Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
             dcc.Dropdown(routes, multi=False,style={"margin-top": "15px"},id='choose_route_1'),
             dbc.Button("Visualize routes", id="visualize_routes_1", n_clicks=0,style={"margin-top": "15px"}),
-            html.Br(),               
+            #html.Br(),               
             html.Div(id='outdata_1', style={"margin-top": "15px"}),
             dcc.Store(id='internal-value_stops_1', data=St),
             dcc.Store(id='internal-value_coworking_1', data=Cow),
@@ -2878,13 +3159,17 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scen
         
         sidebar_remote_work = html.Div(
                 [
-                html.P([ html.Br(),'Choose number of days of remote working'],id='remote_days_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+                #html.P([ html.Br(),'Choose number of days of remote working'],id='remote_days_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+                html.P(['Choose number of days of remote working'],id='remote_days_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+
                 #dcc.Input(id="choose_buses", type="text", value='3'),
                 dcc.Slider(0, 5, 1,
                        value=RemDays,
                        id='choose_remote_days_1'
                 ),
-                html.P([ html.Br(),'Choose "%" of remote workers'],id='remote_workers_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+                #html.P([ html.Br(),'Choose "%" of remote workers'],id='remote_workers_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+                html.P(['Choose "%" of remote workers'],id='remote_workers_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+
                 #dcc.Input(id="choose_buses", type="text", value='3'),
                 dcc.Slider(0, 100, 5,
                        value=RemWorkers,
@@ -2892,7 +3177,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scen
                        marks=None,
                        tooltip={"placement": "bottom", "always_visible": True}                       
                 ),
-                html.Br(),               
+                #html.Br(),               
                 html.Div(id='outdata_1', style={"margin-top": "15px"}),
                 dcc.Store(id='internal-value_stops_1', data=St),
                 dcc.Store(id='internal-value_coworking_1', data=Cow),
@@ -2910,13 +3195,14 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scen
         
         sidebar_cowork = html.Div(
                 [
-                html.P([ html.Br(),'Choose number of days of coworking'],id='coworking_days_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+                #html.P([ html.Br(),'Choose number of days of coworking'],id='coworking_days_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+                html.P(['Choose number of days of coworking'],id='coworking_days_num_1',style={"margin-top": "15px","font-weight": "bold"}),
                 #dcc.Input(id="choose_buses", type="text", value='3'),
                 dcc.Slider(0, 5, 1,
                         value=CowDays,
                         id='choose_coworking_days_1'
                 ),
-                html.Br(),               
+                #html.Br(),               
                 html.Div(id='outdata_1', style={"margin-top": "15px"}),
                 dcc.Store(id='internal-value_stops_1', data=St),
                 dcc.Store(id='internal-value_coworking_1', data=Cow),
