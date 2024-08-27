@@ -1291,8 +1291,8 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                 marker_color=Contribs['color'])
 
     
+    
     row_titles = ("Interventions", "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
-
     fig_total = make_subplots(rows=4, cols=1, 
                         specs=[
                                 [{"type": "scatterpolar"}], [{"type": "indicator"}],
@@ -1362,7 +1362,6 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     diff_TS_df = temp_df[['Mode','counts']].set_index('Mode').subtract(BS_TS_df)
     diff_DS_df = temp_Contribs[['Mode','distance_km']].set_index('Mode').subtract(BS_DS_df)
 
-
     #temp_df = pd.DataFrame({'counts': df['counts'].tolist()}, index=df['Mode'].tolist())
     #temp_Contribs = pd.DataFrame({'distance_km': Contribs['distance_km'].tolist()}, index=Contribs['Mode'].tolist())
 
@@ -1418,7 +1417,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                 y=[y_perc[2]],
                 x=['Total'],                
                 marker_color=colors[2])
-
+    """
     fig3 = go.Bar(
                 y=100*TS_diff_perc['counts_ratio'],
                 x=df['Mode'],
@@ -1428,21 +1427,50 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                 y=100*DS_diff_perc['distance_km_ratio'],
                 x=Contribs['Mode'],
                 marker_color=Contribs['color'])
+    """
 
+    diff_TS_df = diff_TS_df.reset_index()
+    diff_TS_df['color'] = diff_TS_df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    fig3 = go.Bar(
+                y=diff_TS_df['counts'],
+                x=diff_TS_df['Mode'],
+                marker_color=diff_TS_df['color'])
 
-    row_titles = ("Interventions","CO2 emissions difference WRT baseline","", "Transport share difference WRT baseline (%)", "Distance share difference WRT baseline (%)")
+    diff_DS_df = diff_DS_df.reset_index()
+    diff_DS_df['color'] = diff_DS_df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    fig4 = go.Bar(
+                y=diff_DS_df['distance_km'],
+                x=diff_DS_df['Mode'],
+                marker_color=diff_DS_df['color'])
 
+    """
+    row_titles = ("Interventions","CO2 emissions difference WRT baseline","","Transport difference WRT baseline","Distance difference WRT baseline (km/week)")
     fig_comp = make_subplots(
         rows=4, cols=2,
         specs=[[{"type": "scatterpolar","colspan": 2}, None],
-               [{"type": "bar"}, {"type": "bar"}],
+               [{"type": "bar"}, {"secondary_y": True}],
                [{"type": "bar","colspan": 2}, None],
                [{"type": "bar","colspan": 2}, None]],
                row_heights=[2,1,1,1],
                subplot_titles=row_titles,
-               horizontal_spacing=0.07,
+               horizontal_spacing=0.9,
                 ) 
-
+    """
+    row_titles = ("Interventions", 
+                  "CO2 emissions difference WRT baseline",
+                  "",  
+                  "Transport choice difference WRT baseline",
+                  "Distance difference WRT baseline (km/week)")
+    fig_comp = make_subplots(
+                rows=4, cols=2,
+                specs=[[{"type": "scatterpolar","colspan": 2}, None],
+                    [{"type": "bar"}, {"secondary_y": True}],
+                    [{"type": "bar","colspan": 2}, None],
+                    [{"type": "bar","colspan": 2}, None]],
+                row_heights=[2,1,1,1],
+                subplot_titles=row_titles,
+                #horizontal_spacing=0.5,
+                )  
     fig_comp.add_trace(fig1, 1, 1)    
     fig_comp.add_trace(fig2, 2, 1)
     fig_comp.add_trace(fig22, 2, 2)
@@ -1455,14 +1483,23 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     fig_comp.update_polars(radialaxis=dict(range=[0, radius_max]))
     fig_comp.update_layout(title_text='Calculated scenario')
     #fig_comp.update_yaxes(secondary_y=False, title_text="Remote, Coworking (kg/week)", row=2, col=1)  
-    #fig_comp.update_yaxes(title_text="Remote, Coworking (kg/week)", row=2, col=1)  
-    #fig_comp.update_yaxes(secondary_y=True, title_text="Total (%)", row=2, col=1)           
+    fig_comp.update_yaxes(title_text="(tons/week)", row=2, col=1)  
+    #fig_comp.update_yaxes(secondary_y=True, title_text="(%)", row=2, col=2) 
+    fig_comp.update_yaxes(title_text="(%)", row=2, col=2)   
 
+    for annotation in fig_comp['layout']['annotations']: 
+        if annotation['text'] == 'CO2 emissions difference WRT baseline':
+            annotation['x'] = annotation['x'] + 0.285 # 0.47000000000000003
+    
+    #fig_comp.update_xaxes(domain=[0, 1], row=3, col=1)
+    #fig_comp.update_xaxes(domain=[0, 1], row=4, col=1)
     fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=3, col=1)
     fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=4, col=1)
     #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
 
     """
+    row_titles = ("Interventions","CO2 emissions difference WRT baseline","", "Transport share difference WRT baseline (%)", "Distance share difference WRT baseline (%)")
+
     fig_comp = make_subplots(rows=4, cols=2, 
                         specs=[[{"type": "scatterpolar", "colspan": 2},None], 
                                [{"type": "bar"},{"secondary_y": True}],
@@ -2324,7 +2361,7 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
                 y=[y_perc[2]],
                 x=['Total'],                
                 marker_color=colors[2])
-
+    """
     fig3 = go.Bar(
                 y=TS_diff_perc['counts'],
                 x=df['Mode'],
@@ -2334,8 +2371,67 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
                 y=DS_diff_perc['distance_km'],
                 x=Contribs['Mode'],
                 marker_color=Contribs['color'])
+    """
+
+    diff_TS_df = diff_TS_df.reset_index()
+    diff_TS_df['color'] = diff_TS_df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    fig3 = go.Bar(
+                y=diff_TS_df['counts'],
+                x=diff_TS_df['Mode'],
+                marker_color=diff_TS_df['color'])
+
+    diff_DS_df = diff_DS_df.reset_index()
+    diff_DS_df['color'] = diff_DS_df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    fig4 = go.Bar(
+                y=diff_DS_df['distance_km'],
+                x=diff_DS_df['Mode'],
+                marker_color=diff_DS_df['color'])
 
 
+    row_titles = ("Interventions", 
+                  "CO2 emissions difference WRT baseline",
+                  "",  
+                  "Transport choice difference WRT baseline",
+                  "Distance difference WRT baseline (km/week)")
+    fig_comp = make_subplots(
+                rows=4, cols=2,
+                specs=[[{"type": "scatterpolar","colspan": 2}, None],
+                    [{"type": "bar"}, {"secondary_y": True}],
+                    [{"type": "bar","colspan": 2}, None],
+                    [{"type": "bar","colspan": 2}, None]],
+                row_heights=[2,1,1,1],
+                subplot_titles=row_titles,
+                #horizontal_spacing=0.5,
+                )  
+    fig_comp.add_trace(fig1, 1, 1)    
+    fig_comp.add_trace(fig2, 2, 1)
+    fig_comp.add_trace(fig22, 2, 2)
+    fig_comp.add_trace(fig3, 3, 1)    
+    fig_comp.add_trace(fig4, 4, 1)    
+
+    fig_comp.update_annotations(font_size=18)
+    fig_comp.update_layout(showlegend=False)    
+    fig_comp.update_layout(polar=dict(radialaxis=dict(visible=False)))
+    fig_comp.update_polars(radialaxis=dict(range=[0, radius_max]))
+    fig_comp.update_layout(title_text='Calculated scenario')
+    #fig_comp.update_yaxes(secondary_y=False, title_text="Remote, Coworking (kg/week)", row=2, col=1)  
+    fig_comp.update_yaxes(title_text="(tons/week)", row=2, col=1)  
+    #fig_comp.update_yaxes(secondary_y=True, title_text="(%)", row=2, col=2) 
+    fig_comp.update_yaxes(title_text="(%)", row=2, col=2)   
+
+    for annotation in fig_comp['layout']['annotations']: 
+        if annotation['text'] == 'CO2 emissions difference WRT baseline':
+            annotation['x'] = annotation['x'] + 0.285 # 0.47000000000000003
+    
+    #fig_comp.update_xaxes(domain=[0, 1], row=3, col=1)
+    #fig_comp.update_xaxes(domain=[0, 1], row=4, col=1)
+    fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=3, col=1)
+    fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=4, col=1)
+    #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
+
+
+
+    """
     row_titles = ("Interventions","CO2 emissions difference WRT baseline (%)","Transport share difference WRT baseline (%)", "Distance share difference WRT baseline (%)")
 
     fig_comp = make_subplots(rows=4, cols=1, 
@@ -2362,7 +2458,7 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
     fig_comp.update_yaxes(secondary_y=True, title_text="Total", row=2, col=1)      
     fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=3, col=1)
     fig_comp.update_xaxes(categoryorder='array', categoryarray= ['Walk','PT','Car'], row=4, col=1)
-
+    """
 
     indicators_n = html.Div(
             [              
