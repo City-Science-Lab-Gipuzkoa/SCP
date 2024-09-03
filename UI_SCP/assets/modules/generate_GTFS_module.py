@@ -3,13 +3,13 @@ import networkx as nx
 from geopy.geocoders import Nominatim
 from geopy.point import Point
 import datetime
-from datetime import date
+from datetime import date, timedelta
 import re
 import os
 
 #directory = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/input_data_MCM/GTFS_feeds/routes_EZ_companies/'
 
-def gGTFS(ruta_EZ0, puntos, G, root_dir):
+def gGTFS(ruta_EZ0, puntos, G, root_dir, n_trips = 6, freq = 10, start_hour = '8:00'):
     print()
     print('start generating GTFS file...')
     directory = root_dir + 'data/input_data_MCM/GTFS_feeds/routes_EZ_companies/'
@@ -60,9 +60,15 @@ def gGTFS(ruta_EZ0, puntos, G, root_dir):
         ori_coord = ruta_stops_coord[0]
         origin = ori_coord
         origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
-        #hours = ["8:00","8:15","8:30","8:45"] # hours of the service. Each route has a trip at these hours 
-        hours = ["08:00","08:10","08:20","08:30","08:40","08:50","09:00"] # hours of the service. Each route has a trip at these hours 
+        hours = []
+        new_t = datetime.datetime.strptime(str(start_hour), "%H:%M")
+        hours.append(new_t.strftime("%H:%M"))
+        for i in range(n_trips):
+            new_t = new_t + timedelta(minutes=freq)
+            hours.append(new_t.strftime("%H:%M"))
+        #hours = ["08:00","08:10","08:20","08:30","08:40","08:50","09:00"] # hours of the service. Each route has a trip at these hours 
         times = []
+        print(hours)
         for i in range(0,len(ruta_stops_coord)-1):           
            destination = ruta_stops_coord[i+1]
            destination_node = ox.distance.nearest_nodes(G, [destination[1]], [destination[0]])[0]

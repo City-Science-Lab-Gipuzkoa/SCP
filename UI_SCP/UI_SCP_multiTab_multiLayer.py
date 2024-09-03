@@ -197,6 +197,7 @@ interventions = [{'label': 'Company transportation', 'value': 'CT'},
                 ]
 
 choose_transp_hour = [{'label': "{:02d}".format(i) + ':00' + '-' + "{:02d}".format(i+1) + ':00', 'value': i} for i in range(24)] 
+choose_start_hour = [{'label': "{:02d}".format(i) + ':00',  'value': i} for i in range(24)] 
 
 
 Step_1_text="Step 1:\nLoad and visualize raw data "
@@ -523,7 +524,10 @@ sidebar_1 =  html.Div(
         dcc.Store(id='internal-value_calculated_scenarios_1', data=[]),      
         dcc.Store(id='internal-value_remote_days_1', data=0),
         dcc.Store(id='internal-value_remote_workers_1', data=0),
-        dcc.Store(id='internal-value_bus_number_1', data = 0) 
+        dcc.Store(id='internal-value_bus_number_1', data = 0), 
+        dcc.Store(id='internal-value_trip_freq_1', data=10),
+        dcc.Store(id='internal-value_trip_number_1', data=6),
+        dcc.Store(id='internal-value_start_hour_1', data='8:00'),        
         ],
         id='sidebar_1',
         style=SIDEBAR_STYLE)
@@ -2527,7 +2531,7 @@ def toggle_collapse(n, is_open):
 #################################################################
 
 
-
+#### Update sliders ################################################
 # Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([
            Output('internal-value_remote_days_1', 'data',allow_duplicate=True),
@@ -2548,7 +2552,42 @@ def update_remote_work(rem_days, rem_work):
           Input('choose_coworking_days_1','value'),
           prevent_initial_call=True)
 def update_coworking(cow_days):
+    print()
+    print('updating coworking days')
+    print(cow_days)
+    print()    
     return [cow_days]
+
+@callback([
+           Output('internal-value_trip_num_1', 'data',allow_duplicate=True),
+          ],
+          Input('num_trips_1','value'),
+          prevent_initial_call=True)
+def update_remote_work(Ntrips):
+    print()
+    print('updating trip number')
+    print(Ntrips)
+    print()
+    return [Ntrips]
+
+@callback([
+           Output('internal-value_trip_freq_1', 'data',allow_duplicate=True),
+          ],
+          Input('trip_freq_1','value'),
+          prevent_initial_call=True)
+def update_remote_work(TripFreq):
+    return [TripFreq]
+
+@callback([
+           Output('internal-value_start_hour_1', 'data',allow_duplicate=True),
+          ],
+          Input('choose_start_hour_1','value'),
+          prevent_initial_call=True)
+def update_remote_work(StartHour):
+    return [StartHour]
+
+#################################################################
+
 
 """
 @callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
@@ -3201,11 +3240,14 @@ def show_workers(n_clusters,workerData, N):
               State('internal-value_remote_days_1', 'data'),
               State('internal-value_remote_workers_1', 'data'),
               State('internal-value_bus_number_1', 'data'),
+              State('internal-value_trip_number_1', 'data'),
+              State('internal-value_trip_freq_1', 'data'),
+              State('internal-value_start_hour_1', 'data'),
               State('internal-value_calculated_scenarios_1', 'data'),
               Input('choose_intervention_1',"value"),
               prevent_initial_call=True
               )
-def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scenarios, interv):
+def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, TripFreq, StartHour, stored_scenarios, interv):
     print('chosen interv.: ', interv)
            
     if interv == 'CT':
@@ -3218,18 +3260,31 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scen
                       body=True,
                       trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
 
-
-            dbc.Button("Match stops", id="match_stops_1", n_clicks=0, style={"margin-top": "15px", "font-weight": "bold"}),
+            #html.Br(),
+            dbc.Button("Match stops", id="match_stops_1", n_clicks=0, style={"margin-left": "15px", "margin-top": "15px", "font-weight": "bold"}),
             dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
                       target="match_stops_1",
                       body=True,
                       trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
-            #html.P([ html.Br(),'Choose number of buses'],id='bus_num_1',style={"margin-top": "15px","font-weight": "bold"}),
-            html.P(['Choose number of buses'],id='bus_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+            html.P(['Choose number of buses'],id='choose_bus_num_1',style={"margin-top": "15px","font-weight": "bold"}),
             #dcc.Input(id="choose_buses", type="text", value='3'),
             dcc.Slider(0, 10, 1,
                    value=Nbuses,
-                   id='choose_buses_1'
+                   id='num_buses_1'
+            ),
+            html.P(['Choose start time'],style={"font-weight": "bold","white-space": "pre"}),
+            html.Div(dcc.Dropdown(choose_start_hour, multi=False, id='choose_start_time_1')),            
+            html.P(['Choose trip frequency'],id='choose_bus_freq_1',style={"margin-top": "15px","font-weight": "bold"}),
+            dcc.Slider(10, 60, 5,
+                   value=TripFreq,
+                   marks=None,
+                   tooltip={"placement": "bottom", "always_visible": True}, 
+                   id='trip_freq_1'
+            ),
+            html.P(['Choose number of trips'],id='choose_trip_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+            dcc.Slider(0, 12, 1,
+                   value=Ntrips,
+                   id='num_trips_1'
             ),
             dbc.Button("Calculate routes", id="calc_routes_1",n_clicks=0, style={"margin-top": "15px"}),
             #html.P([ html.Br(),'Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
@@ -3244,6 +3299,9 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scen
             dcc.Store(id='internal-value_remote_days_1', data=RemDays),
             dcc.Store(id='internal-value_remote_workers_1', data=RemWorkers),
             dcc.Store(id='internal-value_bus_number_1', data=Nbuses),
+            dcc.Store(id='internal-value_trip_freq_1', data=TripFreq),
+            dcc.Store(id='internal-value_trip_number_1', data=Ntrips),
+            dcc.Store(id='internal-value_start_hour_1', data=StartHour),
             dcc.Store(id='internal-value_routes_1', data=[]),        
             dcc.Store(id='internal-value_scenario_1', data=[]),        
             dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
@@ -3281,6 +3339,9 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scen
                 dcc.Store(id='internal-value_remote_days_1', data=RemDays),
                 dcc.Store(id='internal-value_remote_workers_1', data=RemWorkers),
                 dcc.Store(id='internal-value_bus_number_1', data=Nbuses),
+                dcc.Store(id='internal-value_trip_freq_1', data=TripFreq),
+                dcc.Store(id='internal-value_trip_number_1', data=Ntrips),
+                dcc.Store(id='internal-value_start_hour_1', data=StartHour),
                 dcc.Store(id='internal-value_routes_1', data=[]),        
                 dcc.Store(id='internal-value_scenario_1', data=[]),        
                 dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
@@ -3306,6 +3367,9 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scen
                 dcc.Store(id='internal-value_remote_days_1', data=RemDays),
                 dcc.Store(id='internal-value_remote_workers_1', data=RemWorkers),   
                 dcc.Store(id='internal-value_bus_number_1', data=Nbuses),
+                dcc.Store(id='internal-value_trip_freq_1', data=TripFreq),
+                dcc.Store(id='internal-value_trip_number_1', data=Ntrips),
+                dcc.Store(id='internal-value_start_hour_1', data=StartHour),
                 dcc.Store(id='internal-value_routes_1', data=[]),        
                 dcc.Store(id='internal-value_scenario_1', data=[]),        
                 dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
@@ -3314,13 +3378,18 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scen
 
 
 
-@app.long_callback([Output("outdata_1", "children",allow_duplicate=True),
+@app.long_callback([
+               Output("outdata_1", "children",allow_duplicate=True),
                Output("internal-value_route_opt_done_1", 'data',allow_duplicate=True),
                Output('internal-value_routes_1','data',allow_duplicate=True),
                Output('internal-value_bus_number_1','data',allow_duplicate=True),
                Output("choose_route_1", "options",allow_duplicate=True),
                Output('map_1','children',allow_duplicate=True)],
-               State('choose_buses_1',"value"),
+
+               State('num_buses_1', 'value'), 
+               State('num_trips_1', 'value'),
+               State('trip_freq_1', 'value'),
+               State('choose_start_time_1', 'value'),  
                State('internal-value_stops_1','data'),
                State('internal-value_coworking_1','data'),
                State('choose_CO2_lt_1','value'),
@@ -3329,7 +3398,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, stored_scen
                manager=long_callback_manager,
               prevent_initial_call=True
               )
-def calc_routes(Nroutes,St,Cow,CO2km, root_Dir, Nclick):
+def calc_routes(Nroutes,Ntrips,freq,StartHour,St,Cow,CO2km, root_Dir, Nclick):
     print()
     print('inside calc_routes!')
     if Nclick > 0:
@@ -3384,7 +3453,13 @@ def calc_routes(Nroutes,St,Cow,CO2km, root_Dir, Nclick):
       routes, routes_points_coords, Graph = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),float(CO2km))
       print('Routes calculated!')
       #print(routes_points_coords)
-      gGTFS.gGTFS(routes, Stops, Graph, root_dir)
+      print('')
+      print('root dir: ', root_dir)
+      print('Ntrips: ', Ntrips)
+      print('freq: ', freq)
+      StartHour = "{:02d}".format(StartHour) + ':00'
+      print('StartHour: ', StartHour)
+      gGTFS.gGTFS(routes, Stops, Graph, root_dir, Ntrips, freq, StartHour)
       route_opt = 1
       # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
@@ -3584,4 +3659,4 @@ if __name__ == '__main__':
     #app.run(debug=True,port=80)
     #app.run_server(debug=True, dev_tools_hot_reload=False, use_reloader=False, host='0.0.0.0', port=80)
     #app.run_server(debug=True, use_reloader=False, host='0.0.0.0', port=80)
-    app.run_server(use_reloader=False, host='0.0.0.0', port=80)
+    app.run_server(debug=True,use_reloader=False, host='0.0.0.0', port=80)

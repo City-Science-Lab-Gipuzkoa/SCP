@@ -14,7 +14,8 @@ def categorize(code):
     else:
         return 'Car'
 
-def estimate_emissions(df, GasKm_car, GasKm_bus, CO2lt):  
+def estimate_emissions(df, GasKm_car, GasKm_bus, CO2lt):
+        # weekly CO2 emissions in tons 
         aver_N_passengers =29
         if df['Mode']=='Walk':
             return 0.0
