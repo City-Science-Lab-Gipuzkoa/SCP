@@ -186,10 +186,15 @@ Uncheck box for removing bus stops!"""
 
 routes = [{'label': 'Route ' +str(i+1), 'value': i} for i in range(3)]
 
-stops_actions = [{'label': 'Delete marker', 'value': 'DM'},
-                 {'label': 'Set origin of bus routes', 'value': 'SO'},
-                 {'label': 'Set coworking hub', 'value': 'SC'}                   
+stops_actions = [
+                 {'label': 'Add bus stop', 'value': 'AS'},    
+                 {'label': 'Delete bus stop', 'value': 'DS'},
+                 {'label': 'Set origin of bus routes', 'value': 'SO'}                    
                 ]
+cow_actions = [{'label': 'Add coworking hub', 'value': 'AC'},
+               {'label': 'Delete coworking hub', 'value': 'DC'}                   
+            ]
+
 
 interventions = [{'label': 'Company transportation', 'value': 'CT'},
                  {'label': 'Remote working', 'value': 'RW'},
@@ -197,8 +202,8 @@ interventions = [{'label': 'Company transportation', 'value': 'CT'},
                 ]
 
 choose_transp_hour = [{'label': "{:02d}".format(i) + ':00' + '-' + "{:02d}".format(i+1) + ':00', 'value': i} for i in range(24)] 
-choose_start_hour = [{'label': "{:02d}".format(i) + ':00',  'value': i} for i in range(24)] 
-
+#choose_start_hour = [{'label': "{:02d}".format(i) + ':00',  'value': i} for i in range(24)] 
+choose_start_hour = [{'label': hour, 'value': hour} for hour in ['All hours','00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00', '09:00', '10:00', '11:00']]
 
 Step_1_text="Step 1:\nLoad and visualize raw data "
 Step_2_text="Step 2:\nRun baseline scenario "
@@ -319,7 +324,9 @@ sidebar_1 =  html.Div(
                             },
                             # Allow multiple files to be uploaded
                             multiple=True),
-                            dbc.Button("Visualize clusters of workers", id="show_workers_1", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
+                            html.P(['Choose time'],style={"font-weight": "bold","white-space": "pre"}),
+                            #html.Div(dcc.Dropdown(choose_start_hour, multi=False, id='choose_start_time_1')),
+                            dcc.Dropdown(options=choose_start_hour, value='08:00', multi=False, id='choose_start_time_1'),        
                             #html.Br(),        
                             #html.P([html.Br(),'Choose number of clusters'],id='cluster_num_1',style={"margin-top": "15px","font-weight": "bold"}),        
                             html.P([ 'Choose number of clusters'],id='cluster_num_1',style={"margin-top": "15px","font-weight": "bold"}),        
@@ -332,19 +339,21 @@ sidebar_1 =  html.Div(
                                 is_open=False),
                             #dcc.Input(id="n_clusters", type="text", value='19'),
                             dcc.Slider(1, 30, 1,
-                            value=19,
+                            value=13,
                             id='n_clusters_1',
                             marks=None,
                             tooltip={"placement": "bottom", "always_visible": True}
                             ),
                             #html.Br(),   
-                        html.Div([
+                            dbc.Button("Visualize clusters of workers", id="show_workers_1", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),                            
+
+                            html.Div([
                                 dbc.Button("Download data template", id="button_download_template_1", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),               
                                 Download(id="download_template_1"),
                                 ])
-                        ],
-                        id="Load_data_panel_1",
-                        is_open=False,
+                            ],
+                            id="Load_data_panel_1",
+                            is_open=False,
                     )
 
         ]),
@@ -396,8 +405,6 @@ sidebar_1 =  html.Div(
             dbc.Collapse([
             dcc.Dropdown(interventions, multi=False,style={"margin-top": "15px"}, id='choose_intervention_1'),
             #html.P([ html.Br(),'Select action for markers'],id='action_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
-            html.P(['Select action for markers'],id='action_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
-            dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action_1'),           
             html.Div(id='sidebar_intervention_1', style={"margin-top": "15px"})
             ],
            id="Intervention_type_panel_1",
@@ -513,7 +520,8 @@ sidebar_1 =  html.Div(
         dcc.Location(id='url'), 
         dcc.Store(id='user_ip', data=0),         
         dcc.Store(id='worker_data_1', data=[]),
-        dcc.Store(id='root_dir_1', data = root_dir),         
+        dcc.Store(id='root_dir_1', data = root_dir), 
+        dcc.Store(id='internal-value_marker_option_1', data=0),        
         dcc.Store(id='internal-value_route_opt_done_1', data=0),   
         dcc.Store(id='internal-value_stops_1', data=[]),
         dcc.Store(id='internal-value_coworking_1', data=[]),
@@ -525,8 +533,8 @@ sidebar_1 =  html.Div(
         dcc.Store(id='internal-value_remote_days_1', data=0),
         dcc.Store(id='internal-value_remote_workers_1', data=0),
         dcc.Store(id='internal-value_bus_number_1', data = 0), 
-        dcc.Store(id='internal-value_trip_freq_1', data=10),
-        dcc.Store(id='internal-value_trip_number_1', data=6),
+        dcc.Store(id='internal-value_trip_freq_1', data=30),
+        dcc.Store(id='internal-value_trip_number_1', data=1),
         dcc.Store(id='internal-value_start_hour_1', data='8:00'),        
         ],
         id='sidebar_1',
@@ -538,12 +546,7 @@ markers_remote_1 = []
 markers_cow_1 = []
 central_panel_1 = html.Div(
        [
-          html.Div([
-             html.Img(src=image1,style={'width':'40%', "display": "inlineBlock", "verticalAlign": "top"}),
-             #html.Img(src=image2,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"}),
-             #html.Img(src=image3,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"})
-
-             ],style= {'verticalAlign': 'top'}),
+          html.P(['Sustainable Commuting Platform (SCP): help your business transition towards a sustainable mobility '],id='title_SCP_1',style={'font-size': '24px',"font-weight": "bold"}),
           dls.Clock(
                     children=[ dl.Map(
                                 [dl.ScaleControl(position="topright"),
@@ -567,7 +570,13 @@ central_panel_1 = html.Div(
                     speed_multiplier=1.5,
                     width=80,
                     show_initially=False
-                    )
+                    ),
+          html.Div([
+             html.Img(src=image1,style={'width':'40%', "display": "inlineBlock", "verticalAlign": "top"}),
+             #html.Img(src=image2,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"}),
+             #html.Img(src=image3,style={'width':'25%',"display": "inlineBlock", "verticalAlign": "top"})
+
+             ],style= {'verticalAlign': 'top'})                    
     ],
     style=CONTENT_STYLE)
 
@@ -581,16 +590,26 @@ central_panel_1 = html.Div(
 #fig = px.pie(df, values='tip', names='day')
 #fig.update_layout(showlegend=False)
 #fig.update_layout(title_text='Transport share', title_x=0.5)
-d_tmp = {'counts': [100, 50, 2], 'distance_week': [100, 50, 2], 'Mode': ['Car','PT','Walk'], 'color': ['red','blue','green']}
+
+#d_tmp = {'counts': [100, 50, 2], 'distance_week': [100, 50, 2], 'Mode': ['Car','PT','Walk'], 'color': ['red','blue','green']}
+d_tmp = {'counts': [0, 0, 0], 'distance_week': [0, 0, 0], 'Mode': ['Car','PT','Walk'], 'color': ['red','blue','green']}
 df_tmp = pd.DataFrame(data=d_tmp)
 
 radius_max = 1
+x0 = 0
+x1 = 0
+x2 = 0
+x3 = 0
+x4 = 0  
+x5 = 0 
+"""
 x0 = 1
 x1 = 30
 x2 = 2
 x3 = 2
 x4 = 7  
-x5 = 7                          
+x5 = 7 
+"""
 x0_max = 5
 x1_max = 100
 x2_max = 3
@@ -621,7 +640,7 @@ for i in reversed(range(cmap.N-1)):
     steps_gauge.append(t)
 
 fig2 = go.Indicator(mode = "gauge+number",
-                        value = 0.3,
+                        value = 0.0,
                        domain = {'x': [0, 1], 'y': [0, 1]},        
                         gauge= {
                                 'steps':steps_gauge,
@@ -686,25 +705,6 @@ indicators_1 = html.Div(
         style=INDICATORS_STYLE
         )
 
-central_panel2 = html.Div(
-       [
-          html.Div([
-             html.Img(src=image1,style={'width':'40%', "display": "inlineBlock", "verticalAlign": "top"}),
-
-             ],style= {'verticalAlign': 'top'}),
-          dls.Clock(
-                    children=[dl.Map([dl.TileLayer(),
-                                      dl.ScaleControl(position="topright")], center=center, 
-                                      zoom=12,
-                                      id="map_2",style={'width': '90vh', 'height': '70vh', "margin": "auto", "display": "block"})
-                    ],
-                    color="#435278",
-                    speed_multiplier=1.5,
-                    width=80,
-                    show_initially=False
-                    )
-    ],
-    style=CONTENT_STYLE)
 
 
 def blank_fig():
@@ -907,12 +907,27 @@ def drawclusters(workers_df,n_clusters):
         #points_per_cluster.append(len(points))
     return clusters_poly
 
-def suggest_clusters(wdf):
+def suggest_clusters(wdf, startHour):
     #sil_score_max = -100 #this is the minimum possible score
     dist_max = 100
+    try:
+        # select specific hour #####################################################
+        wdf['Hora_Ini_E'] = wdf['Hora_Ini'].copy()
+        wdf['Hora_Ini'] = pd.to_datetime(wdf['Hora_Ini_E'], format='%H:%M')
+        wdf['Hora_Ini_E'] = ((wdf['Hora_Ini'] - pd.to_datetime('00:00', format='%H:%M')).dt.total_seconds() / 300).astype(int) + 1
+        wdf['Hora_Ini'] = wdf['Hora_Ini'].dt.strftime('%H:%M')
+        convertido=((startHour*60*60)/300)+1
+        # Get 1-hour interval between "convertido" and "convertido+1hour"? #######
+        wdf=wdf[wdf['Hora_Ini_E'] <= (convertido+11)]
+        wdf=wdf[wdf['Hora_Ini_E'] >= convertido]
+        ############################################################################
+    except:
+        pass
     wdf = wdf[['O_lat', 'O_long']].values.tolist()
-    alpha = 0.65
-    n_max_clusters = int(19.*len(wdf)/2507)
+    #alpha = 0.65
+    alpha = 0.75    
+    #n_max_clusters = int(19.*len(wdf)/2507)
+    n_max_clusters = 30 
     #beta = (1-alpha)*19 + alpha*0.63
     sil_score_max = 1
 
@@ -931,6 +946,7 @@ def suggest_clusters(wdf):
         d0 = (1-alpha)*(n_max_clusters - n_clusters)/n_max_clusters
         d1 = alpha*(sil_score_max - sil_score) 
         dist_to_max = (d0**2 + d1**2)**0.5
+        print(d0,d1)
         print("The average silhouette and db score for %i clusters are %0.2f; the average score is %0.2f" %(n_clusters,sil_score, dist_to_max))
         #if sil_score > sil_score_max:
         if dist_to_max < dist_max:   
@@ -1705,7 +1721,8 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     fig10 = go.Bar(
             x=['No kids', 'Kids'],
             y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
-            marker_color=['red','orange'],
+            #marker_color=['red','orange'],
+            marker_color=['#2b62c0','orange'],
             marker=dict(cornerradius="30%"))
     max_families_1 = max(len(no_kids_df['CO2'].index),len(kids_df['CO2'].index))
 
@@ -1714,7 +1731,8 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     fig11 = go.Bar(
             x=['No kids', 'Kids'],
             y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
-            marker_color=['red','orange'],
+            #marker_color=['red','orange'],
+            marker_color=['#2b62c0','orange'],
             marker=dict(cornerradius="30%"))
     max_families_2 = max(len(no_kids_df['CO2'].index),len(kids_df['CO2'].index))
 
@@ -1723,10 +1741,10 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     fig12 = go.Bar(
             x=['No kids', 'Kids'],
             y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
-            marker_color=['red','orange'],
+            #marker_color=['red','orange'],
+            marker_color=['#2b62c0','orange'],
             marker=dict(cornerradius="30%"))
     max_families_3 = max(len(no_kids_df['CO2'].index),len(kids_df['CO2'].index))
-
     max_families = max(max_families_1,max_families_2,max_families_3)
 
     column_titles = ['Remote working', 'Coworking', 'Rest']
@@ -2047,51 +2065,6 @@ def update_user_ip(pathname, user_ip, modified_timestamp):
     print('user IP: ', user_ip)   
     print()
     print()
-    """
-    print(request.__dict__)
-    print()
-    print('selected items:')
-    print(request.headers)
-    print(request.cookies)
-    print(request.data)
-    print(request.args)
-    print(request.form)
-    print(request.endpoint)
-    print(request.method)
-    print(request.remote_addr)
-
-    if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
-        print('no proxy?: ',request.environ['REMOTE_ADDR'])
-    else:
-        print('with proxy?: ',request.environ['HTTP_X_FORWARDED_FOR']) # if behind a proxy
-
-    #user_ip2 = request.environ.get('REMOTE_ADDR')
-    #user_ip3 = request.access_route[0]
-    print()
-    print()
-    print('user IP: ', user_ip)
-    print()
-    print()
-
-    import netifaces as nif
-
-    def mac_for_ip(ip):
-        'Returns a list of MACs for interfaces that have given IP, returns None if not found'
-        for i in nif.interfaces():
-            addrs = nif.ifaddresses(i)
-            try:
-               if_mac = addrs[nif.AF_LINK][0]['addr']
-               if_ip = addrs[nif.AF_INET][0]['addr']
-            except (IndexError, KeyError): #ignore ifaces that dont have MAC or IP
-               if_mac = if_ip = None
-            if if_ip == ip:
-               return if_mac
-        return None
-
-    print('MAC addr.?: ',mac_for_ip(user_ip))
-    """
-
-
     root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
     #root_dir = '/home/cslgipuzkoa/virtual_machine_disk/UI_SCP/assets/'
     #new_root_dir = root_dir[:-1] + '_' + timestamp_id + '/'
@@ -2530,7 +2503,7 @@ def toggle_collapse(n, is_open):
     return is_open
 #################################################################
 
-
+"""
 #### Update sliders ################################################
 # Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([
@@ -2587,6 +2560,7 @@ def update_remote_work(StartHour):
     return [StartHour]
 
 #################################################################
+"""
 
 
 """
@@ -2804,7 +2778,7 @@ def switch_layer(Scen, layer):
                             'width': '25px',
                             'height': '25px',
                             'borderRadius': '50%',
-                            'backgroundColor': '#cb4335',
+                            'backgroundColor': '#2b62c0',
                             "border":"2px black solid"                            
                         }
                     ),
@@ -2884,7 +2858,8 @@ def switch_layer(Scen, layer):
                 colors = generate_colors(len(family_types))
                 color = colors[i_pred.Tipo_familia-1]
                 if i_pred.Tipo_familia in range(3) and i_pred.Mode == 'Car':
-                    color = '#C0392B'
+                    #color = '#C0392B'
+                    color = '#2b62c0'
                 else:
                     color = '#f4d03f'                    
                 text = 'Family type: ' + family_types[i_pred.Tipo_familia-1] + ' (' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance_week/1000) + ' Km'  
@@ -3064,9 +3039,10 @@ def download_stops(StopsCoords, CowoFlags, Nclicks):
            Output('n_clusters_1','value',allow_duplicate=True)],
             [Input('upload-data_1', 'contents'),
             State('upload-data_1', 'filename'),
-            State('upload-data_1', 'last_modified')],
+            State('upload-data_1', 'last_modified'),            
+            State('choose_start_time_1', 'value'),],
               prevent_initial_call=True)
-def load_worker_data(list_of_contents, list_of_names, list_of_dates):       
+def load_worker_data(list_of_contents, list_of_names, list_of_dates, startHour):       
     if list_of_contents is not None:
         children = [
             parse_contents(c, n, d) for c, n, d in
@@ -3075,7 +3051,8 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates):
         #temp_file = root_dir + 'data/' + 'temp_workers_data.csv'
         #df = pd.read_csv(temp_file) 
         #suggested_N_clusters = suggest_clusters(df)
-        suggested_N_clusters = suggest_clusters(works_data)
+        startHour = 8
+        suggested_N_clusters = suggest_clusters(works_data, startHour)
         #print('workers dataframe?', works_data)
         workers = pd.DataFrame(works_data.drop(columns='geometry'))
         workers_dict = workers.to_dict('records') 
@@ -3169,18 +3146,20 @@ def load_scenario(contents, names, dates):
               State("n_clusters_1", "value"),
               State('worker_data_1', 'data'),
               State('root_dir_1','data'),
+              State('choose_start_time_1', 'value'),
               Input("propose_stops_1", "n_clicks"),
               prevent_initial_call=True
               )
-def propose_stops(n_clusters,workerData, root_dir, Nclick):
+def propose_stops(n_clusters,workerData, root_dir, startHour, Nclick):
     if Nclick > 0:  
         sys.path.append(root_dir + 'modules')      
         import find_stops_module   
         n_clusters  = int(n_clusters)
         cutoff = 0.8 # cutoff for maximum density: take maxima which are at least cutoff*max  
         workers_DF = pd.DataFrame.from_dict(workerData)
+        startHour = int(startHour.split(':')[0])
         stops_DF = pd.read_csv(root_dir + 'data/'+ "all_bus_stops.csv", encoding='latin-1')
-        bus_stops_df,model,yhat = find_stops_module.FindStops(workers_DF, stops_DF, n_clusters, cutoff)
+        bus_stops_df,model,yhat = find_stops_module.FindStops(workers_DF, startHour, stops_DF, n_clusters, cutoff)
         #df = pd.read_csv(filename)
         #out=St.loc[:'Lat']
         #for i in range(len(St)):
@@ -3203,32 +3182,55 @@ def propose_stops(n_clusters,workerData, root_dir, Nclick):
 @app.callback([Output('map_1','children',allow_duplicate=True)],
                 State("n_clusters_1", "value"),
                 State('worker_data_1', 'data'),
+                State('choose_start_time_1', 'value'),
                [Input("show_workers_1", "n_clicks")],
               prevent_initial_call=True
               )
-def show_workers(n_clusters,workerData, N):
-    workers_DF = pd.DataFrame.from_dict(workerData)
-    """
-    St = []
-    for ind in workers_DF.index:
-         St.append((workers_DF['O_lat'][ind],workers_DF['O_long'][ind]))
-    markers = [dl.Marker(dl.Tooltip("Do something?"), position=pos, icon=custom_icon_worker, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-                     center=center, zoom=12, id="map",
-                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-    """ 
-    clusters = drawclusters(workers_DF,n_clusters)
-    n_max = max(len(x) for x in clusters ) # find maximum size of the clusters
-    n_min = min(len(x) for x in clusters ) # find maximum size of the clusters
-    #colors = generate_colors(n_clusters)
-    n_colors = n_max
-    #n_colors = 255
-    colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
-    #colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
-    cluster_shapes = [dl.Polygon(children = dl.Tooltip('Number of workers: '+str(len(clusters[i]))), positions=clusters[i], fill=True, fillColor = colors[i], fillOpacity=0.9) for i in range(n_clusters)]
-    newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + cluster_shapes,
-                     center=center, zoom=12, id="map_1",
-                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+def show_workers(n_clusters,workerData, startHour, N):
+    workers_df = pd.DataFrame.from_dict(workerData)
+    try:
+        startHour = int(startHour.split(':')[0])
+
+        """
+        St = []
+        for ind in workers_DF.index:
+            St.append((workers_DF['O_lat'][ind],workers_DF['O_long'][ind]))
+        markers = [dl.Marker(dl.Tooltip("Do something?"), position=pos, icon=custom_icon_worker, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+                        center=center, zoom=12, id="map",
+                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+        """ 
+        # select specific hour #####################################################
+        workers_df['Hora_Ini_E'] = workers_df['Hora_Ini'].copy()
+        workers_df['Hora_Ini'] = pd.to_datetime(workers_df['Hora_Ini_E'], format='%H:%M')
+        workers_df['Hora_Ini_E'] = ((workers_df['Hora_Ini'] - pd.to_datetime('00:00', format='%H:%M')).dt.total_seconds() / 300).astype(int) + 1
+        workers_df['Hora_Ini'] = workers_df['Hora_Ini'].dt.strftime('%H:%M')
+        convertido=((startHour*60*60)/300)+1
+        # Get 1-hour interval between "convertido" and "convertido+1hour"? #######
+        workers_df=workers_df[workers_df['Hora_Ini_E'] <= (convertido+11)]
+        workers_df=workers_df[workers_df['Hora_Ini_E'] >= convertido]
+        ############################################################################    
+    except:
+        pass
+
+    if len(workers_df.index) > 0:
+        clusters = drawclusters(workers_df,n_clusters)
+        n_max = max(len(x) for x in clusters ) # find maximum size of the clusters
+        n_min = min(len(x) for x in clusters ) # find maximum size of the clusters
+        #colors = generate_colors(n_clusters)
+        n_colors = n_max
+        #n_colors = 255
+        colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
+        #colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
+        cluster_shapes = [dl.Polygon(children = dl.Tooltip('Number of workers: '+str(len(clusters[i]))), positions=clusters[i], fill=True, fillColor = colors[i], fillOpacity=0.9) for i in range(n_clusters)]
+        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + cluster_shapes,
+                        center=center, zoom=12, id="map_1",
+                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+
+    else:
+        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")],
+                        center=center, zoom=12, id="map_1",
+                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
     return [newMap]
 
@@ -3265,33 +3267,30 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
             dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
                       target="match_stops_1",
                       body=True,
-                      trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
-            html.P(['Choose number of buses'],id='choose_bus_num_1',style={"margin-top": "15px","font-weight": "bold"}),
-            #dcc.Input(id="choose_buses", type="text", value='3'),
+                      trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),                      
+            html.P(['Modify stops'],id='action_select_bus_stops_1',style={"margin-top": "15px", "font-weight": "bold"}),
+            dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action_1'),                       
+
+            html.P(['Choose number of routes'],id='choose_bus_num_1',style={"margin-top": "15px","font-weight": "bold"}),
             dcc.Slider(0, 10, 1,
                    value=Nbuses,
                    id='num_buses_1'
             ),
-            html.P(['Choose start time'],style={"font-weight": "bold","white-space": "pre"}),
-            html.Div(dcc.Dropdown(choose_start_hour, multi=False, id='choose_start_time_1')),            
-            html.P(['Choose trip frequency'],id='choose_bus_freq_1',style={"margin-top": "15px","font-weight": "bold"}),
-            dcc.Slider(10, 60, 5,
-                   value=TripFreq,
-                   marks=None,
-                   tooltip={"placement": "bottom", "always_visible": True}, 
-                   id='trip_freq_1'
-            ),
-            html.P(['Choose number of trips'],id='choose_trip_num_1',style={"margin-top": "15px","font-weight": "bold"}),
-            dcc.Slider(0, 12, 1,
-                   value=Ntrips,
-                   id='num_trips_1'
-            ),
-            dbc.Button("Calculate routes", id="calc_routes_1",n_clicks=0, style={"margin-top": "15px"}),
-            #html.P([ html.Br(),'Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
-            html.P(['Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
-            dcc.Dropdown(routes, multi=False,style={"margin-top": "15px"},id='choose_route_1'),
-            dbc.Button("Visualize routes", id="visualize_routes_1", n_clicks=0,style={"margin-top": "15px"}),
-            #html.Br(),               
+
+            #dbc.Button("Calculate routes", id="calc_routes_1",n_clicks=0, style={"margin-top": "15px"}),
+            ##html.P([ html.Br(),'Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
+            ##html.P(['Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
+            ##dcc.Dropdown(routes, multi=False,style={"margin-top": "15px"},id='choose_route_1'),
+            #dbc.Button("Visualize routes", id="visualize_routes_1", n_clicks=0,style={"margin-top": "15px"}),
+            #html.Br(), 
+            dbc.ButtonGroup(
+                            [
+                              dbc.Button("Calculate routes", id="calc_routes_1", n_clicks=0, style={"margin-top": "15px"}),
+                              dbc.Button("Visualize routes", id="visualize_routes_1", n_clicks=0, style={"margin-top": "15px"}),
+                            ],
+                            vertical=True,
+                            style={"margin-top": "15px"}
+            ),              
             html.Div(id='outdata_1', style={"margin-top": "15px"}),
             dcc.Store(id='internal-value_stops_1', data=St),
             dcc.Store(id='internal-value_coworking_1', data=Cow),
@@ -3305,7 +3304,21 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
             dcc.Store(id='internal-value_routes_1', data=[]),        
             dcc.Store(id='internal-value_scenario_1', data=[]),        
             dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
-            ])       
+            ])
+        """
+            html.P(['Choose trip frequency'],id='choose_bus_freq_1',style={"margin-top": "15px","font-weight": "bold"}),
+            dcc.Slider(10, 60, 5,
+                   value=TripFreq,
+                   marks=None,
+                   tooltip={"placement": "bottom", "always_visible": True}, 
+                   id='trip_freq_1'
+            ),
+            html.P(['Choose number of trips'],id='choose_trip_num_1',style={"margin-top": "15px","font-weight": "bold"}),
+            dcc.Slider(0, 12, 1,
+                   value=Ntrips,
+                   id='num_trips_1'
+            ),
+        """              
         
         return [sidebar_transport]
 
@@ -3352,6 +3365,9 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
         
         sidebar_cowork = html.Div(
                 [
+                html.P(['Modify coworking hubs'],id='action_select_cow_1',style={"margin-top": "15px", "font-weight": "bold"}),
+                dcc.Dropdown(cow_actions, multi=False,style={"margin-top": "15px"}, id='choose_coworking_action_1'),                       
+
                 #html.P([ html.Br(),'Choose number of days of coworking'],id='coworking_days_num_1',style={"margin-top": "15px","font-weight": "bold"}),
                 html.P(['Choose number of days of coworking'],id='coworking_days_num_1',style={"margin-top": "15px","font-weight": "bold"}),
                 #dcc.Input(id="choose_buses", type="text", value='3'),
@@ -3377,18 +3393,16 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
         return [sidebar_cowork]
 
 
-
+#               State('num_trips_1', 'value'),
+#               State('trip_freq_1', 'value'),
+#               Output("choose_route_1", "options",allow_duplicate=True),
 @app.long_callback([
                Output("outdata_1", "children",allow_duplicate=True),
                Output("internal-value_route_opt_done_1", 'data',allow_duplicate=True),
                Output('internal-value_routes_1','data',allow_duplicate=True),
                Output('internal-value_bus_number_1','data',allow_duplicate=True),
-               Output("choose_route_1", "options",allow_duplicate=True),
                Output('map_1','children',allow_duplicate=True)],
-
                State('num_buses_1', 'value'), 
-               State('num_trips_1', 'value'),
-               State('trip_freq_1', 'value'),
                State('choose_start_time_1', 'value'),  
                State('internal-value_stops_1','data'),
                State('internal-value_coworking_1','data'),
@@ -3398,9 +3412,9 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
                manager=long_callback_manager,
               prevent_initial_call=True
               )
-def calc_routes(Nroutes,Ntrips,freq,StartHour,St,Cow,CO2km, root_Dir, Nclick):
-    print()
-    print('inside calc_routes!')
+def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_Dir, Nclick):
+    Ntrips = 1 # default
+    freq = 30 # default
     if Nclick > 0:
       root_dir = root_Dir
       sys.path.append(root_dir + 'modules')
@@ -3457,8 +3471,9 @@ def calc_routes(Nroutes,Ntrips,freq,StartHour,St,Cow,CO2km, root_Dir, Nclick):
       print('root dir: ', root_dir)
       print('Ntrips: ', Ntrips)
       print('freq: ', freq)
-      StartHour = "{:02d}".format(StartHour) + ':00'
       print('StartHour: ', StartHour)
+      #StartHour = int(StartHour)
+      #StartHour = "{:02d}".format(StartHour) + ':00'
       gGTFS.gGTFS(routes, Stops, Graph, root_dir, Ntrips, freq, StartHour)
       route_opt = 1
       # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
@@ -3467,24 +3482,24 @@ def calc_routes(Nroutes,Ntrips,freq,StartHour,St,Cow,CO2km, root_Dir, Nclick):
                      center=center, zoom=12, id="map_1",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"}) 
       ###################################################################################################   
-      #return ["Calculation completed!", routes_coords, new_menu, newMap]
-      return ["Calculation completed for: "+str(len(Stops)), route_opt, routes_points_coords, Nroutes, new_menu, newMap]
+      #return ["Calculation completed for: "+str(len(Stops)), route_opt, routes_points_coords, Nroutes, new_menu, newMap]
+      return ["Calculation completed for: "+str(len(Stops)) +' stops', route_opt, routes_points_coords, new_menu, newMap]
 
 
+#              [State('choose_route_1',"value"),
 @app.callback([Output('map_1','children',allow_duplicate=True)],
-              [State('choose_route_1',"value"),
-              State('internal-value_stops_1','data'),
+              [State('internal-value_stops_1','data'),
               State('internal-value_coworking_1','data'),
               State('internal-value_routes_1','data')],
               [Input("visualize_routes_1", "n_clicks")],
               prevent_initial_call=True
               )
-def visualize_route(Route,St,Cow,RoutesCoords,Nclick):
+#def visualize_route(Route,St,Cow,RoutesCoords,Nclick):
+def visualize_route(St,Cow,RoutesCoords,Nclick):
     if Nclick > 0:
       print('Start route visualization...')
-      #Route = int(Route.split(' ')[1])-1
-      Route = int(Route)-1    
-      RoutesCoords = RoutesCoords[Route]
+      #Route = int(Route)-1    
+      #RoutesCoords = RoutesCoords[Route]
       markers = []
       for i, pos in enumerate(St): 
         if Cow[i]==1:
@@ -3492,9 +3507,14 @@ def visualize_route(Route,St,Cow,RoutesCoords,Nclick):
         else:
              custom_icon = custom_icon_bus
         tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
-        markers.append(tmp)     
+        markers.append(tmp)  
+      map_children = [dl.TileLayer(), dl.ScaleControl(position="topright")]
+      colors = generate_colors(len(RoutesCoords))
+      for i in range(len(RoutesCoords)):
+          map_children.append(dl.Polyline(positions=[RoutesCoords[i]], pathOptions={'weight':10, 'color': colors[i]}))         
       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
-      newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright"), dl.Polyline(positions=RoutesCoords, pathOptions={'weight':10})] + markers,
+      #newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright"), dl.Polyline(positions=RoutesCoords, pathOptions={'weight':10})] + markers,
+      newMap = dl.Map(map_children + markers,
                      center=center, zoom=12, id="map_1",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
       return [newMap]
@@ -3545,52 +3565,93 @@ def match_stops(St,Cow,Nclick):
       return [len(St),St,newMap]
 
 #              [Input('map_1','clickData')],
-@app.callback([Output("outdata_1", "children",allow_duplicate=True), 
-               Output('internal-value_stops_1','data',allow_duplicate=True),
-               Output('internal-value_coworking_1','data',allow_duplicate=True),
-               Output('map_1','children',allow_duplicate=True)],
-              [State('internal-value_stops_1','data'),
-               State('internal-value_coworking_1','data')],
-              [Input('map_1','dblclickData')],
-              prevent_initial_call=True
-              )
-def add_marker(St,Cow,clickd):
-       print('adding marker...')
-       print(clickd)
-       marker_lat = clickd['latlng']['lat']
-       marker_lon = clickd['latlng']['lng']
-       St.append((marker_lat,marker_lon))
-       Cow.append(0)
-       out=''
-       for i in range(len(St)):
-           out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
-       markers = []
-       for i, pos in enumerate(St): 
-           if Cow[i] == 1:
-               custom_icon = custom_icon_coworking
-               #print('setting coworking icon...')
-           else:
-               custom_icon = custom_icon_bus
-           tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
-           markers.append(tmp)    
 
-       newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-                     center=center, zoom=12, id="map_1",
-                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-       return [out,St,Cow,newMap]
+
+@app.callback(
+    [
+    Output('internal-value_marker_option_1', 'data', allow_duplicate=True)
+    ],
+    [Input('choose_stop_action_1', 'value')],
+    prevent_initial_call=True
+)
+def set_stop(selection):
+    print('checking selection...: ', selection)
+    return [selection]
+
+@app.callback(
+    [
+    Output('internal-value_marker_option_1', 'data', allow_duplicate=True)
+    ],
+    [Input('choose_coworking_action_1', 'value')],
+    prevent_initial_call=True
+)
+def set_coworking(selection):
+    print('checking selection..: ', selection)
+    return [selection]
+
+
+
+
+@app.callback(
+    [
+        Output("outdata_1", "children", allow_duplicate=True),
+        Output('internal-value_stops_1', 'data', allow_duplicate=True),
+        Output('internal-value_coworking_1', 'data', allow_duplicate=True),
+        Output('map_1', 'children', allow_duplicate=True)
+    ],
+    [
+        State('internal-value_stops_1', 'data'),
+        State('internal-value_coworking_1', 'data'),
+        State('internal-value_marker_option_1', 'data'),
+    ],
+    [Input('map_1', 'dblclickData')],
+    prevent_initial_call=True
+)
+def add_marker(St, Cow, MarkerOption, clickd):
+    if MarkerOption == 'AS' or MarkerOption == 'AC':
+        print('adding marker...')
+        print(clickd)
+        print('Selected action:')
+        print(MarkerOption)
+        marker_lat = clickd['latlng']['lat']
+        marker_lon = clickd['latlng']['lng']
+        St.append((marker_lat, marker_lon))
+        if MarkerOption == 'AS':
+            Cow.append(0)
+        if MarkerOption == 'AC':
+            Cow.append(1)
+
+        out = ''
+        for i in range(len(St)):
+            out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
+        markers = []
+
+        for i, pos in enumerate(St):
+            if Cow[i] == 1:
+                custom_icon = custom_icon_coworking
+            else:
+                custom_icon = custom_icon_bus
+            tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})
+            markers.append(tmp)
+
+        newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright")] + markers,
+                        center=center, zoom=12, id="map_1",
+                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+        return [out, St, Cow, newMap]
+
 
 
 @app.callback([Output("outdata_1", "children",allow_duplicate=True),
                Output('internal-value_stops_1','data',allow_duplicate=True),
                Output('internal-value_coworking_1','data',allow_duplicate=True),
-               Output("choose_stop_action_1", "value",allow_duplicate=True),
+               Output('internal-value_marker_option_1', 'data',allow_duplicate=True),
                Output('map_1','children',allow_duplicate=True)],
               [State('internal-value_stops_1','data'), 
                State('internal-value_coworking_1','data'), 
-               State('choose_stop_action_1',"value")],
+               State('internal-value_marker_option_1', 'data')],
               [Input({"type": "marker", "index": ALL},"n_clicks")],
               prevent_initial_call=True)
-def change_marker(St, Cow, stop_operation, *args):
+def change_stop_marker(St, Cow, marker_operation, *args):
 
     marker_id = callback_context.triggered[0]["prop_id"].split(".")[0].split(":")[1].split(",")[0]
     n_clicks = callback_context.triggered[0]["value"]
@@ -3598,9 +3659,9 @@ def change_marker(St, Cow, stop_operation, *args):
     print('changing marker...')
     #print('marker id?:', marker_id)
     print('requested Marker Operation:')
-    print(stop_operation)
+    print(marker_operation)
     
-    if stop_operation == "DM":      
+    if marker_operation == "DS" or marker_operation == "DC":      
         del St[int(marker_id)]
         del Cow[int(marker_id)]
     
@@ -3621,7 +3682,7 @@ def change_marker(St, Cow, stop_operation, *args):
         #              style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
         return ['Stop deleted!',St,Cow,' ',newMap]
 
-    if stop_operation == "SO":
+    if marker_operation == "SO":
         print()
         print()
         tmp = St[int(marker_id)]
@@ -3631,14 +3692,28 @@ def change_marker(St, Cow, stop_operation, *args):
         Cow.insert(0, 0)
         print('list modified!')
         print()
-        
-        markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-                     center=center, zoom=12, id="map_1",
-                     style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+
+        markers = []
+        for i, pos in enumerate(St):
+            if Cow[i] == 1:
+                custom_icon = custom_icon_coworking
+            else:
+                custom_icon = custom_icon_bus
+            tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})
+            markers.append(tmp)
+
+        newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright")] + markers,
+                        center=center, zoom=12, id="map_1",
+                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+
+        #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+        #newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+        #             center=center, zoom=12, id="map_1",
+        #             style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
         return ['Origin set!',St,Cow,' ',newMap]
-        
-    if stop_operation == "SC":
+
+    """
+    if marker_operation == "SC":
        markers = []
        for i, pos in enumerate(St): 
            if i == int(marker_id) or Cow[i]==1:
@@ -3651,8 +3726,8 @@ def change_marker(St, Cow, stop_operation, *args):
        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
                      center=center, zoom=12, id="map_1",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-       return ['Stop deleted!',St,Cow,' ',newMap]
-
+       return ['Stop set as Coworking!',St,Cow,newMap]
+    """    
 
 
 if __name__ == '__main__':

@@ -64,8 +64,21 @@ def detect_local_minima(arr):
     return np.where(detected_minima)
 
 
-def FindStops(workers_df, stops_df, n_clusters, cutoff):
+def FindStops(workers_df, startHour, stops_df, n_clusters, cutoff):
     #lat_lon = workers_df[['O_lat', 'O_long']][::n_skip] # take every n elements
+    # Create a copy column
+
+    # select specific hour #####################################################
+    workers_df['Hora_Ini_E'] = workers_df['Hora_Ini'].copy()
+    workers_df['Hora_Ini'] = pd.to_datetime(workers_df['Hora_Ini_E'], format='%H:%M')
+    workers_df['Hora_Ini_E'] = ((workers_df['Hora_Ini'] - pd.to_datetime('00:00', format='%H:%M')).dt.total_seconds() / 300).astype(int) + 1
+    workers_df['Hora_Ini'] = workers_df['Hora_Ini'].dt.strftime('%H:%M')
+    convertido=((startHour*60*60)/300)+1
+    # Get 1-hour interval between "convertido" and "convertido+1hour"? #######
+    workers_df=workers_df[workers_df['Hora_Ini_E'] <= (convertido+11)]
+    workers_df=workers_df[workers_df['Hora_Ini_E'] >= convertido]
+    ############################################################################
+
     workers_lat_lon = workers_df[['O_lat', 'O_long']].values.tolist()
     stops_lat_lon = stops_df[['stop_lat','stop_lon']].to_numpy()    
     model = KMeans(n_clusters=n_clusters)
