@@ -542,7 +542,11 @@ sidebar_1 =  html.Div(
         dcc.Store(id='internal-value_bus_number_1', data = 0), 
         dcc.Store(id='internal-value_trip_freq_1', data=30),
         dcc.Store(id='internal-value_trip_number_1', data=1),
-        dcc.Store(id='internal-value_start_hour_1', data='8:00'),        
+        dcc.Store(id='internal-value_start_hour_1', data='8:00'),     
+        dcc.Store(id='internal-value_co2_km_car_1', data=0.1081),     
+        dcc.Store(id='internal-value_co2_km_bus_1', data=1.3),     
+        dcc.Store(id='internal-value_co2_km_train_1', data=0.049), 
+        dcc.Store(id='internal-value_bus_train_ratio_1', data=0.8)             
         ],
         id='sidebar_1',
         style=SIDEBAR_STYLE)
@@ -931,6 +935,7 @@ def suggest_clusters(wdf, startHour):
     except:
         pass
     wdf = wdf[['O_lat', 'O_long']].values.tolist()
+    """
     #alpha = 0.65
     alpha = 0.75    
     #n_max_clusters = int(19.*len(wdf)/2507)
@@ -959,6 +964,8 @@ def suggest_clusters(wdf, startHour):
         if dist_to_max < dist_max:   
            dist_max = dist_to_max
            best_n_clusters = n_clusters
+    """
+    best_n_clusters = min(12, int(len(wdf)*0.1))
     return best_n_clusters    
 
 def generate_colors(n):
@@ -2577,6 +2584,30 @@ def update_remote_work(TripFreq):
 def update_remote_work(StartHour):
     return [StartHour]
 
+
+
+"""
+        dcc.Store(id='internal-value_co2_km_car_1', data=0.1081),     
+        dcc.Store(id='internal-value_co2_km_bus_1', data=1.3),     
+        dcc.Store(id='internal-value_co2_km_train_1', data=0.049), 
+        dcc.Store(id='internal-value_bus_train_ratio_1', data=0.8) 
+"""
+@callback([
+           Output('internal-value_co2_km_car_1', 'data',allow_duplicate=True),
+           Output('internal-value_co2_km_bus_1', 'data',allow_duplicate=True),
+           Output('internal-value_co2_km_train_1', 'data',allow_duplicate=True),
+           Output('internal-value_bus_train_ratio_1', 'data',allow_duplicate=True)
+          ],
+          [
+          Input('choose_co2_km_car_1','value'),
+          Input('choose_co2_km_bus_1','value'),
+          Input('choose_co2_km_train_1','value'),
+          Input('choose_bus_train_ratio_1','value')
+          ],
+          prevent_initial_call=True)
+def update_remote_work(co2_car, co2_bus, co2_train, bus_ratio):
+    return [co2_car, co2_bus, co2_train, bus_ratio]
+
 ###########################################################################
 
 
@@ -3439,7 +3470,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
                State('choose_start_time_1', 'value'),  
                State('internal-value_stops_1','data'),
                State('internal-value_coworking_1','data'),
-               State('choose_CO2_lt_1','value'),
+               State('internal-value_co2_km_car_1','data'),
                State('root_dir_1','data'),
                Input("calc_routes_1", "n_clicks"),
                manager=long_callback_manager,
