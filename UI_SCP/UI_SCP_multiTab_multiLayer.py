@@ -208,7 +208,7 @@ choose_start_hour = [{'label': hour, 'value': hour} for hour in ['All hours','00
 Step_1_text="Step 1:\nLoad and visualize raw data "
 Step_2_text="Step 2:\nRun baseline scenario "
 Step_3_text="Step 3:\nSelect type of intervention "
-Step_4_text="Step 4:\nSelect time for commuting "
+#Step_4_text="Step 4:\nSelect time for commuting "
 
 collapse_button_1 = html.Div([
 
@@ -413,28 +413,28 @@ sidebar_1 =  html.Div(
         ]),
 
 
-        dbc.Row([
-            dbc.Col([
-                        html.P([Step_4_text],style={"font-weight": "bold","white-space": "pre"}),
-                    ],
-                    #style={'height': '80px'},width=8),
-                    md=8),
-            dbc.Col([        
-                        collapse_button_4,
-                    ],
-                    #style={'height': '80px'},width=3
-                    md=3
-                    )                    
-        ]),
-        dbc.Row([
-                dbc.Collapse([
-                    html.P(['Choose time range'],style={"font-weight": "bold","white-space": "pre"}),
-                    html.Div(dcc.Dropdown(choose_transp_hour, multi=False, id='choose_transp_hour_1'))            
-                    ],
-                    id='Select_time_panel_1',
-                    is_open=False,
-                ),
-        ]),
+        #dbc.Row([
+        #    dbc.Col([
+        #                html.P([Step_4_text],style={"font-weight": "bold","white-space": "pre"}),
+        #            ],
+        #            #style={'height': '80px'},width=8),
+        #            md=8),
+        #    dbc.Col([        
+        #                collapse_button_4,
+        #            ],
+        #            #style={'height': '80px'},width=3
+        #            md=3
+        #            )                    
+        #]),
+        #dbc.Row([
+        #        dbc.Collapse([
+        #            html.P(['Choose time range'],style={"font-weight": "bold","white-space": "pre"}),
+        #            html.Div(dcc.Dropdown(choose_transp_hour, multi=False, id='choose_transp_hour_1'))            
+        #            ],
+        #            id='Select_time_panel_1',
+        #            is_open=False,
+        #        ),
+        #]),
         dbc.Row([
             dbc.Col([
                         html.P(['Advanced_settings'],style={"font-weight": "bold","white-space": "pre"}),
@@ -452,27 +452,34 @@ sidebar_1 =  html.Div(
         dbc.Row([
             dbc.Collapse([
                 #html.P([ html.Br(),'Liters of gasoline per kilometer (car)'],id='gas_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
-                html.P(['Liters of gasoline per kilometer (car)'],id='gas_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
-                dcc.Slider(0, 5,0.02,
-                    value=1./12,
-                    id='choose_gas_km_car_1',
+                html.P(['CO2 emissions per kilometer (car)'],id='co2_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
+                dcc.Slider(0, 2,0.01,
+                    value=0.1081,
+                    id='choose_co2_km_car_1',
                     marks=None,
                     tooltip={"placement": "bottom", "always_visible": True}
                 ),                   
                 #html.P([ html.Br(),'Liters of gasoline per kilometer (bus)'],id='gas_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
-                html.P(['Liters of gasoline per kilometer (bus)'],id='gas_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
-                dcc.Slider(0, 10,0.05,
-                    value=1.12,
-                    id='choose_gas_km_bus_1',
+                html.P(['CO2 emissions per kilometer (bus)'],id='co2_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
+                dcc.Slider(0, 2,0.1,
+                    value=1.3,
+                    id='choose_co2_km_bus_1',
                     marks=None,
                     tooltip={"placement": "bottom", "always_visible": True}
                 ),                    
                 #html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt_1',style={"margin-top": "15px","font-weight": "bold"}),
-                html.P(['CO2 Kg per lt'],id='CO2_lt_1',style={"margin-top": "15px","font-weight": "bold"}),
+                html.P(['CO2 emissions per kilometer (train)'],id='co2_km_train_1',style={"margin-top": "15px","font-weight": "bold"}),
+                dcc.Slider(0, 0.1,0.02,
+                    value=0.049,
+                    id='choose_co2_km_train_1',
+                    marks=None,
+                    tooltip={"placement": "bottom", "always_visible": True}
+                ), 
 
-                dcc.Slider(0, 10,0.05,
-                    value=2.3,
-                    id='choose_CO2_lt_1',
+                html.P(['Bus/train usage ratio'],id='bus_train_ratio_1',style={"margin-top": "15px","font-weight": "bold"}),
+                dcc.Slider(0, 1,0.05,
+                    value=0.8,
+                    id='choose_bus_train_ratio_1',
                     marks=None,
                     tooltip={"placement": "bottom", "always_visible": True}
                 ),            
@@ -491,19 +498,19 @@ sidebar_1 =  html.Div(
                             color='warning'),
                             style={"white-space": "pre"}),
               
-        dbc.Row(
-                    html.Div(
-                              dcc.Upload(id='button_load_scenario_1',
-                                         children=html.Div([
-                                         dbc.Button('Load scenario')
-                                        ]),
-                                        # Allow multiple files to be uploaded
-                                        multiple=True
-                                        )
-                    ),
-                    style={"margin-top": "15px"},
-                    #width='auto'
-                ),
+        #dbc.Row(
+        #            html.Div(
+        #                      dcc.Upload(id='button_load_scenario_1',
+        #                                 children=html.Div([
+        #                                 dbc.Button('Load scenario')
+        #                                ]),
+        #                                # Allow multiple files to be uploaded
+        #                                multiple=True
+        #                                )
+        #            ),
+        #            style={"margin-top": "15px"},
+        #            #width='auto'
+        #        ),
 
         dbc.Row(
                     html.Div([
@@ -2010,7 +2017,8 @@ def categorize_Mode(code):
     else:
         return 'PT'
     
-def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, gkm_car=1./12, gkm_bus=1.1, co2lt=2.3, NremDays=0, NremWork=0, CowCoords=[], CowDays=0):
+#def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, gkm_car=1./12, gkm_bus=1.1, co2lt=2.3, NremDays=0, NremWork=0, CowCoords=[], CowDays=0):
+def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, co2km_car=0.1081, co2km_bus=1.3, co2km_train=0.049, bus_train_ratio=0.8, NremDays=0, NremWork=0, CowCoords=[], CowDays=0):
     import pandas as pd
     import sys    
     root_dir = root_Dir
@@ -2018,6 +2026,11 @@ def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, gkm_car=1./12, gkm_bus=1.1
     import pp
     import prediction
     import pandas as pd
+
+    # ref for CO2 emissions:
+    # car: https://www.eea.europa.eu/en/analysis/indicators/co2-performance-of-new-passenger#:~:text=Compared%20to%202021%2C%202022%20saw,108.1g%20CO2%2Fkm.
+    # bus: https://www.carbonindependent.org/20.html#:~:text=The%20typical%20bus%20produces%20about,quoted%20by%20Goodall%20%5B7%5D).
+    # train: https://www.carbonindependent.org/21.html
  
     if Transh == None:
         Transh = 8
@@ -2043,7 +2056,10 @@ def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, gkm_car=1./12, gkm_bus=1.1
     trips_ez=pp.pp(Transh,trips_ez, routeOptDone, CowCoords, CowDays, NremWork, NremDays, root_dir, MCM_data_dir) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
-    prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir)  
+    #prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir)  
+    # predict(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio, model_dir)
+    prediction=prediction.predict(trips_ez, co2km_car, co2km_bus, co2km_train, bus_train_ratio, root_dir + model_dir)  
+
     return prediction
  
 
@@ -2503,8 +2519,8 @@ def toggle_collapse(n, is_open):
     return is_open
 #################################################################
 
-"""
-#### Update sliders ################################################
+
+#### Update internal values from sliders and dropdown menus #######################
 # Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([
            Output('internal-value_remote_days_1', 'data',allow_duplicate=True),
@@ -2531,6 +2547,7 @@ def update_coworking(cow_days):
     print()    
     return [cow_days]
 
+
 @callback([
            Output('internal-value_trip_num_1', 'data',allow_duplicate=True),
           ],
@@ -2551,22 +2568,28 @@ def update_remote_work(Ntrips):
 def update_remote_work(TripFreq):
     return [TripFreq]
 
+#          Input('choose_start_hour_1','value'),
 @callback([
            Output('internal-value_start_hour_1', 'data',allow_duplicate=True),
           ],
-          Input('choose_start_hour_1','value'),
+          Input('choose_start_time_1','value'),
           prevent_initial_call=True)
 def update_remote_work(StartHour):
     return [StartHour]
 
-#################################################################
-"""
+###########################################################################
+
 
 
 """
 @callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
            Output('Transport_share','figure',allow_duplicate=True),
            Output('Km_share','figure',allow_duplicate=True),
+"""
+"""
+          State('choose_gas_km_car_1','value'),
+          State('choose_gas_km_bus_1','value'),
+          State('choose_CO2_lt_1','value'),
 """
 # Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([Output('Indicator_panel_1', 'figure',allow_duplicate=True),
@@ -2587,16 +2610,17 @@ def update_remote_work(StartHour):
           State('internal-value_coworking_1','data'),
           State('internal-value_coworking_days_1','data'),
           State('internal-value_bus_number_1','data'),
-          State('choose_transp_hour_1','value'),
-          State('choose_gas_km_car_1','value'),
-          State('choose_gas_km_bus_1','value'),
-          State('choose_CO2_lt_1','value'),
+          State('choose_start_time_1','value'),
+          State('choose_co2_km_car_1','value'),
+          State('choose_co2_km_bus_1','value'),
+          State('choose_co2_km_train_1','value'),
+          State('choose_bus_train_ratio_1','value'),
           State('Tab_3', 'children')
           ],
           [Input('run_baseline_1','n_clicks'),
            Input('run_MCM_1', 'n_clicks')],
           prevent_initial_call=True)
-def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork, RouteOptDone, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, gkm_car, gkm_bus, co2lt, Tab3, Nclicks_base, Nclicks):
+def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork, RouteOptDone, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, co2km_car, co2km_bus, co2km_train, bus_train_ratio, Tab3, Nclicks_base, Nclicks):
     print('Cow. Flags:')
     print(CowoFlags)
     CowoIn = np.nonzero(CowoFlags)[0]
@@ -2607,9 +2631,13 @@ def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork,
     CowoCoords = np.array(StopsCoords)[CowoIn]
     print('Cow coords:')
     print(CowoCoords)
-    
+    TransH = int(TransH.split(':')[0])
+
     df = pd.DataFrame.from_dict(workerData)    
-    result = run_MCM(df, root_dir, TransH, RouteOptDone, gkm_car, gkm_bus, co2lt, NremDays, NremWork, CowoCoords, CowDays)     
+    #result = run_MCM(df, root_dir, TransH, RouteOptDone, gkm_car, gkm_bus, co2lt, NremDays, NremWork, CowoCoords, CowDays)  
+    # run_MCM(trips_ez, root_Dir, Transh, routeOptDone, co2km_car=0.1081, co2km_bus=1.3, co2km_train=0.049, bus_train_ratio=0.8, NremDays=0, NremWork=0, CowCoords=[], CowDays=0):
+    result = run_MCM(df, root_dir, TransH, RouteOptDone, co2km_car, co2km_bus, co2km_train, bus_train_ratio, NremDays, NremWork, CowoCoords, CowDays)  
+   
     out = plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, StopsCoords, CowoFlags)
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
@@ -3002,18 +3030,22 @@ def download_scenario(Scen, Nclicks):
           State('internal-value_remote_workers_1', 'data'),
           State('internal-value_coworking_days_1','data'),          
           State('internal-value_bus_number_1','data'),          
-          State('choose_transp_hour_1','value'),
-          State('choose_gas_km_car_1','value'),
-          State('choose_gas_km_bus_1','value'),
-          State('choose_CO2_lt_1','value')],
+          State('choose_start_time_1','value'),
+          State('choose_co2_km_car_1','value'),
+          State('choose_co2_km_bus_1','value'),
+          State('choose_co2_km_train_1','value'),
+          State('choose_bus_train_ratio_1','value')],
           Input('button_download_scenario_1', 'n_clicks'),
           prevent_initial_call=True)
-def download_inputs(NremDays, NremWork, CowDays, Nbuses, TransH, gkm_car, gkm_bus, co2lt, Nclicks):
+def download_inputs(NremDays, NremWork, CowDays, Nbuses, TransH, co2_km_car, co2_km_bus, co2_km_train, bus_train_ratio, Nclicks):
     inputs_dict = {'NremDays': NremDays, 'NremWork':NremWork, 
                    'CowDays': CowDays,                    
                    'Nbuses': Nbuses,
-                   'TransH': TransH, 'gkm_car': gkm_car, 
-                   'gkm_bus': gkm_bus, 'co2lt': co2lt
+                   'TransH': TransH, 
+                   'co2_km_car': co2_km_car, 
+                   'co2_km_bus': co2_km_bus, 
+                   'co2_km_train': co2_km_train, 
+                   'bus_train_ratio': bus_train_ratio 
                    }
     inputs_df = pd.DataFrame(inputs_dict, index=[0])
     print('trying to save inputs...')
@@ -3061,7 +3093,8 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates, startHour):
 ############################################################################################
 
 #           Output('internal-value_stops','data',allow_duplicate=True),
-       
+
+"""       
 @callback([Output('Indicator_panel_1', 'figure',allow_duplicate=True),
            Output('graph2','figure',allow_duplicate=True),
            Output('Indicator_panel_3', 'figure',allow_duplicate=True),
@@ -3070,7 +3103,7 @@ def load_worker_data(list_of_contents, list_of_names, list_of_dates, startHour):
            Output('internal-value_remote_workers_1', 'data',allow_duplicate=True),
            Output('internal-value_coworking_days_1', 'data',allow_duplicate=True),
            Output('internal-value_bus_number_1', 'data',allow_duplicate=True),
-           Output('choose_transp_hour_1', 'value',allow_duplicate=True),
+           Output('choose_start_time_1', 'value',allow_duplicate=True),
            Output('choose_gas_km_car_1', 'value',allow_duplicate=True),
            Output('choose_gas_km_bus_1', 'value',allow_duplicate=True),
            Output('choose_CO2_lt_1', 'value',allow_duplicate=True),
@@ -3133,7 +3166,7 @@ def load_scenario(contents, names, dates):
     #return [out[0],out[2], *inputs, scenario_json]
     #fig_total, fig_decomp, new_map
     return [out[0],out[1],out[0],out[2], *inputs, stops_coords, cow_flags, scenario_json]
-
+"""
 
 #           Output('internal-value_stops','data',allow_duplicate=True),
 

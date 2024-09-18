@@ -14,16 +14,23 @@ def categorize(code):
     else:
         return 'Car'
 
-def estimate_emissions(df, GasKm_car, GasKm_bus, CO2lt):
+#def estimate_emissions(df, GasKm_car, GasKm_bus, CO2lt):
+def estimate_emissions(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio):
         # weekly CO2 emissions in tons 
         aver_N_passengers =29
         if df['Mode']=='Walk':
             return 0.0
+        #elif df['Mode']=='PT':
+        #    return (5-df['Rem_work'])*(GasKm_bus*CO2lt*df['distance']/1000/aver_N_passengers)*0.8 + (5-df['Rem_work'])*(35.1*10**-3*df['distance']/1000/aver_N_passengers)*0.2
+        #else:
+        #    return (5-df['Rem_work'])*GasKm_car*CO2lt*df['distance']/1000
         elif df['Mode']=='PT':
-            return (5-df['Rem_work'])*(GasKm_bus*CO2lt*df['distance']/1000/aver_N_passengers)*0.8 + (5-df['Rem_work'])*(35.1*10**-3*df['distance']/1000/aver_N_passengers)*0.2
+            return (5-df['Rem_work'])*(co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + (5-df['Rem_work'])*(co2km_train*df['distance']/1000/aver_N_passengers)*(1-bus_train_ratio)
         else:
-            return (5-df['Rem_work'])*GasKm_car*CO2lt*df['distance']/1000
-        
+            return (5-df['Rem_work'])*co2km_car*df['distance']/1000
+
+
+
 def calculate_indicator_d(df):
         mask = df.index.to_list()
         mask = [s for s in mask if "distance_stop" in s]
@@ -41,7 +48,8 @@ def calculate_indicator_n(df):
         return n      
 
 
-def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
+#def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
+def predict(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio, model_dir):
     model_name = "rf"  # El nombre del modelo que guardaste anteriormente
     #file_path = os.path.join("models", f'{model_name}.pkl')
     #with open(file_path, 'rb') as file:
@@ -64,14 +72,24 @@ def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
     gdf['prediction'] = y_pred
     gdf['Mode'] = gdf['prediction'].apply(categorize)
  
-    gdf['CO2']  = gdf.apply(estimate_emissions, args=(gkm_car, gkm_bus, co2lt), axis=1)
+    # Default values ##########################################
+    #gkm_car = 1./12
+    #gkm_bus = 1.12
+    #co2lt = 2.3 # kg per lt
+    #co2km_car = 0.3
+    #co2km_bus = 0.3
+    #co2km_train = 0.3
+
+    #gdf['CO2']  = gdf.apply(estimate_emissions, args=(gkm_car, gkm_bus, co2lt), axis=1)
+    gdf['CO2']  = gdf.apply(estimate_emissions, args=(co2km_car, co2km_bus, co2km_train, bus_train_ratio), axis=1)
     #CO2_aver_europe = 5.37 # aver. ton per person in 2021
     CO2_target = 2.3 * 0.4 # target CO2 ton per person in 2030 * 0.4 (assumes that 40% is associated to transportation)   
     n_weeks = 52 # weeks in one year
     print('columns names:')
     print(gdf.columns.values)
     gdf['CO2_over_target'] = gdf['CO2']/(CO2_target*1000/n_weeks) 
-    gdf['CO2_worst_case']  = 5*gkm_car*co2lt*gdf['original_distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    #gdf['CO2_worst_case']  = 5*gkm_car*co2lt*gdf['original_distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    gdf['CO2_worst_case']  = 5*co2km_car*gdf['original_distance']/1000 # 5 = number of days
     gdf['CO2_worst_case_over_target'] = gdf['CO2_worst_case']/(CO2_target*1000/n_weeks) 
     gdf['distance_week']  = gdf['distance']*(5-gdf['Rem_work']) # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     gdf['weighted_d']  = gdf.apply(calculate_indicator_d, axis=1)
