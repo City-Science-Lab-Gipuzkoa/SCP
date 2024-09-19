@@ -67,6 +67,8 @@ def predict(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio, model_dir):
     # Drop the columns containing the string "Email"
     df.drop(cols_to_drop, axis=1, inplace=True)
     df = df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'original_distance','Rem_work','Coworking'], errors='ignore') # errors='ignore' only for the Baseline scenario where we do not have the 'Coworking' column      
+    print()
+    print()
     x = np.array(df) 
 
     y_pred = model.predict(x)

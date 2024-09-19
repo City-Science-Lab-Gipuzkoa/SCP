@@ -98,6 +98,7 @@ stops_lat_lon = stops_df[['stop_lat','stop_lon']].to_numpy()
 bus_icon = "https://i.ibb.co/HV0K5Fp/bus-stop.png" 
 worker_icon = "https://i.ibb.co/W0H7nYM/meeting-point.png"
 coworking_icon = "https://i.ibb.co/J2qXGKN/coworking-icon.png"
+Eskuz_icon = "https://i.ibb.co/bLytVQM/industry-icon.png"
 
 center = (43.26852347667122, -1.9741372404905988)
 #    iconUrl= 'https://uxwing.com/wp-content/themes/uxwing/download/location-travel-map/bus-stop-icon.png',
@@ -117,7 +118,11 @@ custom_icon_coworking = dict(
     iconSize=[40,40],
     iconAnchor=[22, 40]
 )
-
+custom_icon_Eskuz = dict(
+    iconUrl= Eskuz_icon,
+    iconSize=[40,40],
+    iconAnchor=[22, 40]
+)
 
 SIDEBAR_STYLE = {
     "position": "fixed",
@@ -194,7 +199,6 @@ stops_actions = [
 cow_actions = [{'label': 'Add coworking hub', 'value': 'AC'},
                {'label': 'Delete coworking hub', 'value': 'DC'}                   
             ]
-
 
 interventions = [{'label': 'Company transportation', 'value': 'CT'},
                  {'label': 'Remote working', 'value': 'RW'},
@@ -302,8 +306,7 @@ sidebar_1 =  html.Div(
                         collapse_button_1,
                     ],
                     #style={'height': '80px'},width=3),
-                    md=3),                    
-                                       
+                    md=3),                                                      
         ]),
         dbc.Row([
                 dbc.Collapse([
@@ -355,9 +358,7 @@ sidebar_1 =  html.Div(
                             id="Load_data_panel_1",
                             is_open=False,
                     )
-
         ]),
-
 
         dbc.Row([
             dbc.Col([
@@ -1358,7 +1359,7 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
     Legend =  html.Div(
         style={
             'position': 'absolute',
-            'top': '650px',
+            'bottom': '20px',
             'left': '700px',
             'zIndex': 1000,  # Adjust the z-index as needed
             },
@@ -1366,7 +1367,7 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
             html.Div(
                 style={
                     'display': 'inline-block',
-                    'margin-right': '25px',
+                    'margin-right': '50px'
                 },
                 children=[
                     html.Div(
@@ -1384,7 +1385,7 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
             html.Div(
                 style={
                     'display': 'inline-block',
-                    'margin-right': '15px',
+                    'margin-right': '35px'
                 },
                 children=[
                     html.Div(
@@ -1401,7 +1402,7 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
             html.Div(
                 style={
                     'display': 'inline-block',
-                    'margin-right': '5px',
+                    'margin-right': '20px',
                 },
                 children=[
                     html.Div(
@@ -1450,8 +1451,6 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
         children = children + Cow_markers
 
     children = children + additional_markers
-    #print('new markers:')
-    #print(children)
 
     new_map = dl.Map(children, center=center,
                                      zoom=12,                        
