@@ -453,7 +453,7 @@ sidebar_1 =  html.Div(
             dbc.Collapse([
                 #html.P([ html.Br(),'Liters of gasoline per kilometer (car)'],id='gas_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
                 html.P(['CO2 emissions per kilometer (car)'],id='co2_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
-                dcc.Slider(0, 2,0.01,
+                dcc.Slider(0, 1.4,0.01,
                     value=0.1081,
                     id='choose_co2_km_car_1',
                     marks=None,
@@ -461,7 +461,7 @@ sidebar_1 =  html.Div(
                 ),                   
                 #html.P([ html.Br(),'Liters of gasoline per kilometer (bus)'],id='gas_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
                 html.P(['CO2 emissions per kilometer (bus)'],id='co2_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
-                dcc.Slider(0, 2,0.1,
+                dcc.Slider(0, 1.4,0.1,
                     value=1.3,
                     id='choose_co2_km_bus_1',
                     marks=None,
@@ -469,18 +469,18 @@ sidebar_1 =  html.Div(
                 ),                    
                 #html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt_1',style={"margin-top": "15px","font-weight": "bold"}),
                 html.P(['CO2 emissions per kilometer (train)'],id='co2_km_train_1',style={"margin-top": "15px","font-weight": "bold"}),
-                dcc.Slider(0, 0.1,0.02,
+                dcc.Slider(0, 1.4,0.02,
                     value=0.049,
                     id='choose_co2_km_train_1',
                     marks=None,
                     tooltip={"placement": "bottom", "always_visible": True}
                 ), 
 
-                html.P(['Bus/train usage ratio'],id='bus_train_ratio_1',style={"margin-top": "15px","font-weight": "bold"}),
-                dcc.Slider(0, 1,0.05,
-                    value=0.8,
+                html.P(['Relative Bus/Train usage'],id='bus_train_ratio_1',style={"margin-top": "15px","font-weight": "bold"}),
+                dcc.Slider(0, 100,10,
+                    value=80,
                     id='choose_bus_train_ratio_1',
-                    marks=None,
+                    marks= {0: "100% Train", 100: "100% Bus"},
                     tooltip={"placement": "bottom", "always_visible": True}
                 ),            
                 ],
@@ -496,7 +496,7 @@ sidebar_1 =  html.Div(
                             n_clicks=0,
                             disabled=False, 
                             color='warning'),
-                            style={"white-space": "pre"}),
+                            style={"margin-top": "15px","white-space": "pre"}),
               
         #dbc.Row(
         #            html.Div(
@@ -1241,6 +1241,224 @@ def create_triangle_marker(color, border_color):
     return dict(type="custom", iconUrl=triangle_icon)
 
 
+def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
+
+    print('generating map...')
+    #Total_CO2 = result['CO2'].sum()
+    #Total_CO2_worst_case = result['CO2_worst_case'].sum()
+    markers_all_1 = []
+    markers_remote_1 = []
+    markers_cow_1 = []
+    markers_remote_cow_1 = []
+    markers_comm_1 = []
+
+
+    custom_icon_coworking_big = dict(
+        iconUrl= "https://i.ibb.co/J2qXGKN/coworking-icon.png",
+        iconSize=[50,50],
+        iconAnchor=[0, 0]
+        )
+    custom_icon_coworking = dict(
+        iconUrl= "https://i.ibb.co/jMgmc4W/cowork-small-icon.png",
+        iconSize=[20,20],
+        iconAnchor=[10, 10]
+        )  
+    custom_icon_home = dict(
+        iconUrl= "https://i.ibb.co/0ZqM4PG/home-icon.png",
+        iconSize=[20,20],
+        iconAnchor=[10, 10]
+        )
+
+    for i_pred in result.itertuples():
+        #print(i_pred.geometry.y, i_pred.geometry.x)
+        #color = generate_color_gradient(maxCO2,i_pred.CO2) 
+        #color = generate_color_gradient(i_pred.CO2_worst_case,i_pred.CO2) 
+        
+        maxCO2 = result.groupby("Mode")['CO2'].max()[i_pred.Mode]
+        color = generate_color_gradient(maxCO2,i_pred.CO2, i_pred.Mode) 
+        #color = generate_color_gradient(maxCO2_worst_case,i_pred.CO2, i_pred.Mode) 
+        #print(color)
+        #text = i_pred.Mode
+        text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance_week/1000) + ' Km'
+        #text = text + '<br>' + 'Remote working: ' + str(i_pred.Rem_work)
+        n_rw = int(i_pred.Rem_work)
+        text = text + '<br>' + 'Remote working: ' + (['Yes']*n_rw + ['No'])[n_rw-1] 
+        try:
+            n_cw = int(i_pred.Coworking)
+        except:
+            n_cw = 0    
+        text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]  
+
+        marker_i = dl.CircleMarker(
+                        id=str(i_pred),
+                        children=[dl.Tooltip(content=text)],
+                        center=[i_pred.geometry.y, i_pred.geometry.x],
+                        radius=10,
+                        fill=True,
+                        fillColor=color,
+                        fillOpacity=1.0,                            
+                        stroke=True,
+                        weight = 2.0,
+                        color='black'
+                        )
+
+        #try:
+        if  i_pred.Rem_work > 0.0 and i_pred.Coworking == 0.0:
+                #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
+                #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
+                #                     icon=custom_icon_home, 
+                #                     id=str(i_pred))
+                marker_i = dl.Marker(
+                    id=str(i_pred),
+                    children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
+                    position=[i_pred.geometry.y, i_pred.geometry.x],
+                    icon=create_diamond_marker(color, (0, 0, 0))
+                )
+                markers_remote_1.append(marker_i)
+        #except:
+        #    pass
+        #try:
+        if  i_pred.Coworking > 0.0 and i_pred.Rem_work == 0.0:
+                #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
+                #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
+                #                     icon=custom_icon_coworking, 
+                #                     id=str(i_pred))
+                marker_i = dl.Marker(
+                        id=str(i_pred),
+                        children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
+                        position=[i_pred.geometry.y, i_pred.geometry.x],
+                        icon=create_square_marker(color, (0, 0, 0))
+                )                     
+                markers_cow_1.append(marker_i)
+        #except:
+        #    pass  
+
+        #try:
+        if  i_pred.Coworking > 0.0 and i_pred.Rem_work > 0.0:
+                #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
+                #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
+                #                     icon=custom_icon_coworking, 
+                #                     id=str(i_pred))
+                marker_i = dl.Marker(
+                        id=str(i_pred),
+                        children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
+                        position=[i_pred.geometry.y, i_pred.geometry.x],
+                        icon=create_triangle_marker(color, (0, 0, 0))
+                )                     
+                markers_remote_cow_1.append(marker_i)
+        #except:
+        #    pass 
+
+        markers_all_1.append(marker_i)  
+
+    markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )
+    
+    print('markers generated!')
+
+    Legend =  html.Div(
+        style={
+            'position': 'absolute',
+            'top': '650px',
+            'left': '700px',
+            'zIndex': 1000,  # Adjust the z-index as needed
+            },
+        children=[
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '25px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '25px',
+                            'height': '25px',
+                            'backgroundColor': '#f1948a',
+                            "border":"2px black solid",
+                            "transform": "rotate(45deg)"                            
+                        }
+                    ),
+                    html.Span('Remote', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
+                ]
+            ),
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '15px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '25px',
+                            'height': '25px',
+                            "border":"2px black solid",
+                            'backgroundColor': '#f1948a',
+                        }
+                    ),
+                    html.Span('Coworking', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
+                ]
+            ),
+            html.Div(
+                style={
+                    'display': 'inline-block',
+                    'margin-right': '5px',
+                },
+                children=[
+                    html.Div(
+                        style={
+                            'width': '0',
+                            'height': '0',
+                            'borderTop': '28px solid #f1948a',
+                            'borderLeft': '22px solid transparent',
+                            'borderRight': '22px solid transparent',                        
+                        }
+                    ),
+                    html.Span('Remote and coworking', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
+                ]
+            ),
+
+        ]
+    )
+
+    #children.append(dl.ScaleControl(position="topright"))
+    children = [ 
+                Legend,
+                dl.TileLayer(),
+                dl.ScaleControl(position="topright"),
+                dl.LayersControl(
+                                [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
+                                 dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_target', checked=False),
+                                 #dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
+                                 dl.BaseLayer(dl.TileLayer(), name='Has a bus stop', checked=False),
+                                 dl.BaseLayer(dl.TileLayer(), name='Family type', checked=False)] +
+                                [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", id= 'markers_all_1', checked=True),
+                                 dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote",id= 'markers_remote_1', checked=True),
+                                 dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking",id= 'markers_cow_1', checked=True), 
+                                 dl.Overlay(dl.LayerGroup(markers_comm_1), name="home-headquarters",id= 'markers_comm_1', checked=True),
+                                 dl.Overlay(dl.LayerGroup(markers_remote_cow_1), name="remote+coworking",id= 'markers_remote_cow_1', checked=True),
+                                 ], 
+                                id="lc_1"
+                                )                      
+                ]
+
+    if CowFlags:
+        Cow_markers = []
+        for i, pos in enumerate(StopsCoords): 
+            if CowFlags[i]==1:
+                tmp = dl.Marker(dl.Tooltip("Coworking hub"), position=pos, icon=custom_icon_coworking_big, id={'type': 'marker', 'index': i})    
+                Cow_markers.append(tmp)  
+        children = children + Cow_markers
+
+    children = children + additional_markers
+    #print('new markers:')
+    #print(children)
+
+    new_map = dl.Map(children, center=center,
+                                     zoom=12,                        
+                                     id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+    
+    return new_map
+
 def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, StopsCoords=[], CowFlags=[]):
 
     radius_max = 1
@@ -1804,214 +2022,10 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     fig_decomp.update_yaxes(showgrid=True, row=4, col=3, range=[0, max_families])
 
 
-    Total_CO2 = result['CO2'].sum()
-    Total_CO2_worst_case = result['CO2_worst_case'].sum()
-    markers_all_1 = []
-    markers_remote_1 = []
-    markers_cow_1 = []
-    markers_remote_cow_1 = []
-    markers_comm_1 = []
+    #Total_CO2 = result['CO2'].sum()
+    #Total_CO2_worst_case = result['CO2_worst_case'].sum()
 
-
-    custom_icon_coworking_big = dict(
-        iconUrl= "https://i.ibb.co/J2qXGKN/coworking-icon.png",
-        iconSize=[50,50],
-        iconAnchor=[0, 0]
-        )
-    custom_icon_coworking = dict(
-        iconUrl= "https://i.ibb.co/jMgmc4W/cowork-small-icon.png",
-        iconSize=[20,20],
-        iconAnchor=[10, 10]
-        )  
-    custom_icon_home = dict(
-        iconUrl= "https://i.ibb.co/0ZqM4PG/home-icon.png",
-        iconSize=[20,20],
-        iconAnchor=[10, 10]
-        )
-
-
-    for i_pred in result.itertuples():
-        #print(i_pred.geometry.y, i_pred.geometry.x)
-        #color = generate_color_gradient(maxCO2,i_pred.CO2) 
-        #color = generate_color_gradient(i_pred.CO2_worst_case,i_pred.CO2) 
-        
-        maxCO2 = result.groupby("Mode")['CO2'].max()[i_pred.Mode]
-        color = generate_color_gradient(maxCO2,i_pred.CO2, i_pred.Mode) 
-        #color = generate_color_gradient(maxCO2_worst_case,i_pred.CO2, i_pred.Mode) 
-        #print(color)
-        #text = i_pred.Mode
-        text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode + ')' + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance_week/1000) + ' Km'
-        #text = text + '<br>' + 'Remote working: ' + str(i_pred.Rem_work)
-        n_rw = int(i_pred.Rem_work)
-        text = text + '<br>' + 'Remote working: ' + (['Yes']*n_rw + ['No'])[n_rw-1] 
-        try:
-            n_cw = int(i_pred.Coworking)
-        except:
-            n_cw = 0    
-        text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]  
-
-        marker_i = dl.CircleMarker(
-                        id=str(i_pred),
-                        children=[dl.Tooltip(content=text)],
-                        center=[i_pred.geometry.y, i_pred.geometry.x],
-                        radius=10,
-                        fill=True,
-                        fillColor=color,
-                        fillOpacity=1.0,                            
-                        stroke=True,
-                        weight = 2.0,
-                        color='black'
-                        )
-
-        #try:
-        if  i_pred.Rem_work > 0.0 and i_pred.Coworking == 0.0:
-                #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
-                #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
-                #                     icon=custom_icon_home, 
-                #                     id=str(i_pred))
-                marker_i = dl.Marker(
-                    id=str(i_pred),
-                    children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
-                    position=[i_pred.geometry.y, i_pred.geometry.x],
-                    icon=create_diamond_marker(color, (0, 0, 0))
-                )
-                markers_remote_1.append(marker_i)
-        #except:
-        #    pass
-        #try:
-        if  i_pred.Coworking > 0.0 and i_pred.Rem_work == 0.0:
-                #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
-                #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
-                #                     icon=custom_icon_coworking, 
-                #                     id=str(i_pred))
-                marker_i = dl.Marker(
-                        id=str(i_pred),
-                        children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
-                        position=[i_pred.geometry.y, i_pred.geometry.x],
-                        icon=create_square_marker(color, (0, 0, 0))
-                )                     
-                markers_cow_1.append(marker_i)
-        #except:
-        #    pass  
-
-        #try:
-        if  i_pred.Coworking > 0.0 and i_pred.Rem_work > 0.0:
-                #marker_i = dl.Marker(children=[dl.Tooltip(content=text)], 
-                #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
-                #                     icon=custom_icon_coworking, 
-                #                     id=str(i_pred))
-                marker_i = dl.Marker(
-                        id=str(i_pred),
-                        children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
-                        position=[i_pred.geometry.y, i_pred.geometry.x],
-                        icon=create_triangle_marker(color, (0, 0, 0))
-                )                     
-                markers_remote_cow_1.append(marker_i)
-        #except:
-        #    pass 
-
-        markers_all_1.append(marker_i)  
-
-    markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )
-    
-    Legend =  html.Div(
-        style={
-            'position': 'absolute',
-            'top': '650px',
-            'left': '700px',
-            'zIndex': 1000,  # Adjust the z-index as needed
-            },
-        children=[
-            html.Div(
-                style={
-                    'display': 'inline-block',
-                    'margin-right': '25px',
-                },
-                children=[
-                    html.Div(
-                        style={
-                            'width': '25px',
-                            'height': '25px',
-                            'backgroundColor': '#f1948a',
-                            "border":"2px black solid",
-                            "transform": "rotate(45deg)"                            
-                        }
-                    ),
-                    html.Span('Remote', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
-                ]
-            ),
-            html.Div(
-                style={
-                    'display': 'inline-block',
-                    'margin-right': '15px',
-                },
-                children=[
-                    html.Div(
-                        style={
-                            'width': '25px',
-                            'height': '25px',
-                            "border":"2px black solid",
-                            'backgroundColor': '#f1948a',
-                        }
-                    ),
-                    html.Span('Coworking', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
-                ]
-            ),
-            html.Div(
-                style={
-                    'display': 'inline-block',
-                    'margin-right': '5px',
-                },
-                children=[
-                    html.Div(
-                        style={
-                            'width': '0',
-                            'height': '0',
-                            'borderTop': '28px solid #f1948a',
-                            'borderLeft': '22px solid transparent',
-                            'borderRight': '22px solid transparent',                        
-                        }
-                    ),
-                    html.Span('Remote and coworking', style={'color': 'blue', 'font-size': '14px', 'font-weight': 'bold'})
-                ]
-            ),
-
-        ]
-    )
-
-    #children.append(dl.ScaleControl(position="topright"))
-    children = [ 
-                Legend,
-                dl.TileLayer(),
-                dl.ScaleControl(position="topright"),
-                dl.LayersControl(
-                                [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
-                                 dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_target', checked=False),
-                                 #dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
-                                 dl.BaseLayer(dl.TileLayer(), name='Has a bus stop', checked=False),
-                                 dl.BaseLayer(dl.TileLayer(), name='Family type', checked=False)] +
-                                [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", id= 'markers_all_1', checked=True),
-                                 dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote",id= 'markers_remote_1', checked=True),
-                                 dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking",id= 'markers_cow_1', checked=True), 
-                                 dl.Overlay(dl.LayerGroup(markers_comm_1), name="home-headquarters",id= 'markers_comm_1', checked=True),
-                                 dl.Overlay(dl.LayerGroup(markers_remote_cow_1), name="remote+coworking",id= 'markers_remote_cow_1', checked=True),
-                                 ], 
-                                id="lc_1"
-                                )                      
-                ]
-
-    if CowFlags:
-        Cow_markers = []
-        for i, pos in enumerate(StopsCoords): 
-            if CowFlags[i]==1:
-                tmp = dl.Marker(dl.Tooltip("Coworking hub"), position=pos, icon=custom_icon_coworking_big, id={'type': 'marker', 'index': i})    
-                Cow_markers.append(tmp)  
-        children = children + Cow_markers
-
-    new_map = dl.Map(children, center=center,
-                                     zoom=12,                        
-                                     id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-
+    new_map = generate_map(result, CowFlags,StopsCoords)
     #return [Total_CO2/Total_CO2_worst_case, fig_total, fig_decomp, new_map]
     return [fig_total, new_map, fig_decomp, fig_comp, new_stored_scenarios]
 
@@ -3309,29 +3323,28 @@ def show_workers(n_clusters,workerData, startHour, N):
               State('internal-value_trip_number_1', 'data'),
               State('internal-value_trip_freq_1', 'data'),
               State('internal-value_start_hour_1', 'data'),
+              State('internal-value_scenario_1','data'),
               State('internal-value_calculated_scenarios_1', 'data'),
               Input('choose_intervention_1',"value"),
               prevent_initial_call=True
               )
-def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, TripFreq, StartHour, stored_scenarios, interv):
+def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, TripFreq, StartHour, current_scenario, stored_scenarios, interv):
     print('chosen interv.: ', interv)
            
     if interv == 'CT':
         sidebar_transport = html.Div(
             [           
             dbc.Button("Propose stops", id="propose_stops_1", n_clicks=0,style={"margin-top": "15px","font-weight": "bold"}),
-            #html.Br(),
-            dbc.Popover(dcc.Markdown(mouse_over_mess_stops, dangerously_allow_html=True),
-                      target="propose_stops_1",
-                      body=True,
-                      trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
+            #dbc.Popover(dcc.Markdown(mouse_over_mess_stops, dangerously_allow_html=True),
+            #          target="propose_stops_1",
+            #          body=True,
+            #          trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),
 
-            #html.Br(),
             dbc.Button("Match stops", id="match_stops_1", n_clicks=0, style={"margin-left": "15px", "margin-top": "15px", "font-weight": "bold"}),
-            dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
-                      target="match_stops_1",
-                      body=True,
-                      trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),                      
+            #dbc.Popover(dcc.Markdown(mouse_over_mess, dangerously_allow_html=True),
+            #          target="match_stops_1",
+            #          body=True,
+            #          trigger="hover",style = {'font-size': 12, 'line-height':'2px'}),                      
             html.P(['Modify stops'],id='action_select_bus_stops_1',style={"margin-top": "15px", "font-weight": "bold"}),
             dcc.Dropdown(stops_actions, multi=False,style={"margin-top": "15px"}, id='choose_stop_action_1'),                       
 
@@ -3341,20 +3354,20 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
                    id='num_buses_1'
             ),
 
-            #dbc.Button("Calculate routes", id="calc_routes_1",n_clicks=0, style={"margin-top": "15px"}),
+            dbc.Button("Calculate routes", id="calc_routes_1",n_clicks=0, style={"margin-top": "15px"}),
             ##html.P([ html.Br(),'Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
             ##html.P(['Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
             ##dcc.Dropdown(routes, multi=False,style={"margin-top": "15px"},id='choose_route_1'),
             #dbc.Button("Visualize routes", id="visualize_routes_1", n_clicks=0,style={"margin-top": "15px"}),
             #html.Br(), 
-            dbc.ButtonGroup(
-                            [
-                              dbc.Button("Calculate routes", id="calc_routes_1", n_clicks=0, style={"margin-top": "15px"}),
-                              dbc.Button("Visualize routes", id="visualize_routes_1", n_clicks=0, style={"margin-top": "15px"}),
-                            ],
-                            vertical=True,
-                            style={"margin-top": "15px"}
-            ),              
+            #dbc.ButtonGroup(
+            #                [
+            #                  dbc.Button("Calculate routes", id="calc_routes_1", n_clicks=0, style={"margin-top": "15px"}),
+            #                  dbc.Button("Visualize routes", id="visualize_routes_1", n_clicks=0, style={"margin-top": "15px"}),
+            #                ],
+            #                vertical=True,
+            #                style={"margin-top": "15px"}
+            #),              
             html.Div(id='outdata_1', style={"margin-top": "15px"}),
             dcc.Store(id='internal-value_stops_1', data=St),
             dcc.Store(id='internal-value_coworking_1', data=Cow),
@@ -3366,7 +3379,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
             dcc.Store(id='internal-value_trip_number_1', data=Ntrips),
             dcc.Store(id='internal-value_start_hour_1', data=StartHour),
             dcc.Store(id='internal-value_routes_1', data=[]),        
-            dcc.Store(id='internal-value_scenario_1', data=[]),        
+            dcc.Store(id='internal-value_scenario_1', data=current_scenario),        
             dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
             ])
         """
@@ -3382,8 +3395,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
                    value=Ntrips,
                    id='num_trips_1'
             ),
-        """              
-        
+        """       
         return [sidebar_transport]
 
     if interv == 'RW':         
@@ -3420,7 +3432,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
                 dcc.Store(id='internal-value_trip_number_1', data=Ntrips),
                 dcc.Store(id='internal-value_start_hour_1', data=StartHour),
                 dcc.Store(id='internal-value_routes_1', data=[]),        
-                dcc.Store(id='internal-value_scenario_1', data=[]),        
+                dcc.Store(id='internal-value_scenario_1', data=current_scenario),        
                 dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
                 ])        
         return [sidebar_remote_work]
@@ -3451,7 +3463,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
                 dcc.Store(id='internal-value_trip_number_1', data=Ntrips),
                 dcc.Store(id='internal-value_start_hour_1', data=StartHour),
                 dcc.Store(id='internal-value_routes_1', data=[]),        
-                dcc.Store(id='internal-value_scenario_1', data=[]),        
+                dcc.Store(id='internal-value_scenario_1', data=current_scenario),        
                 dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
                 ])   
         return [sidebar_cowork]
@@ -3631,6 +3643,7 @@ def match_stops(St,Cow,Nclick):
 #              [Input('map_1','clickData')],
 
 
+# Save marker option in internal value #####################################
 @app.callback(
     [
     Output('internal-value_marker_option_1', 'data', allow_duplicate=True)
@@ -3652,7 +3665,7 @@ def set_stop(selection):
 def set_coworking(selection):
     print('checking selection..: ', selection)
     return [selection]
-
+################################################################################
 
 
 
@@ -3667,11 +3680,18 @@ def set_coworking(selection):
         State('internal-value_stops_1', 'data'),
         State('internal-value_coworking_1', 'data'),
         State('internal-value_marker_option_1', 'data'),
+        State('internal-value_scenario_1','data')        
     ],
     [Input('map_1', 'dblclickData')],
     prevent_initial_call=True
 )
-def add_marker(St, Cow, MarkerOption, clickd):
+def add_marker(St, Cow, MarkerOption, result_json, clickd):
+    print('adding marker...')
+    result = pd.DataFrame.from_dict(result_json) 
+    result = geopandas.GeoDataFrame(
+                result, geometry=geopandas.points_from_xy(result.O_long, result.O_lat), crs="EPSG:4326"
+                )
+
     if MarkerOption == 'AS' or MarkerOption == 'AC':
         print('adding marker...')
         print(clickd)
@@ -3685,11 +3705,11 @@ def add_marker(St, Cow, MarkerOption, clickd):
         if MarkerOption == 'AC':
             Cow.append(1)
 
-        out = ''
+        out = '' # -> not needed anymore
         for i in range(len(St)):
             out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
-        markers = []
 
+        markers = []
         for i, pos in enumerate(St):
             if Cow[i] == 1:
                 custom_icon = custom_icon_coworking
@@ -3698,11 +3718,13 @@ def add_marker(St, Cow, MarkerOption, clickd):
             tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})
             markers.append(tmp)
 
-        newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright")] + markers,
-                        center=center, zoom=12, id="map_1",
-                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-        return [out, St, Cow, newMap]
+        #newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright")] + markers,
+        #                center=center, zoom=12, id="map_1",
+        #                style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
+        newMap = generate_map(result, Cow, St, markers) 
+        return [out, St, Cow, newMap]
+          
 
 
 @app.callback([Output("outdata_1", "children",allow_duplicate=True),
@@ -3712,20 +3734,29 @@ def add_marker(St, Cow, MarkerOption, clickd):
                Output('map_1','children',allow_duplicate=True)],
               [State('internal-value_stops_1','data'), 
                State('internal-value_coworking_1','data'), 
-               State('internal-value_marker_option_1', 'data')],
+               State('internal-value_marker_option_1', 'data'),
+               State('internal-value_scenario_1','data')],
               [Input({"type": "marker", "index": ALL},"n_clicks")],
               prevent_initial_call=True)
-def change_stop_marker(St, Cow, marker_operation, *args):
+def change_stop_marker(St, Cow, marker_operation, result_json, *args):
 
     marker_id = callback_context.triggered[0]["prop_id"].split(".")[0].split(":")[1].split(",")[0]
     n_clicks = callback_context.triggered[0]["value"]
+    result = pd.DataFrame.from_dict(result_json) 
+    result = geopandas.GeoDataFrame(
+                result, geometry=geopandas.points_from_xy(result.O_long, result.O_lat), crs="EPSG:4326"
+                )
+
 
     print('changing marker...')
     #print('marker id?:', marker_id)
     print('requested Marker Operation:')
     print(marker_operation)
     
-    if marker_operation == "DS" or marker_operation == "DC":      
+    if marker_operation == "DS" or marker_operation == "DC": 
+        print()   
+        print('deleting stop...')
+        print()  
         del St[int(marker_id)]
         del Cow[int(marker_id)]
     
@@ -3737,17 +3768,17 @@ def change_stop_marker(St, Cow, marker_operation, *args):
                 custom_icon = custom_icon_bus
             tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
             markers.append(tmp)    
-        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-                        center=center, zoom=12, id="map_1",
-                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-        #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
         #newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-        #              center=center, zoom=12, id="map",
-        #              style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+        #                center=center, zoom=12, id="map_1",
+        #                style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+        
+        newMap = generate_map(result, Cow, St, markers)
+
         return ['Stop deleted!',St,Cow,' ',newMap]
 
     if marker_operation == "SO":
         print()
+        print('setting origin of bus stops...')
         print()
         tmp = St[int(marker_id)]
         St.pop(int(marker_id))
@@ -3766,14 +3797,15 @@ def change_stop_marker(St, Cow, marker_operation, *args):
             tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})
             markers.append(tmp)
 
-        newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright")] + markers,
-                        center=center, zoom=12, id="map_1",
-                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+        #newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright")] + markers,
+        #                center=center, zoom=12, id="map_1",
+        #                style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+        newMap = generate_map(result, Cow, St, markers)
 
-        #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-        #newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
-        #             center=center, zoom=12, id="map_1",
-        #             style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+        ##markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+        ##newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+        ##             center=center, zoom=12, id="map_1",
+        ##             style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
         return ['Origin set!',St,Cow,' ',newMap]
 
     """

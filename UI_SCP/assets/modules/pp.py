@@ -619,6 +619,27 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
     print()
     print('Total time:', (t1-t0)/60) 
     print()    
+
+    #f=open('column_names_before.txt','w')
+    #f.write(X.columns.values)
+    #f.close()
+    """
+    print('before change:')
+    print(X.columns.values)
+
+    X.rename(columns={'Hora_Ini_E': 'Departure time', 'Per_hog': 'HH size', 'Turismos': 'Nº cars/HH',
+                   'Sexo': 'Gender', 'Edad': 'Age', 'crnt_tur': 'Driver\'s license',
+                   'drive_tt': 'Car $T_t$', 'distance': 'Distance', 'walk_tt': 'Walk $T_t$',
+                   'transit_tt': 'PT $T_t$', 'Tipo_familia': 'Family type'}, inplace=True)
+
+    mapeo = {1: 2, 2: 1}
+    X['Driver\'s license'] = X['Driver\'s license'].map(mapeo)
+    #f=open('column_names_after.txt','w')
+    #f.write(X.columns.values)
+    #f.close()
+    print('after change:')
+    print(X.columns.values)
+    """
     return X
 
 
