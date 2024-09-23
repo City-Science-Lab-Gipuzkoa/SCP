@@ -1253,23 +1253,33 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
     markers_remote_cow_1 = []
     markers_comm_1 = []
 
-
+    """
     custom_icon_coworking_big = dict(
         iconUrl= "https://i.ibb.co/J2qXGKN/coworking-icon.png",
         iconSize=[50,50],
-        iconAnchor=[0, 0]
+        iconAnchor=[10, 10]
         )
+    """
+    """
     custom_icon_coworking = dict(
         iconUrl= "https://i.ibb.co/jMgmc4W/cowork-small-icon.png",
         iconSize=[20,20],
         iconAnchor=[10, 10]
         )  
+    """
+    custom_icon_coworking = dict(
+        iconUrl= coworking_icon,
+        iconSize=[40,40],
+        iconAnchor=[22, 40]
+    )    
+
+    """
     custom_icon_home = dict(
         iconUrl= "https://i.ibb.co/0ZqM4PG/home-icon.png",
         iconSize=[20,20],
         iconAnchor=[10, 10]
         )
-
+    """
     for i_pred in result.itertuples():
         #print(i_pred.geometry.y, i_pred.geometry.x)
         #color = generate_color_gradient(maxCO2,i_pred.CO2) 
@@ -1446,7 +1456,8 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
         Cow_markers = []
         for i, pos in enumerate(StopsCoords): 
             if CowFlags[i]==1:
-                tmp = dl.Marker(dl.Tooltip("Coworking hub"), position=pos, icon=custom_icon_coworking_big, id={'type': 'marker', 'index': i})    
+                #tmp = dl.Marker(dl.Tooltip("Coworking hub"), position=pos, icon=custom_icon_coworking_big, id={'type': 'marker', 'index': i})    
+                tmp = dl.Marker(dl.Tooltip("Coworking hub"), position=pos, icon=custom_icon_coworking, id={'type': 'marker', 'index': i})    
                 Cow_markers.append(tmp)  
         children = children + Cow_markers
 
@@ -2073,12 +2084,12 @@ def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, co2km_car=0.1081, co2km_bu
     except:
         pass
     #trips_ez.head(10).to_csv(root_dir + workers_data_dir + 'template_workers_data.csv',index=False)
-    trips_ez=pp.pp(Transh,trips_ez, routeOptDone, CowCoords, CowDays, NremWork, NremDays, root_dir, MCM_data_dir) 
+    trips_ez, trips_ez_base=pp.pp(Transh,trips_ez, routeOptDone, CowCoords, CowDays, NremWork, NremDays, root_dir, MCM_data_dir) 
     #trips_ez['transit_tt'] = trips_ez['transit_tt'].apply(lambda x: x*0.2)
     #trips_ez['drive_tt'] = trips_ez['drive_tt'].apply(lambda x: x*1)
     #prediction=prediction.predict(trips_ez, gkm_car, gkm_bus, co2lt, root_dir + model_dir)  
     # predict(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio, model_dir)
-    prediction=prediction.predict(trips_ez, co2km_car, co2km_bus, co2km_train, bus_train_ratio, root_dir + model_dir)  
+    prediction=prediction.predict(trips_ez, trips_ez_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, root_dir + model_dir)  
 
     return prediction
  
@@ -2683,6 +2694,7 @@ def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork,
     result = run_MCM(df, root_dir, TransH, RouteOptDone, co2km_car, co2km_bus, co2km_train, bus_train_ratio, NremDays, NremWork, CowoCoords, CowDays)  
    
     out = plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, StopsCoords, CowoFlags)
+
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
@@ -3773,7 +3785,7 @@ def change_stop_marker(St, Cow, marker_operation, result_json, *args):
         
         newMap = generate_map(result, Cow, St, markers)
 
-        return ['Stop deleted!',St,Cow,' ',newMap]
+        return ['Marker deleted!',St,Cow,' ',newMap]
 
     if marker_operation == "SO":
         print()

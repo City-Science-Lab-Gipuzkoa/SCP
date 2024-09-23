@@ -310,6 +310,7 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
     "transit_2324",
     })
 
+    
     cont=0
     for k in lista:# este bucle elige de lista el transit que hayamos solititado, lo carga y lo asigna a el diccionario
         if hour==cont:
@@ -319,26 +320,23 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
             break
         else:
             cont=cont+1
-
+    
     # Assign tt
-
-    X["drive_tt"] = networks['drive'].shortest_path_lengths(
-                networks['drive'].get_node_ids(X.O_long,X.O_lat),
-                networks['drive'].get_node_ids(X.D_long,X.D_lat),
-                imp_name='drive_time_s'
-                )
-    X["drive_tt"] = X["drive_tt"] / 60 # To min
 
     X["distance"] = networks['drive'].shortest_path_lengths(
                 networks['drive'].get_node_ids(X.O_long,X.O_lat),
                 networks['drive'].get_node_ids(X.D_long,X.D_lat),
                 imp_name='distance'
                 )
-    
+
+    X_base = X.copy()
     # Coworking hubs #############################################################
     #X["original_distance"] = X["distance"] # save original distance to calculte worst case scenario
     X["original_distance"] = X.loc[:,"distance"] # save original distance to calculte worst case scenario
     X['Coworking'] = 0
+
+    X['Coworking_days'] = CowDays
+    #X_base_coords = X[['O_lat','O_long','D_lat','D_long','distance']]
     cowhub_i = 0
     if np.any(CowCoords):
         for cowhub in CowCoords:
@@ -353,34 +351,80 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
                     networks['drive'].get_node_ids(temp_df.CowH_lon,temp_df.CowH_lat),
                     imp_name='distance'
                     )
+            #X_temp["distance_CowHub_"+str(cowhub_i)] = networks['drive'].shortest_path_lengths(
+            #        networks['drive'].get_node_ids(X.O_long,X.O_lat),
+            #        networks['drive'].get_node_ids(temp_df.CowH_lon,temp_df.CowH_lat),
+            #        imp_name='distance'
+            #        )
+            X['CowHub_Lat_'+str(cowhub_i)] = temp_df['CowH_lat'].to_numpy()
+            X['CowHub_Lon_'+str(cowhub_i)] = temp_df['CowH_lon'].to_numpy()
+            #X_temp['CowHub_Lat_'+str(cowhub_i)] = temp_df['CowH_lat'].to_numpy()
+            #X_temp['CowHub_Lon_'+str(cowhub_i)] = temp_df['CowH_lon'].to_numpy()            
             cowhub_i+=1
         #
         ############################################################################################
         filter_cols = [col for col in X if col.startswith('distance_CowHub_')]
         compare_cols = ['distance'] + filter_cols     
 
-
         # Keep track of whether coworking hub is closer than original distance #####################
         t = X[compare_cols].idxmin(axis=1) # for each row, get names of the column with min dist
-        #t = pd.DataFrame(t).values
+        print('Test1: ')
+        print(t)
+        print()
+        #test1 = pd.DataFrame(t).values
+        #test1 = t.copy()        
+        #test1.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/test1.csv', index=False)
         #t = [1 if p[0] != 'distance' else 0 for p in t] # set to 1 if coworking hub is at a minimum distance
         t = t.to_frame().reset_index() # convert to dataframe
         t = t.rename(columns= {0: 'closest'}) # assign column name
         t.index.name = 'index'
+        print('Test2: ')
+        print(t)        
+        #test2 = t.copy()
+        #test2.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/test2.csv', index=False)
+
         temp = []
+        CowHub_index = []
         for index, row in t.iterrows():
             if row['closest'] != 'distance' and CowDays > 0: # if coworking hub is closer than headquarter
-                temp.append(1)                                      # and coworking days are > 0,
-            else:                                                   # we set Coworking to 1
+                temp.append(1)                               # and coworking days are > 0,
+                                                             # we set Coworking to 1
+                CowHub_index.append(row['closest'].split('distance_CowHub_')[1])
+            else:                                                   
                 temp.append(0)
+                CowHub_index.append('distance')
         X['Coworking'] = temp
+        #X_temp['Coworking'] = temp
         #X['Coworking'] = t
         ############################################################################################
         # keep minimum distance among work destinations ############################################
         if CowDays > 0:
            X['distance'] = X[compare_cols].min(axis=1)
+           #X_temp['distance'] = X_temp[compare_cols].min(axis=1)
         X.drop(columns=filter_cols, inplace=True)     
-        ############################################################################################
+        #X_temp.drop(columns=filter_cols, inplace=True)     
+        ############################################################################################ 
+
+    #for index, row in X_temp.iterrows():
+    counter = 0
+    for index, row in X.iterrows():
+        if row.Coworking==1:
+            #X_temp.loc[index, 'D_lat'] = X_temp.loc[index, 'CowHub_Lat_0']
+            #X_temp.loc[index, 'D_long'] = X_temp.loc[index, 'CowHub_Lon_0']
+            CowHubIndex = CowHub_index[counter]
+            X.loc[index, 'D_lat'] = X.loc[index, 'CowHub_Lat_'+CowHubIndex]
+            X.loc[index, 'D_long'] = X.loc[index, 'CowHub_Lon_'+CowHubIndex]
+        counter+=1
+    try:
+        #X = X.drop(['CowHub_Lat_0'], axis=1)
+        #X = X.drop(['CowHub_Lon_0'], axis=1)
+        X = X[X.columns.drop(list(X.filter(regex='CowHub_Lat_')))]
+        X = X[X.columns.drop(list(X.filter(regex='CowHub_Lon_')))]
+    except:
+        pass
+
+    #X[["Coworking_days"]].multiply(X["Coworking"], axis="index")
+    X["Coworking_days"] = X.Coworking_days * X.Coworking
 
     # Remote working ###########################################################################
     n_rw = int(len(X.index)*RemWoPer/100) # number of workers doing remote work
@@ -390,17 +434,39 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
     X.update(X_to_set)
     #X.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/temp_pp_file.csv')
     ############################################################################################
-    #else:
-    #    X['Coworking'] = 0
-    #    X["Rem_work"] = 0
-        
+
+
+    X["drive_tt"] = networks['drive'].shortest_path_lengths(
+                networks['drive'].get_node_ids(X.O_long,X.O_lat),
+                networks['drive'].get_node_ids(X.D_long,X.D_lat),
+                imp_name='drive_time_s'
+                )
+    X["drive_tt"] = X["drive_tt"] / 60 # To min
 
     X["walk_tt"] = networks['walk'].shortest_path_lengths(
                 networks['walk'].get_node_ids(X.O_long,X.O_lat),
                 networks['walk'].get_node_ids(X.D_long,X.D_lat)
                 )
     X["walk_tt"] = X["walk_tt"] / 60
- 
+
+
+
+    # Baseline dataframe #######################################
+    X_base["drive_tt"] = networks['drive'].shortest_path_lengths(
+                networks['drive'].get_node_ids(X.O_long,X.O_lat),
+                networks['drive'].get_node_ids(X.D_long,X.D_lat),
+                imp_name='drive_time_s'
+                )
+    X_base["drive_tt"] = X_base["drive_tt"] / 60 # To min
+
+    X_base["walk_tt"] = networks['walk'].shortest_path_lengths(
+                networks['walk'].get_node_ids(X.O_long,X.O_lat),
+                networks['walk'].get_node_ids(X.D_long,X.D_lat)
+                )
+    X_base["walk_tt"] = X_base["walk_tt"] / 60
+    ############################################################
+
+
     #bbox = [min(X.O_lat), min(X.O_long), max(X.O_lat), max(X.O_long)]
     stops_file = root_dir +'data/all_bus_stops.csv'
     stops_df = pd.read_csv(stops_file, encoding='latin-1')
@@ -501,7 +567,6 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
     cont=0
     for k in lista:# este bucle elige de lista el transit que hayamos solititado, lo carga y lo asigna a el diccionario
         if hour==cont:
-            print(k)
             #X[f"{k}_tt"] = transit[k].shortest_path_lengths(
             #transit[k].get_node_ids(X.O_long,X.O_lat),
             #transit[k].get_node_ids(X.D_long,X.D_lat),
@@ -516,6 +581,14 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
             transit[k].get_node_ids(X.O_long,X.O_lat),         # original code
             transit[k].get_node_ids(X.D_long,X.D_lat)          # original code
             )                                                  # original code
+
+            # Baseline dataframe ###################################
+            X_base[f"{k}_tt"] = transit[k].shortest_path_lengths(   # original code
+            transit[k].get_node_ids(X.O_long,X.O_lat),         # original code
+            transit[k].get_node_ids(X.D_long,X.D_lat)          # original code
+            )                                                  # original code
+            ########################################################
+            
             break
         else:
             cont=cont+1
@@ -574,17 +647,25 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
 
     # Create new column
     X['transit_tt'] = X.apply(asignar_valor, axis=1)
-
     # Don't know why but there are some extreme outliers on drive_tt. 70000 mins?
     X = X.loc[X['drive_tt'] < 200].reset_index(drop=True)
-
     X = X.drop(columns=[k + '_tt']) # k?
-
-
     X = X.loc[X['transit_tt'] <= 700]
     X = X.loc[X['walk_tt'] <= 2000]
     X = X.reset_index(drop=True)
     X = X.drop(columns=['Hora_Ini'])
+
+
+    # Basline dataframe ############################################
+    X_base['transit_tt'] = X_base.apply(asignar_valor, axis=1)
+    # Don't know why but there are some extreme outliers on drive_tt. 70000 mins?
+    X_base = X_base.loc[X_base['drive_tt'] < 200].reset_index(drop=True)
+    X_base = X_base.drop(columns=[k + '_tt']) # k?
+    X_base = X_base.loc[X_base['transit_tt'] <= 700]
+    X_base = X_base.loc[X_base['walk_tt'] <= 2000]
+    X_base = X_base.reset_index(drop=True)
+    X_base = X_base.drop(columns=['Hora_Ini'])
+    ############################################################
 
     # Codify family type manually
 
@@ -598,22 +679,38 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
     X.rename(columns={'Codigo': 'Tipo_familia'}, inplace=True)
 
 
+    # Baseline dataframe ############################################
+    X_base = pd.merge(X_base, family, left_on='Tipo_familia', right_on='Tipo', how='left')
+    X_base = X_base.drop(columns=['Tipo_familia', 'Tipo'])
+    X_base.rename(columns={'Codigo': 'Tipo_familia'}, inplace=True)
+    ############################################################
+
+
     # Codify Mun_Ori y Mun_Des
     #aqui obtenemos los códigos  de cada pueblo 
     pueblos = pd.read_excel(towns_path + "data_towns.xlsx")
-    
     eliminar = ['Region', 'Latitud', 'Longitud', 'Comarca',            # -> original code
         'Altitud (m.s.n.m.)', 'Superficie (kmÂ²)', 'PoblaciÃ³n (2019)', # -> original code
         'Densidad (hab./kmÂ²)', 'Incluido']                            # -> original code
-    pueblos = pueblos.drop(columns=eliminar)    
+    pueblos = pueblos.drop(columns=eliminar) 
 
     X = pd.merge(X, pueblos, left_on='Mun_Ori', right_on='Town')
     X = X.drop(columns=['Town', 'Mun_Ori'])
     X.rename(columns={'Código': 'Mun_Ori'}, inplace=True)
-
     X = pd.merge(X, pueblos, left_on='Mun_Des', right_on='Town')
     X = X.drop(columns=['Town', 'Mun_Des'])
     X.rename(columns={'Código': 'Mun_Des'}, inplace=True)
+
+
+    # Baseline dataframe ############################################
+    X_base = pd.merge(X_base, pueblos, left_on='Mun_Ori', right_on='Town')
+    X_base = X_base.drop(columns=['Town', 'Mun_Ori'])
+    X_base.rename(columns={'Código': 'Mun_Ori'}, inplace=True)
+
+    X_base = pd.merge(X_base, pueblos, left_on='Mun_Des', right_on='Town')
+    X_base = X_base.drop(columns=['Town', 'Mun_Des'])
+    X_base.rename(columns={'Código': 'Mun_Des'}, inplace=True)
+    ############################################################
 
     t1 = time.time()
     print()
@@ -623,24 +720,12 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
     #f=open('column_names_before.txt','w')
     #f.write(X.columns.values)
     #f.close()
-    """
-    print('before change:')
-    print(X.columns.values)
+    #X.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/X_after_pp.csv', index=False)
+    print()
+    print('Final dataframe:')
+    print(X.head(20))
 
-    X.rename(columns={'Hora_Ini_E': 'Departure time', 'Per_hog': 'HH size', 'Turismos': 'Nº cars/HH',
-                   'Sexo': 'Gender', 'Edad': 'Age', 'crnt_tur': 'Driver\'s license',
-                   'drive_tt': 'Car $T_t$', 'distance': 'Distance', 'walk_tt': 'Walk $T_t$',
-                   'transit_tt': 'PT $T_t$', 'Tipo_familia': 'Family type'}, inplace=True)
-
-    mapeo = {1: 2, 2: 1}
-    X['Driver\'s license'] = X['Driver\'s license'].map(mapeo)
-    #f=open('column_names_after.txt','w')
-    #f.write(X.columns.values)
-    #f.close()
-    print('after change:')
-    print(X.columns.values)
-    """
-    return X
+    return X, X_base
 
 
 
