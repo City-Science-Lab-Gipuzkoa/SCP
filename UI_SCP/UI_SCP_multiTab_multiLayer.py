@@ -628,6 +628,7 @@ x2_max = 3
 x3_max = 5
 x4_max = 15
 x5_max = 15
+"""
 fig1 = go.Scatterpolar(
             r=[radius_max*x0/x0_max, radius_max*x1/x1_max, radius_max*x2/x2_max, radius_max*x3/x3_max, radius_max*x4/x4_max, radius_max*x5/x5_max],
             theta=['Remote working days',
@@ -639,6 +640,46 @@ fig1 = go.Scatterpolar(
             hovertext= [str(x0),str(x1), str(x2), str(x3), str(x4), str(x5)],
             fill='toself'
         )
+"""
+data = {'Number_routes' : [0], 'Number_stops' : 0}
+df = pd.DataFrame(data)
+fig11 = go.Table(
+        header=dict(
+            values=["<b>Number of routes</b>", "<b>Number of stops</b>"],
+            line_color='white', fill_color='white',
+            align='center', font=dict(color='black', size=12)
+        ),
+        cells=dict(
+            values=[df.Number_routes, df.Number_stops],
+            fill_color=['rgb(107, 174, 214)'],
+            align='center', font=dict(color='black', size=11)
+        ))
+data = {'Coworking_hubs' : [0], 'Coworking_days' : 0}
+df = pd.DataFrame(data)
+fig12 = go.Table(
+        header=dict(
+            values=["<b>Coworking hubs</b>", "<b>Coworking days</b>"],
+            line_color='white', fill_color='white',
+            align='center', font=dict(color='black', size=12)
+        ),
+        cells=dict(
+            values=[df.Coworking_hubs, df.Coworking_days],
+            fill_color=['rgb(107, 174, 214)'],
+            align='center', font=dict(color='black', size=11)
+        ))
+data = {'Remote_workers' : [0], 'Remote_days' : 0}
+df = pd.DataFrame(data)
+fig13 = go.Table(
+        header=dict(
+            values=["<b>Remote workers</b>", "<b>Remote days</b>"],
+            line_color='white', fill_color='white',
+            align='center', font=dict(color='black', size=12)
+        ),
+        cells=dict(
+            values=[df.Remote_workers, df.Remote_days],
+            fill_color=['rgb(107, 174, 214)'],
+            align='center', font=dict(color='black', size=11)
+        ))
 
 
 cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
@@ -680,22 +721,40 @@ fig4 = go.Bar(
             orientation='h',
             marker_color=df_tmp['color'])
 
-row_titles = ("Interventions", "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
+row_titles = ("Company transportation",
+              "Coworking",
+              "Remote working", 
+              "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
 column_titles = ()
 
+"""
 fig = make_subplots(rows=4, cols=1, 
                     specs=[
                             [{"type": "scatterpolar"}], [{"type": "indicator"}],
                             [{"type": "pie"}], [{"type": "bar"}]],
                     row_heights=[2,1,2,1],
                     subplot_titles=row_titles
+                    )
+"""
+
+fig = make_subplots(rows=6, cols=1, 
+                    specs=[
+                            [{"type": "table"}], 
+                            [{"type": "table"}],
+                            [{"type": "table"}],
+                            [{"type": "indicator"}],
+                            [{"type": "pie"}], [{"type": "bar"}]],
+                    row_heights=[1,1,1,2,2,1],
+                    subplot_titles=row_titles
                     ) #-> row height is used to re-size plots of specific rows
 #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
 fig.for_each_annotation(lambda a:  a.update(x = 0.2) if a.text in row_titles else())
-fig.append_trace(fig1, 1, 1)
-fig.append_trace(fig2, 2, 1)
-fig.append_trace(fig3, 3, 1)
-fig.append_trace(fig4, 4, 1)   
+fig.append_trace(fig11, 1, 1)
+fig.append_trace(fig12, 2, 1)
+fig.append_trace(fig13, 3, 1)
+fig.append_trace(fig2, 4, 1)
+fig.append_trace(fig3, 5, 1)
+fig.append_trace(fig4, 6, 1)   
 
 #fig.update_yaxes(title_text="CO2 emissions", row=1, col=1)
 #fig.update_yaxes(title_text="Transport share", row=2, col=1)
@@ -1530,6 +1589,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     x3_max = 5
     x4_max = 10
     x5_max = 15
+    """
     fig1 = go.Scatterpolar(
                 r=[radius_max*x0/x0_max, radius_max*x1/x1_max, radius_max*x2/x2_max, radius_max*x3/x3_max, radius_max*x4/x4_max, radius_max*x5/x5_max],
                 theta=['Remote working days',
@@ -1541,6 +1601,47 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                 hovertext= [str(x0),str(x1), str(x2), str(x3), str(x4), str(x5)],
                 fill='toself'
             )
+    """
+    data = {'Number_routes' : [Nbuses], 'Number_stops' : len(StopsCoords) - sum(CowFlags)}
+    df = pd.DataFrame(data)
+    fig11 = go.Table(
+            header=dict(
+                values=["<b>Number of routes</b>", "<b>Number of stops</b>"],
+                line_color='white', fill_color='white',
+                align='center', font=dict(color='black', size=12)
+            ),
+            cells=dict(
+                values=[df.Number_routes, df.Number_stops],
+                fill_color=['rgb(107, 174, 214)'],
+                align='center', font=dict(color='black', size=11)
+            ))
+    data = {'Coworking_hubs' : [sum(CowFlags)], 'Coworking_days' : CowDays}
+    df = pd.DataFrame(data)
+    fig12 = go.Table(
+            header=dict(
+                values=["<b>Coworking hubs</b>", "<b>Coworking days</b>"],
+                line_color='white', fill_color='white',
+                align='center', font=dict(color='black', size=12)
+            ),
+            cells=dict(
+                values=[df.Coworking_hubs, df.Coworking_days],
+                fill_color=['rgb(107, 174, 214)'],
+                align='center', font=dict(color='black', size=11)
+            ))
+    data = {'Remote_workers' : [NremWork], 'Remote_days' : NremDays}
+    df = pd.DataFrame(data)
+    fig13 = go.Table(
+            header=dict(
+                values=["<b>Remote workers</b>", "<b>Remote days</b>"],
+                line_color='white', fill_color='white',
+                align='center', font=dict(color='black', size=12)
+            ),
+            cells=dict(
+                values=[df.Remote_workers, df.Remote_days],
+                fill_color=['rgb(107, 174, 214)'],
+                align='center', font=dict(color='black', size=11)
+            ))
+
 
     Total_CO2 = result['CO2'].sum()
     temp = result.loc[result['Rem_work'] == 1]
@@ -1587,11 +1688,23 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                     marker=dict(colors=df['color']))
 
     temp = result.copy()
-    temp['distance_km'] = temp['distance_week']/1000.
-    temp = temp[['Mode','distance_km']]
-    Contribs = temp.groupby(['Mode']).sum() 
-    Contribs = Contribs.reset_index()
+    #temp['distance_km'] = temp['distance_week']/1000.
+    temp['distance_km'] = temp['distance_week_interv']/1000.
+    temp['distance_km_no_interv'] = temp['distance_week_no_interv']/1000.
+    temp1 = temp[['Mode','distance_km']]
+    temp2 = temp[['Mode_base','distance_km_no_interv']]    
+    Contribs1 = temp1.groupby(['Mode']).sum() 
+    Contribs1 = Contribs1.reset_index()
+    Contribs2 = temp2.groupby(['Mode_base']).sum() 
+    Contribs2 = Contribs2.reset_index()
+    Contribs2['Mode'] = Contribs2['Mode_base']
+    Contribs2['distance_km'] = Contribs2['distance_km_no_interv']
+    Contribs2.drop(['Mode_base','distance_km_no_interv'], axis=1, inplace=True)
+    Contribs = pd.concat([Contribs1,Contribs2]).groupby(['Mode']).sum().reset_index()
     Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    print()
+    print('Contribs:')  
+    print(Contribs)
     fig4 = go.Bar(
                 x=Contribs['distance_km'],
                 y=Contribs['Mode'],
@@ -1599,7 +1712,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                 marker_color=Contribs['color'])
 
     
-    
+    """
     row_titles = ("Interventions", "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
     fig_total = make_subplots(rows=4, cols=1, 
                         specs=[
@@ -1614,6 +1727,30 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     fig_total.append_trace(fig2, 2, 1)
     fig_total.append_trace(fig3, 3, 1)
     fig_total.append_trace(fig4, 4, 1) 
+    """
+    row_titles = ("Company transportation",
+                    "Coworking",
+                    "Remote working", 
+                    "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
+    fig_total = make_subplots(rows=6, cols=1, 
+                        specs=[
+                                [{"type": "table"}], 
+                                [{"type": "table"}],
+                                [{"type": "table"}],
+                                [{"type": "indicator"}],
+                                [{"type": "pie"}], [{"type": "bar"}]],
+                        row_heights=[1,1,1,2,2,1],
+                        subplot_titles=row_titles
+                        ) #-> row height is used to re-size plots of specific rows
+    #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
+    fig_total.for_each_annotation(lambda a:  a.update(x = 0.2) if a.text in row_titles else())
+    fig_total.append_trace(fig11, 1, 1)
+    fig_total.append_trace(fig12, 2, 1)
+    fig_total.append_trace(fig13, 3, 1)
+    fig_total.append_trace(fig2, 4, 1)
+    fig_total.append_trace(fig3, 5, 1)
+    fig_total.append_trace(fig4, 6, 1) 
+
     fig_total.update_annotations(font_size=18)
     fig_total.update_layout(showlegend=False)    
     fig_total.update_layout(polar=dict(radialaxis=dict(visible=False)))
@@ -1716,6 +1853,18 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     print()
     print('DS_diff_perc')
     print(DS_diff_perc)
+
+    fig1 = go.Scatterpolar(
+                r=[radius_max*x0/x0_max, radius_max*x1/x1_max, radius_max*x2/x2_max, radius_max*x3/x3_max, radius_max*x4/x4_max, radius_max*x5/x5_max],
+                theta=['Remote working days',
+                    'Remote working persons (%)',
+                    'Coworking hubs',
+                    'Coworking days', 
+                    'Bus routes',
+                    'Bus stops'],
+                hovertext= [str(x0),str(x1), str(x2), str(x3), str(x4), str(x5)],
+                fill='toself'
+            )
 
     fig2 = go.Bar(
                 y=y_diff[:2],
@@ -1943,10 +2092,25 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
 
     temp = result.loc[result['Rem_work'] == 1]
     if not temp.empty:
+        """
         temp['distance_km'] = temp['distance_week']/1000.
         temp = temp[['Mode','distance_km']]
         Contribs = temp.groupby(['Mode']).sum() 
         Contribs = Contribs.reset_index()
+        Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+        """    
+        temp['distance_km'] = temp['distance_week_interv']/1000.
+        temp['distance_km_no_interv'] = temp['distance_week_no_interv']/1000.
+        temp1 = temp[['Mode','distance_km']]
+        temp2 = temp[['Mode_base','distance_km_no_interv']]    
+        Contribs1 = temp1.groupby(['Mode']).sum() 
+        Contribs1 = Contribs1.reset_index()
+        Contribs2 = temp2.groupby(['Mode_base']).sum() 
+        Contribs2 = Contribs2.reset_index()
+        Contribs2['Mode'] = Contribs2['Mode_base']
+        Contribs2['distance_km'] = Contribs2['distance_km_no_interv']
+        Contribs2.drop(['Mode_base','distance_km_no_interv'], axis=1, inplace=True)
+        Contribs = pd.concat([Contribs1,Contribs2]).groupby(['Mode']).sum().reset_index()
         Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
     else:
         data = {'Mode': ['No mode'],
@@ -1964,11 +2128,26 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
 
     temp = result.loc[result['Coworking'] == 1]    
     if not temp.empty:
+        """
         temp['distance_km'] = temp['distance_week']/1000.
         temp = temp[['Mode','distance_km']]
         Contribs = temp.groupby(['Mode']).sum() 
         Contribs = Contribs.reset_index()
         Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+        """
+        temp['distance_km'] = temp['distance_week_interv']/1000.
+        temp['distance_km_no_interv'] = temp['distance_week_no_interv']/1000.
+        temp1 = temp[['Mode','distance_km']]
+        temp2 = temp[['Mode_base','distance_km_no_interv']]    
+        Contribs1 = temp1.groupby(['Mode']).sum() 
+        Contribs1 = Contribs1.reset_index()
+        Contribs2 = temp2.groupby(['Mode_base']).sum() 
+        Contribs2 = Contribs2.reset_index()
+        Contribs2['Mode'] = Contribs2['Mode_base']
+        Contribs2['distance_km'] = Contribs2['distance_km_no_interv']
+        Contribs2.drop(['Mode_base','distance_km_no_interv'], axis=1, inplace=True)
+        Contribs = pd.concat([Contribs1,Contribs2]).groupby(['Mode']).sum().reset_index()
+        Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})        
     else:        
         data = {'Mode': ['No mode'],
                 'distance_km': [0],
@@ -1983,10 +2162,25 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
 
     temp = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0)]
     if not temp.empty:
+        """
         temp['distance_km'] = temp['distance_week']/1000.
         temp = temp[['Mode','distance_km']]
         Contribs = temp.groupby(['Mode']).sum() 
         Contribs = Contribs.reset_index()
+        Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+        """
+        temp['distance_km'] = temp['distance_week_interv']/1000.
+        temp['distance_km_no_interv'] = temp['distance_week_no_interv']/1000.
+        temp1 = temp[['Mode','distance_km']]
+        temp2 = temp[['Mode_base','distance_km_no_interv']]    
+        Contribs1 = temp1.groupby(['Mode']).sum() 
+        Contribs1 = Contribs1.reset_index()
+        Contribs2 = temp2.groupby(['Mode_base']).sum() 
+        Contribs2 = Contribs2.reset_index()
+        Contribs2['Mode'] = Contribs2['Mode_base']
+        Contribs2['distance_km'] = Contribs2['distance_km_no_interv']
+        Contribs2.drop(['Mode_base','distance_km_no_interv'], axis=1, inplace=True)
+        Contribs = pd.concat([Contribs1,Contribs2]).groupby(['Mode']).sum().reset_index()
         Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
     else:
         data = {'Mode': ['No mode'],
@@ -2293,6 +2487,7 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
     x3_max = 5
     x4_max = 10
     x5_max = 15
+    
     fig1 = go.Scatterpolar(
                 r=[radius_max*x0/x0_max, radius_max*x1/x1_max, radius_max*x2/x2_max, radius_max*x3/x3_max, radius_max*x4/x4_max, radius_max*x5/x5_max],
                 theta=['Remote working days',
@@ -2304,6 +2499,7 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
                 hovertext= [str(x0),str(x1), str(x2), str(x3), str(x4), str(x5)],
                 fill='toself'
             )
+    
 
 
     Total_CO2 = scenario['CO2'].sum()

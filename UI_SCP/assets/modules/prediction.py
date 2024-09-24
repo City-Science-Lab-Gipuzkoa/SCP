@@ -152,10 +152,13 @@ def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, mod
     gdf['CO2_worst_case_over_target'] = gdf['CO2_worst_case']/(CO2_target*1000/n_weeks) 
     #gdf['distance_week']  = gdf['distance']*(5-gdf['Rem_work']) # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     gdf['distance_week'] = gdf['distance_base']*(5-gdf['Rem_work']-gdf['Coworking_days']) + gdf['distance']*gdf['Coworking_days'] # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    gdf['distance_week_interv'] = gdf['distance']*gdf['Coworking_days'] + 0.0*gdf['Rem_work'] 
+    gdf['distance_week_no_interv'] = gdf['distance_base']*(5-gdf['Rem_work']-gdf['Coworking_days']) 
+
     gdf['weighted_d']  = gdf.apply(calculate_indicator_d, axis=1)
     #gdf['weighted_n']  = gdf.apply(calculate_indicator_n, axis=1)
     gdf['n_close_stops']  = gdf.apply(calculate_indicator_n, axis=1)
 
-    gdf.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/Data_after_predict.csv', index=False)
+    #gdf.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/Data_after_predict.csv', index=False)
 
     return gdf
