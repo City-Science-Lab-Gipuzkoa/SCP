@@ -1118,6 +1118,38 @@ def create_square_marker(color, border_color):
     square_icon = create_square_icon(color, border_color)
     return dict(type="custom", iconUrl=square_icon)
 
+
+def create_square_icon_2(color1, color2, border_color):
+    import base64
+    import io
+    from PIL import Image, ImageDraw, ImageOps  
+    # Create a square shape
+    square_size = 20
+
+    # Create a blank image
+    image = Image.new('RGBA', (square_size, square_size), color=(0, 0, 0, 0))
+
+    # Draw the square shape on the image
+    draw = ImageDraw.Draw(image)
+    draw.rectangle([(0, 0), (square_size // 2, square_size)], fill=color1)
+    draw.rectangle([(square_size // 2, 0), (square_size, square_size)], fill=color2)
+
+    # Add a black border to the square
+    border_size = 2
+    border_image = ImageOps.expand(image, border=border_size, fill=border_color)
+
+    # Convert the image to base64
+    buffered = io.BytesIO()
+    border_image.save(buffered, format="PNG")
+    base64_icon = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+    return "data:image/png;base64," + base64_icon
+
+def create_square_marker_2(color1, color2, border_color):
+    square_icon = create_square_icon_2(color1, color2, border_color)
+    return dict(type="custom", iconUrl=square_icon)
+
+
 def create_diamond_icon(color, border_color):
     import base64
     import io
@@ -1284,8 +1316,8 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
         #print(i_pred.geometry.y, i_pred.geometry.x)
         #color = generate_color_gradient(maxCO2,i_pred.CO2) 
         #color = generate_color_gradient(i_pred.CO2_worst_case,i_pred.CO2) 
-        
-        maxCO2 = result.groupby("Mode")['CO2'].max()[i_pred.Mode]
+        #maxCO2 = result.groupby("Mode")['CO2'].max()[i_pred.Mode]
+        maxCO2 = result.loc[:, 'CO2_worst_case'].mean()
         color = generate_color_gradient(maxCO2,i_pred.CO2, i_pred.Mode) 
         #color = generate_color_gradient(maxCO2_worst_case,i_pred.CO2, i_pred.Mode) 
         #print(color)
@@ -1334,11 +1366,25 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
                 #                     position=[i_pred.geometry.y, i_pred.geometry.x], 
                 #                     icon=custom_icon_coworking, 
                 #                     id=str(i_pred))
+
+                text = 'CO2: ' + '{0:.2f}'.format(i_pred.CO2) + ' Kg ' + '(' + i_pred.Mode_base + ' and ' + i_pred.Mode + ')' 
+                text = text + '<br>' +  'Weekly distance: ' + '{0:.2f}'.format(i_pred.distance_week/1000) + ' Km'
+                #text = text + '<br>' + 'Remote working: ' + str(i_pred.Rem_work)
+                n_rw = int(i_pred.Rem_work)
+                text = text + '<br>' + 'Remote working: ' + (['Yes']*n_rw + ['No'])[n_rw-1] 
+                try:
+                     n_cw = int(i_pred.Coworking)
+                except:
+                     n_cw = 0    
+                text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]
+
+                color2 = generate_color_gradient(maxCO2,i_pred.CO2, i_pred.Mode_base)
                 marker_i = dl.Marker(
                         id=str(i_pred),
                         children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
                         position=[i_pred.geometry.y, i_pred.geometry.x],
-                        icon=create_square_marker(color, (0, 0, 0))
+                        #icon=create_square_marker(color, (0, 0, 0))
+                        icon=create_square_marker_2(color2,color, (0, 0, 0))
                 )                     
                 markers_cow_1.append(marker_i)
         #except:

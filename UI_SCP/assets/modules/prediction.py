@@ -111,6 +111,7 @@ def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, mod
     df = df[['Hora_Ini_E', 'Per_hog', 'Turismos', 'Sexo', 'Edad', 'crnt_tur', 'drive_tt', 'distance', 'walk_tt', 'transit_tt', 'Tipo_familia']]
     df_base = df_base[['Hora_Ini_E', 'Per_hog', 'Turismos', 'Sexo', 'Edad', 'crnt_tur', 'drive_tt', 'distance', 'walk_tt', 'transit_tt', 'Tipo_familia']]
 
+
     x = np.array(df) 
     y_pred = model.predict(x)
 
@@ -149,7 +150,8 @@ def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, mod
     #gdf['CO2_worst_case']  = 5*gkm_car*co2lt*gdf['original_distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     gdf['CO2_worst_case']  = 5*co2km_car*gdf['original_distance']/1000 # 5 = number of days
     gdf['CO2_worst_case_over_target'] = gdf['CO2_worst_case']/(CO2_target*1000/n_weeks) 
-    gdf['distance_week']  = gdf['distance']*(5-gdf['Rem_work']) # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    #gdf['distance_week']  = gdf['distance']*(5-gdf['Rem_work']) # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    gdf['distance_week'] = gdf['distance_base']*(5-gdf['Rem_work']-gdf['Coworking_days']) + gdf['distance']*gdf['Coworking_days'] # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     gdf['weighted_d']  = gdf.apply(calculate_indicator_d, axis=1)
     #gdf['weighted_n']  = gdf.apply(calculate_indicator_n, axis=1)
     gdf['n_close_stops']  = gdf.apply(calculate_indicator_n, axis=1)

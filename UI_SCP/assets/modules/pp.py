@@ -453,15 +453,15 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
 
     # Baseline dataframe #######################################
     X_base["drive_tt"] = networks['drive'].shortest_path_lengths(
-                networks['drive'].get_node_ids(X.O_long,X.O_lat),
-                networks['drive'].get_node_ids(X.D_long,X.D_lat),
+                networks['drive'].get_node_ids(X_base.O_long,X_base.O_lat),
+                networks['drive'].get_node_ids(X_base.D_long,X_base.D_lat),
                 imp_name='drive_time_s'
                 )
     X_base["drive_tt"] = X_base["drive_tt"] / 60 # To min
 
     X_base["walk_tt"] = networks['walk'].shortest_path_lengths(
-                networks['walk'].get_node_ids(X.O_long,X.O_lat),
-                networks['walk'].get_node_ids(X.D_long,X.D_lat)
+                networks['walk'].get_node_ids(X_base.O_long,X_base.O_lat),
+                networks['walk'].get_node_ids(X_base.D_long,X_base.D_lat)
                 )
     X_base["walk_tt"] = X_base["walk_tt"] / 60
     ############################################################
