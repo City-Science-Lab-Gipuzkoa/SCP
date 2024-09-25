@@ -34,6 +34,7 @@ from geopy.geocoders import Nominatim
 from geopy.point import Point
 from shapely.geometry import Polygon  
 
+import pandana as pdn
 
 import datetime
 import time
@@ -48,6 +49,9 @@ import time
 #trips = pd.read_csv('/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Proyecto Piloto_Eskuzaitzeta/DATOS_GIPUZKOA/gtfs_Zubieta/gtfs/trips.txt', delimiter=',')
 #routes = pd.read_csv('/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Proyecto Piloto_Eskuzaitzeta/DATOS_GIPUZKOA/gtfs_Zubieta/gtfs/routes.txt', delimiter=',')
 
+#root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
+#root_dir = '/home/cslgipuzkoa/virtual_machine_disk/UI_SCP/assets/'
+
 
 """
 # INPUTS
@@ -59,8 +63,8 @@ selec_trip_id =  32402 # 13 pts -> just as an example, select the set of stops
 """
 
 tol = 1.5
-tol_dist = 0.5 # % difference between longest and shortest route
-cont_limit = 100 # max number of iterations for convergence
+tol_dist = 0.4 # % difference between longest and shortest route
+cont_limit = 200 # max number of iterations for convergence
 
 #CO2km = 1.12
 
@@ -167,7 +171,8 @@ def check_conn_dirty_fix(Gr,pts,bbox):
                 destination_node = d_node
     return Gr
 
-def CalcRoutes_module(puntos,m_buses,CO2km):
+def CalcRoutes_module(puntos,m_buses,root_dir,CO2km):
+      network = pdn.network.Network.from_hdf5(root_dir + 'data/input_data_MCM/' + f'networks/drive_net.h5')
       ################################################
       # Calculando la matriz de distancias
       ################################################
@@ -268,8 +273,21 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
            origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
         destination_node = ox.distance.nearest_nodes(G, [destination[1]], [destination[0]])[0]
         print('origin: ', origin[0],origin[1])
-        print('destination: ', destination[0],destination[1])        
-        path_length = nx.shortest_path_length(G, origin_node, destination_node, weight='length')
+        print('destination: ', destination[0],destination[1])
+        try:        
+            path_length = nx.shortest_path_length(G, origin_node, destination_node, weight='length')
+        except:
+            data = [[origin[1], origin[0], destination[1], destination[0]]]
+            # Create the pandas DataFrame
+            df_coords = pd.DataFrame(data, columns=['O_Long', 'O_Lat', 'D_Long', 'D_Lat'])
+            path_length = network.shortest_path_lengths(
+                            network.get_node_ids(df_coords.O_Long,df_coords.O_Lat),
+                            network.get_node_ids(df_coords.D_Long,df_coords.D_Lat),
+                            imp_name='distance'
+                        )
+            path_length = path_length[0]
+
+
         C[pi[0]][pi[1]] = path_length/1000
         #lista.append([origin_node,destination_node,pi[0],pi[1]])
         index_old = pi[0]
@@ -479,7 +497,7 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
       #solution.display()
       #solution.get_objective_value()
 
-
+      """
       # CO2 calc and route visualization #############################################
       routes = []
       total_CO2 = 0.0
@@ -511,20 +529,43 @@ def CalcRoutes_module(puntos,m_buses,CO2km):
           print()
       print()
       print('Total CO2 emissions: ',total_CO2)
+      """
 
-      #print(coords_routes[0])
+      print('Start calculation routes with Pandana...')
+      # Implementation with Pandana ################################################
+      network = pdn.network.Network.from_hdf5(root_dir + 'data/input_data_MCM/' + f'networks/drive_net.h5')
+      routes = []
+      total_CO2 = 0.0
+      coords_routes = []
+      for ii in range(len(ruta_EZ0)):
+          dist_temp = []
+          length_route_i = 0
+          coords_route_i = []
+          for jj in range(len(ruta_EZ0[ii])-1):
+                i0 = ruta_EZ0[ii][jj]
+                i1 = ruta_EZ0[ii][jj+1]
+                origin = puntos[i0]
+                destination = puntos[i1]
+
+                data = [[origin[1], origin[0], destination[1], destination[0]]]
+                # Create the pandas DataFrame
+                df_coords = pd.DataFrame(data, columns=['O_Long', 'O_Lat', 'D_Long', 'D_Lat'])
+                ori_node = network.get_node_ids(df_coords.O_Long,df_coords.O_Lat)
+                dest_node = network.get_node_ids(df_coords.D_Long,df_coords.D_Lat)
+                route_i = network.shortest_paths(ori_node, dest_node, imp_name='distance')[0]
+                network.nodes_df['id'] = network.nodes_df.index
+                df = network.nodes_df.copy()
+                mask = df['id'].isin(route_i)
+                path_coords = df[mask]
+                path_coords = path_coords.reindex(route_i)
+                for index, row in path_coords.iterrows():
+                    #print(row['x'], row['y'])
+                    #coords_route_i.append((Lat,Lon))
+                    coords_route_i.append((row['y'],row['x']))
+          coords_routes.append(coords_route_i)
+          #print('Coords of route ',ii,':')
+          #print(coords_route_i)
+          #print()
+
+      #print(coords_routes)
       return ruta_EZ0, coords_routes, G
-
-"""
-LatsLons_routes = CalcRoutes_module(pts)
-app = Dash()
-app.layout = dl.Map([
-    dl.TileLayer(),
-    dl.Polyline(positions=LatsLons_routes[0])
-    ],
-    center=LatsLons_routes[0][0], zoom=10, style={'height': '50vh'})
-
-if __name__ == '__main__':
-    #app.run_server(Debug=True)
-    app.run_server(port=8052,Debug=True)
-"""

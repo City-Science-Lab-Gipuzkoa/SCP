@@ -6,6 +6,8 @@ import datetime
 from datetime import date, timedelta
 import re
 import os
+import pandana as pdn
+import pandas as pd
 
 #directory = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/input_data_MCM/GTFS_feeds/routes_EZ_companies/'
 
@@ -19,6 +21,10 @@ def gGTFS(ruta_EZ0, puntos, G, root_dir, n_trips = 6, freq = 10, start_hour = '8
     if not isExist:
        # Create a new directory because it does not exist
        os.makedirs(directory)
+
+
+    network = pdn.network.Network.from_hdf5(root_dir + 'data/input_data_MCM/' + f'networks/drive_net.h5')
+
 
     cont_stops = 0
     cont_all_stops = 0
@@ -57,9 +63,15 @@ def gGTFS(ruta_EZ0, puntos, G, root_dir, n_trips = 6, freq = 10, start_hour = '8
            print('time (min): ',path_time/60)
            times.append(path_time/60)
         """
+        
+
+        # modified after modification of calc_routes with pandana ##################
         ori_coord = ruta_stops_coord[0]
         origin = ori_coord
-        origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
+        #origin_node = ox.distance.nearest_nodes(G, [origin[1]], [origin[0]])[0]
+        # origin_node moved down
+        ##############################################################################
+
         hours = []
         new_t = datetime.datetime.strptime(str(start_hour), "%H:%M")
         hours.append(new_t.strftime("%H:%M"))
@@ -71,15 +83,26 @@ def gGTFS(ruta_EZ0, puntos, G, root_dir, n_trips = 6, freq = 10, start_hour = '8
         print(hours)
         for i in range(0,len(ruta_stops_coord)-1):           
            destination = ruta_stops_coord[i+1]
-           destination_node = ox.distance.nearest_nodes(G, [destination[1]], [destination[0]])[0]
-           #route = nx.shortest_path(G, origin_node, destination_node)
-           #print(G.nodes[origin_node])
-           #print(G.nodes[destination_node])
-    
+           # modified after modification of calc_routes with pandana ##################
+           #destination_node = ox.distance.nearest_nodes(G, [destination[1]], [destination[0]])[0]
+           ##############################################################################
+           ##route = nx.shortest_path(G, origin_node, destination_node)
+           ##print(G.nodes[origin_node])
+           ##print(G.nodes[destination_node])
+           data = [[origin[1], origin[0], destination[1], destination[0]]]
+           # Create the pandas DataFrame
+           df_coords = pd.DataFrame(data, columns=['O_Long', 'O_Lat', 'D_Long', 'D_Lat'])
+           origin_node = network.get_node_ids(df_coords.O_Long,df_coords.O_Lat)
+           destination_node = network.get_node_ids(df_coords.D_Long,df_coords.D_Lat)
            # replace the previous code with the following:
-           route = nx.shortest_path(G, origin_node, destination_node, weight='length') # Returns a list of nodes comprising the route
+           # modified after modification of calc_routes with pandana ##################
+           #route = nx.shortest_path(G, origin_node, destination_node, weight='length') # Returns a list of nodes comprising the route
+           #############################################################################
+           route = network.shortest_paths(origin_node, destination_node, imp_name='distance')[0] 
            path_length = 0
            path_time = 0
+
+           """
            for u, v in zip(route, route[1:]):
                edge_length = G.get_edge_data(u,v)[0]['length']   # Returns length in meters, e.g. 50.26
                path_length += edge_length
@@ -87,6 +110,15 @@ def gGTFS(ruta_EZ0, puntos, G, root_dir, n_trips = 6, freq = 10, start_hour = '8
                path_time += edge_travel_time
            print('length (km): ',path_length/1000)
            print('time (min): ',path_time/60)
+           """
+        
+           for u, v in zip(route, route[1:]):
+               #edge_travel_time = network.get_edge_data(u,v)[0]['drive_time_s'] # Returns travel time in secs
+               edge_travel_time = network.edges_df[(network.edges_df['from'] == u) & (network.edges_df['to'] == v)]['speed_m_s'].values[0]
+               path_time += edge_travel_time
+           print('time (min): ',path_time/60)
+
+
            times.append(path_time/60)        
     
         #test = nx.shortest_path(G, origin_node, destination_node)

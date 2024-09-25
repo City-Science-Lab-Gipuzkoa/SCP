@@ -342,7 +342,7 @@ sidebar_1 =  html.Div(
                                 is_open=False),
                             #dcc.Input(id="n_clusters", type="text", value='19'),
                             dcc.Slider(1, 30, 1,
-                            value=13,
+                            value=10,
                             id='n_clusters_1',
                             marks=None,
                             tooltip={"placement": "bottom", "always_visible": True}
@@ -671,7 +671,7 @@ data = {'Remote_workers' : [0], 'Remote_days' : 0}
 df = pd.DataFrame(data)
 fig13 = go.Table(
         header=dict(
-            values=["<b>Remote workers</b>", "<b>Remote days</b>"],
+            values=["<b>Remote workers (%)</b>", "<b>Remote days</b>"],
             line_color='white', fill_color='white',
             align='center', font=dict(color='black', size=12)
         ),
@@ -968,15 +968,16 @@ def drawclusters(workers_df,n_clusters):
     workers_lat_lon = workers_df[['O_lat', 'O_long']].values.tolist()
     workers_lat_lon = np.array(workers_lat_lon)
     model = KMeans(n_clusters=n_clusters, max_iter=500).fit(workers_lat_lon)
+    
     clusters_poly = []
-    #points_per_cluster = []
+    points_per_cluster = []
     for i in range(n_clusters):
         points = workers_lat_lon[model.labels_ == i]
         hull = ConvexHull(points)
         vert = np.append(hull.vertices, hull.vertices[0])  # close the polygon by appending the first point at the end
         clusters_poly.append(points[vert])
-        #points_per_cluster.append(len(points))
-    return clusters_poly
+        points_per_cluster.append(len(points))
+    return clusters_poly, points_per_cluster
 
 def suggest_clusters(wdf, startHour):
     #sil_score_max = -100 #this is the minimum possible score
@@ -1632,7 +1633,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     df = pd.DataFrame(data)
     fig13 = go.Table(
             header=dict(
-                values=["<b>Remote workers</b>", "<b>Remote days</b>"],
+                values=["<b>Remote workers (%)</b>", "<b>Remote days</b>"],
                 line_color='white', fill_color='white',
                 align='center', font=dict(color='black', size=12)
             ),
@@ -1854,6 +1855,30 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     print('DS_diff_perc')
     print(DS_diff_perc)
 
+    try:
+        x0/x0_max
+        x1/x1_max
+    except:
+        x0 = 0
+        x1 = 0
+
+    try:
+        x2/x2_max
+        x3/x3_max
+    except:
+        x2 = 0
+        x3 = 0
+
+    try:
+        x4/x4_max
+        x5/x5_max
+    except:
+        x4= 0
+        x5 = 0
+
+    print('check input variables:')
+    print(x4)
+    print(x5)
     fig1 = go.Scatterpolar(
                 r=[radius_max*x0/x0_max, radius_max*x1/x1_max, radius_max*x2/x2_max, radius_max*x3/x3_max, radius_max*x4/x4_max, radius_max*x5/x5_max],
                 theta=['Remote working days',
@@ -2796,6 +2821,15 @@ def toggle_collapse(n, is_open):
 #### Update internal values from sliders and dropdown menus #######################
 # Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([
+           Output('internal-value_bus_number_1', 'data',allow_duplicate=True),
+          ],
+          Input('num_buses_1','value'),
+          prevent_initial_call=True)
+def update_remote_work(Nroutes):
+    print('number of routes updated to: ', Nroutes)
+    return [Nroutes]
+
+@callback([
            Output('internal-value_remote_days_1', 'data',allow_duplicate=True),
            Output('internal-value_remote_workers_1', 'data',allow_duplicate=True)
           ],
@@ -3486,7 +3520,7 @@ def propose_stops(n_clusters,workerData, root_dir, startHour, Nclick):
         sys.path.append(root_dir + 'modules')      
         import find_stops_module   
         n_clusters  = int(n_clusters)
-        cutoff = 0.8 # cutoff for maximum density: take maxima which are at least cutoff*max  
+        cutoff = 0.99 # cutoff for maximum density: take maxima which are at least cutoff*max  
         workers_DF = pd.DataFrame.from_dict(workerData)
         startHour = int(startHour.split(':')[0])
         stops_DF = pd.read_csv(root_dir + 'data/'+ "all_bus_stops.csv", encoding='latin-1')
@@ -3545,7 +3579,7 @@ def show_workers(n_clusters,workerData, startHour, N):
         pass
 
     if len(workers_df.index) > 0:
-        clusters = drawclusters(workers_df,n_clusters)
+        clusters, clusters_size = drawclusters(workers_df,n_clusters)
         n_max = max(len(x) for x in clusters ) # find maximum size of the clusters
         n_min = min(len(x) for x in clusters ) # find maximum size of the clusters
         #colors = generate_colors(n_clusters)
@@ -3553,7 +3587,7 @@ def show_workers(n_clusters,workerData, startHour, N):
         #n_colors = 255
         colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
         #colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
-        cluster_shapes = [dl.Polygon(children = dl.Tooltip('Number of workers: '+str(len(clusters[i]))), positions=clusters[i], fill=True, fillColor = colors[i], fillOpacity=0.9) for i in range(n_clusters)]
+        cluster_shapes = [dl.Polygon(children = dl.Tooltip('Number of workers: '+str(clusters_size[i])), positions=clusters[i], fill=True, fillColor = colors[i], fillOpacity=0.9) for i in range(n_clusters)]
         newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + cluster_shapes,
                         center=center, zoom=12, id="map_1",
                         style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
@@ -3607,20 +3641,20 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
                    id='num_buses_1'
             ),
 
-            dbc.Button("Calculate routes", id="calc_routes_1",n_clicks=0, style={"margin-top": "15px"}),
+            #dbc.Button("Calculate routes", id="calc_routes_1",n_clicks=0, style={"margin-top": "15px"}),
             ##html.P([ html.Br(),'Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
             ##html.P(['Select route to visualize'],id='route_select_1',style={"margin-top": "15px", "font-weight": "bold"}),
             ##dcc.Dropdown(routes, multi=False,style={"margin-top": "15px"},id='choose_route_1'),
             #dbc.Button("Visualize routes", id="visualize_routes_1", n_clicks=0,style={"margin-top": "15px"}),
             #html.Br(), 
-            #dbc.ButtonGroup(
-            #                [
-            #                  dbc.Button("Calculate routes", id="calc_routes_1", n_clicks=0, style={"margin-top": "15px"}),
-            #                  dbc.Button("Visualize routes", id="visualize_routes_1", n_clicks=0, style={"margin-top": "15px"}),
-            #                ],
-            #                vertical=True,
-            #                style={"margin-top": "15px"}
-            #),              
+            dbc.ButtonGroup(
+                            [
+                              dbc.Button("Calculate routes", id="calc_routes_1", n_clicks=0, style={"margin-top": "15px"}),
+                              dbc.Button("Visualize routes", id="visualize_routes_1", n_clicks=0, style={"margin-top": "15px"}),
+                            ],
+                            vertical=True,
+                            style={"margin-top": "15px"}
+            ),              
             html.Div(id='outdata_1', style={"margin-top": "15px"}),
             dcc.Store(id='internal-value_stops_1', data=St),
             dcc.Store(id='internal-value_coworking_1', data=Cow),
@@ -3725,6 +3759,8 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
 #               State('num_trips_1', 'value'),
 #               State('trip_freq_1', 'value'),
 #               Output("choose_route_1", "options",allow_duplicate=True),
+
+"""
 @app.long_callback([
                Output("outdata_1", "children",allow_duplicate=True),
                Output("internal-value_route_opt_done_1", 'data',allow_duplicate=True),
@@ -3741,11 +3777,28 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
                manager=long_callback_manager,
               prevent_initial_call=True
               )
-def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_Dir, Nclick):
+"""
+
+@app.long_callback([
+               Output("outdata_1", "children",allow_duplicate=True),
+               Output("internal-value_route_opt_done_1", 'data',allow_duplicate=True),
+               Output('internal-value_routes_1','data',allow_duplicate=True),
+               Output('map_1','children',allow_duplicate=True)],
+               State('internal-value_bus_number_1','data'), 
+               State('choose_start_time_1', 'value'),  
+               State('internal-value_stops_1','data'),
+               State('internal-value_coworking_1','data'),
+               State('internal-value_co2_km_car_1','data'),
+               State('root_dir_1','data'),
+               Input("calc_routes_1", "n_clicks"),
+               manager=long_callback_manager,
+              prevent_initial_call=True
+              )
+def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_dir, Nclick):
     Ntrips = 1 # default
     freq = 30 # default
     if Nclick > 0:
-      root_dir = root_Dir
+      #root_dir = root_Dir
       sys.path.append(root_dir + 'modules')
       print()
       print('Cleaning folders...')
@@ -3793,7 +3846,7 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_Dir, Nclick):
       print('\n')
       print('\n')
       print('Start calculating routes...')
-      routes, routes_points_coords, Graph = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),float(CO2km))
+      routes, routes_points_coords, Graph = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),root_dir,float(CO2km))
       print('Routes calculated!')
       #print(routes_points_coords)
       print('')
@@ -3812,7 +3865,7 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_Dir, Nclick):
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"}) 
       ###################################################################################################   
       #return ["Calculation completed for: "+str(len(Stops)), route_opt, routes_points_coords, Nroutes, new_menu, newMap]
-      return ["Calculation completed for: "+str(len(Stops)) +' stops', route_opt, routes_points_coords, new_menu, newMap]
+      return ["Calculation completed for: "+str(len(Stops)) +' stops', route_opt, routes_points_coords, newMap]
 
 
 #              [State('choose_route_1',"value"),
@@ -3826,9 +3879,12 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_Dir, Nclick):
 #def visualize_route(Route,St,Cow,RoutesCoords,Nclick):
 def visualize_route(St,Cow,RoutesCoords,Nclick):
     if Nclick > 0:
+      print()
       print('Start route visualization...')
       #Route = int(Route)-1    
       #RoutesCoords = RoutesCoords[Route]
+      #print('RoutesCoords received:')
+      #print(RoutesCoords)
       markers = []
       for i, pos in enumerate(St): 
         if Cow[i]==1:
@@ -3846,6 +3902,7 @@ def visualize_route(St,Cow,RoutesCoords,Nclick):
       newMap = dl.Map(map_children + markers,
                      center=center, zoom=12, id="map_1",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+      print('Route visualization completed!')
       return [newMap]
 
 
