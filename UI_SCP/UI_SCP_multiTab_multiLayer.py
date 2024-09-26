@@ -3607,6 +3607,7 @@ def show_workers(n_clusters,workerData, startHour, N):
               State('internal-value_remote_days_1', 'data'),
               State('internal-value_remote_workers_1', 'data'),
               State('internal-value_bus_number_1', 'data'),
+              State('internal-value_routes_1', 'data'),
               State('internal-value_trip_number_1', 'data'),
               State('internal-value_trip_freq_1', 'data'),
               State('internal-value_start_hour_1', 'data'),
@@ -3615,7 +3616,7 @@ def show_workers(n_clusters,workerData, startHour, N):
               Input('choose_intervention_1',"value"),
               prevent_initial_call=True
               )
-def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, TripFreq, StartHour, current_scenario, stored_scenarios, interv):
+def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, RoutesCoords, Ntrips, TripFreq, StartHour, current_scenario, stored_scenarios, interv):
     print('chosen interv.: ', interv)
            
     if interv == 'CT':
@@ -3665,7 +3666,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
             dcc.Store(id='internal-value_trip_freq_1', data=TripFreq),
             dcc.Store(id='internal-value_trip_number_1', data=Ntrips),
             dcc.Store(id='internal-value_start_hour_1', data=StartHour),
-            dcc.Store(id='internal-value_routes_1', data=[]),        
+            dcc.Store(id='internal-value_routes_1', data=RoutesCoords),        
             dcc.Store(id='internal-value_scenario_1', data=current_scenario),        
             dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
             ])
@@ -3718,7 +3719,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
                 dcc.Store(id='internal-value_trip_freq_1', data=TripFreq),
                 dcc.Store(id='internal-value_trip_number_1', data=Ntrips),
                 dcc.Store(id='internal-value_start_hour_1', data=StartHour),
-                dcc.Store(id='internal-value_routes_1', data=[]),        
+                dcc.Store(id='internal-value_routes_1', data=RoutesCoords),        
                 dcc.Store(id='internal-value_scenario_1', data=current_scenario),        
                 dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
                 ])        
@@ -3749,7 +3750,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, Ntrips, Tri
                 dcc.Store(id='internal-value_trip_freq_1', data=TripFreq),
                 dcc.Store(id='internal-value_trip_number_1', data=Ntrips),
                 dcc.Store(id='internal-value_start_hour_1', data=StartHour),
-                dcc.Store(id='internal-value_routes_1', data=[]),        
+                dcc.Store(id='internal-value_routes_1', data=RoutesCoords),        
                 dcc.Store(id='internal-value_scenario_1', data=current_scenario),        
                 dcc.Store(id='internal-value_calculated_scenarios_1', data=stored_scenarios)
                 ])   
