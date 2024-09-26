@@ -4037,9 +4037,11 @@ def add_marker(St, Cow, MarkerOption, result_json, clickd):
           
 
 
+#               Output('internal-value_marker_option_1', 'data',allow_duplicate=True),
 @app.callback([Output("outdata_1", "children",allow_duplicate=True),
                Output('internal-value_stops_1','data',allow_duplicate=True),
                Output('internal-value_coworking_1','data',allow_duplicate=True),
+               Output('choose_stop_action_1', 'value',allow_duplicate=True),
                Output('internal-value_marker_option_1', 'data',allow_duplicate=True),
                Output('map_1','children',allow_duplicate=True)],
               [State('internal-value_stops_1','data'), 
@@ -4056,7 +4058,6 @@ def change_stop_marker(St, Cow, marker_operation, result_json, *args):
     result = geopandas.GeoDataFrame(
                 result, geometry=geopandas.points_from_xy(result.O_long, result.O_lat), crs="EPSG:4326"
                 )
-
 
     print('changing marker...')
     #print('marker id?:', marker_id)
@@ -4084,7 +4085,7 @@ def change_stop_marker(St, Cow, marker_operation, result_json, *args):
         
         newMap = generate_map(result, Cow, St, markers)
 
-        return ['Marker deleted!',St,Cow,' ',newMap]
+        return ['Marker deleted!',St,Cow,'','',newMap]
 
     if marker_operation == "SO":
         print()
@@ -4116,7 +4117,7 @@ def change_stop_marker(St, Cow, marker_operation, result_json, *args):
         ##newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
         ##             center=center, zoom=12, id="map_1",
         ##             style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-        return ['Origin set!',St,Cow,' ',newMap]
+        return ['Origin set!',St,Cow,'','',newMap]
 
     """
     if marker_operation == "SC":
