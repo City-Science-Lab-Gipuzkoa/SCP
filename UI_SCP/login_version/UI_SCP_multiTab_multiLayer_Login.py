@@ -13,9 +13,11 @@ from dash_extensions.snippets import send_data_frame
 import dash_leaflet as dl
 import dash_leaflet.express as dlx
 import dash_daq as daq
+import dash_html_components as html
 
-from flask import Flask
-from flask import request
+from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, request, send_from_directory
+
 
 import plotly.express as px
 # plot test data
@@ -57,10 +59,15 @@ import diskcache
 cache = diskcache.Cache("./cache")
 long_callback_manager = DiskcacheLongCallbackManager(cache)
 
+
+#app = Flask(__name__)
+#dash_app = dash.Dash(__name__, server=app, url_base_pathname='/dash/')
+
 server = Flask(__name__)
 #app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
-app = Dash(name = 'SCP_app', server = server,
+app = Dash(name = 'SCP_app', server = server, url_base_pathname='/dash/',
            external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME, dbc.icons.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
+
 
 
 # Generate a timestamp-based ID
@@ -594,16 +601,6 @@ central_panel_1 = html.Div(
     ],
     style=CONTENT_STYLE)
 
-
-#fig.update_layout(
-#    margin=dict(l=100, r=100, t=5, b=5)
-#)
-#fig.update_layout(width=int(100))
-# plot test data
-#df = px.data.tips()
-#fig = px.pie(df, values='tip', names='day')
-#fig.update_layout(showlegend=False)
-#fig.update_layout(title_text='Transport share', title_x=0.5)
 
 #d_tmp = {'counts': [100, 50, 2], 'distance_week': [100, 50, 2], 'Mode': ['Car','PT','Walk'], 'color': ['red','blue','green']}
 d_tmp = {'counts': [0, 0, 0], 'distance_week': [0, 0, 0], 'Mode': ['Car','PT','Walk'], 'color': ['red','blue','green']}
@@ -4257,9 +4254,41 @@ def change_stop_marker(St, Cow, marker_operation, result_json, *args):
        return ['Stop set as Coworking!',St,Cow,newMap]
     """    
 
+# Define the callback for the plot
+@app.callback(
+    Output('plot', 'figure'),
+    [Input('plot', 'clickData')]
+)
+def update_plot(click_data):
+    if click_data:
+        x = click_data['points'][0]['x']
+        return {'data': [{'x': [x], 'y': [x**2]}], 'layout': {'title': 'Squared Value'}}
+    else:
+        return {'data': [{'x': [1, 2, 3], 'y': [4, 1, 2]}], 'layout': {'title': 'My Plot'}}
+
+# Define the login route
+
+@server.route('/reports/<path:path>')
+def serve_static(filename):
+    return send_from_directory('static', filename)
+
+
+
+@server.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # Perform login authentication
+        username = request.form['username']
+        password = request.form['password']
+
+        # Add your authentication logic here
+        if username == 'cslgipuzkoa' and password == 'csl.G1PUZKOA':
+            return app.index()
+        else:
+            return 'Invalid username or password'
+
+    # If the request method is GET, render the login template
+    return render_template('login.html')
 
 if __name__ == '__main__':
-    #app.run(debug=True,port=80)
-    #app.run_server(debug=True, dev_tools_hot_reload=False, use_reloader=False, host='0.0.0.0', port=80)
-    #app.run_server(debug=True, use_reloader=False, host='0.0.0.0', port=80)
-    app.run_server(debug=True,use_reloader=False, host='0.0.0.0', port=80)
+    server.run(debug=True, use_reloader=False, host='0.0.0.0', port=80)
