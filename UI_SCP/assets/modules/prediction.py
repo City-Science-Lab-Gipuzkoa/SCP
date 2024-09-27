@@ -126,9 +126,6 @@ def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, mod
 
     df['prediction'] = y_pred
     #df.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/X_after_predict.csv', index=False)
-    print()
-    print('Final dataframe before after predict:')
-    print(gdf.head(60))
 
     # Default values ##########################################
     #gkm_car = 1./12
@@ -160,5 +157,7 @@ def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, mod
     gdf['n_close_stops']  = gdf.apply(calculate_indicator_n, axis=1)
 
     #gdf.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/Data_after_predict.csv', index=False)
-
+    print()
+    print('Final dataframe after predict:')
+    print(gdf.head(60))
     return gdf
