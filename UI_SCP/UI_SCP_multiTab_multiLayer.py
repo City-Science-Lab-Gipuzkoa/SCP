@@ -99,6 +99,7 @@ bus_icon = "https://i.ibb.co/HV0K5Fp/bus-stop.png"
 worker_icon = "https://i.ibb.co/W0H7nYM/meeting-point.png"
 coworking_icon = "https://i.ibb.co/J2qXGKN/coworking-icon.png"
 Eskuz_icon = "https://i.ibb.co/bLytVQM/industry-icon.png"
+Eskuz_pos = (43.25632640541216, -2.029996706597628)
 
 center = (43.26852347667122, -1.9741372404905988)
 #    iconUrl= 'https://uxwing.com/wp-content/themes/uxwing/download/location-travel-map/bus-stop-icon.png',
@@ -556,6 +557,7 @@ sidebar_1 =  html.Div(
 markers_all_1 = []
 markers_remote_1 = []
 markers_cow_1 = []
+Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
 central_panel_1 = html.Div(
        [
           html.P(['Sustainable Commuting Platform (SCP): help your business transition towards a sustainable mobility '],id='title_SCP_1',style={'font-size': '24px',"font-weight": "bold"}),
@@ -573,7 +575,7 @@ central_panel_1 = html.Div(
                                          dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking", id='markers_cow_1', checked=False)], 
                                         id="lc_1"
                                         )
-                                ], 
+                                ] + Eskuz_marker, 
                                 center=center, 
                                 zoom=12,
                                 id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
@@ -1364,7 +1366,11 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
         iconSize=[40,40],
         iconAnchor=[22, 40]
     )    
-
+    custom_icon_coworking = dict(
+    iconUrl= coworking_icon,
+    iconSize=[40,40],
+    iconAnchor=[22, 40]
+    )
     """
     custom_icon_home = dict(
         iconUrl= "https://i.ibb.co/0ZqM4PG/home-icon.png",
@@ -1567,7 +1573,8 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
                 Cow_markers.append(tmp)  
         children = children + Cow_markers
 
-    children = children + additional_markers
+    Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
+    children = children + Eskuz_marker + additional_markers
 
     new_map = dl.Map(children, center=center,
                                      zoom=12,                        
@@ -3412,6 +3419,8 @@ def switch_layer(Scen, layer):
                                      id="lc_1"
                                     )
                     ]
+    Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
+    children = children + Eskuz_marker
     new_map = dl.Map(children, center=center,
                                         zoom=12,                        
                                         id="map_1",
@@ -3627,9 +3636,10 @@ def propose_stops(n_clusters,workerData, root_dir, startHour, result_json, Nclic
             Cow.append(0)
         
         markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-        
+        Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
+
         if len(result_json) ==0:
-            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers + Eskuz_marker,
                         center=center, zoom=12, id="map_1",
                         style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
         else:
@@ -3649,6 +3659,8 @@ def propose_stops(n_clusters,workerData, root_dir, startHour, result_json, Nclic
               )
 def show_workers(n_clusters,workerData, startHour, N):
     workers_df = pd.DataFrame.from_dict(workerData)
+    Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
+
     try:
         startHour = int(startHour.split(':')[0])
 
@@ -3684,12 +3696,12 @@ def show_workers(n_clusters,workerData, startHour, N):
         colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
         #colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
         cluster_shapes = [dl.Polygon(children = dl.Tooltip('Number of workers: '+str(clusters_size[i])), positions=clusters[i], fill=True, fillColor = colors[i], fillOpacity=0.9) for i in range(n_clusters)]
-        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + cluster_shapes,
+        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + cluster_shapes + Eskuz_marker,
                         center=center, zoom=12, id="map_1",
                         style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
     else:
-        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")],
+        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + Eskuz_marker,
                         center=center, zoom=12, id="map_1",
                         style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
@@ -3922,6 +3934,8 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_dir, Nclick):
       iconAnchor=[22, 40]
       )    
     
+      Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
+
       center = (43.26852347667122, -1.9741372404905988)
     
       #list_routes = range(1,int(Nroutes)+1)    
@@ -3957,7 +3971,7 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_dir, Nclick):
       route_opt = 1
       # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
-      newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+      newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers + Eskuz_marker,
                      center=center, zoom=12, id="map_1",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"}) 
       ###################################################################################################   
@@ -3996,7 +4010,7 @@ def visualize_route(St,Cow,RoutesCoords,Nclick):
           map_children.append(dl.Polyline(positions=[RoutesCoords[i]], pathOptions={'weight':10, 'color': colors[i]}))         
       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
       #newMap = dl.Map([dl.TileLayer(), dl.ScaleControl(position="topright"), dl.Polyline(positions=RoutesCoords, pathOptions={'weight':10})] + markers,
-      newMap = dl.Map(map_children + markers,
+      newMap = dl.Map(map_children + markers + Eskuz_marker,
                      center=center, zoom=12, id="map_1",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
       print('Route visualization completed!')
@@ -4045,7 +4059,7 @@ def match_stops(St,Cow,result_json,Nclick):
       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
 
       if len(result_json) ==0:
-            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
+            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers + Eskuz_marker,
                         center=center, zoom=12, id="map_1",
                         style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
       else:
