@@ -63,12 +63,14 @@ long_callback_manager = DiskcacheLongCallbackManager(cache)
 #app = Flask(__name__)
 #dash_app = dash.Dash(__name__, server=app, url_base_pathname='/dash/')
 
+global temp_un 
+temp_un = None
+
 server = Flask(__name__)
+#server.secret_key = 'your_secret_key'
 #app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
 app = Dash(name = 'SCP_app', server = server, url_base_pathname='/dash/',
            external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME, dbc.icons.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
-
-
 
 # Generate a timestamp-based ID
 timestamp_id = str(int(time.time()))
@@ -76,6 +78,7 @@ root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets/'
 #root_dir = '/home/cslgipuzkoa/virtual_machine_disk/UI_SCP/assets/'
 
 print('Code restarted!')
+
 
 #"/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/calcroutes_module.py"
 
@@ -199,10 +202,10 @@ Uncheck box for removing bus stops!"""
 
 routes = [{'label': 'Route ' +str(i+1), 'value': i} for i in range(3)]
 
+#                 {'label': 'Set origin of bus routes', 'value': 'SO'} 
 stops_actions = [
                  {'label': 'Add bus stop', 'value': 'AS'},    
-                 {'label': 'Delete bus stop', 'value': 'DS'},
-                 {'label': 'Set origin of bus routes', 'value': 'SO'}                    
+                 {'label': 'Delete bus stop', 'value': 'DS'},                   
                 ]
 cow_actions = [{'label': 'Add coworking hub', 'value': 'AC'},
                {'label': 'Delete coworking hub', 'value': 'DC'}                   
@@ -555,11 +558,13 @@ sidebar_1 =  html.Div(
         dcc.Store(id='internal-value_co2_km_car_1', data=0.1081),     
         dcc.Store(id='internal-value_co2_km_bus_1', data=1.3),     
         dcc.Store(id='internal-value_co2_km_train_1', data=0.049), 
-        dcc.Store(id='internal-value_bus_train_ratio_1', data=0.8)             
+        dcc.Store(id='internal-value_bus_train_ratio_1', data=0.8)        
         ],
         id='sidebar_1',
         style=SIDEBAR_STYLE)
 
+
+#        dcc.Store(id='internal-value_username', data=app.config['username'])  
 
 markers_all_1 = []
 markers_remote_1 = []
@@ -902,6 +907,7 @@ tabs = dbc.Tabs(
 )
 
 app.layout = html.Div(children=[tabs])
+print('test: ', temp_un)
 
 # Folder navigator ###############################################################
 def parse_contents(contents, filename, date):
@@ -2456,10 +2462,10 @@ def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, co2km_car=0.1081, co2km_bu
 @app.callback(
     [Output('user_ip', 'data'),
      Output('root_dir_1','data')],
-    [Input('url', 'pathname'), Input('user_ip', 'data')],
-    [State('user_ip', 'modified_timestamp')]
+    [State('user_ip', 'modified_timestamp')],     
+    [Input('url', 'pathname'), Input('user_ip', 'data')]
 )
-def update_user_ip(pathname, user_ip, modified_timestamp):
+def update_user_ip(modified_timestamp, pathname, user_ip):
     #if not modified_timestamp:
     #user_ip = request.remote_addr
     #user_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
@@ -2475,7 +2481,11 @@ def update_user_ip(pathname, user_ip, modified_timestamp):
     #root_dir = '/home/cslgipuzkoa/virtual_machine_disk/UI_SCP/assets/'
     #new_root_dir = root_dir[:-1] + '_' + timestamp_id + '/'
     #new_root_dir = root_dir[:-1] + '_' + user_id + '/'
-    new_root_dir = root_dir[:-1] + '_' + user_ip + '/'
+    #new_root_dir = root_dir[:-1] + '_' + user_ip + '/'
+    with open(root_dir +'data/'+'login_data.txt','r') as f:
+        #username = f.readline().split(' ')[0]
+        username = f.readlines()[-1].split(' ')[0]
+    new_root_dir = root_dir[:-1] + '_' + username + '/'
 
     if os.path.exists(new_root_dir):
         # Delete Folder code
@@ -3934,6 +3944,11 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_dir, Nclick):
       Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
 
       center = (43.26852347667122, -1.9741372404905988)
+      # Set origin of bus routes to Eskuzaitzeta #######################################
+      origin_bus_routes = (43.257414680347246, -2.027512109345033)        
+      St.insert(0, origin_bus_routes)
+      Cow.insert(0, 0)
+      ###################################################################################
     
       #list_routes = range(1,int(Nroutes)+1)    
       list_routes = range(int(Nroutes))
@@ -4205,6 +4220,7 @@ def change_stop_marker(St, Cow, marker_operation, result_json, *args):
 
         return ['Marker deleted!',St,Cow,'','',newMap]
 
+    """
     if marker_operation == "SO":
         print()
         print('setting origin of bus stops...')
@@ -4236,7 +4252,8 @@ def change_stop_marker(St, Cow, marker_operation, result_json, *args):
         ##             center=center, zoom=12, id="map_1",
         ##             style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
         return ['Origin set!',St,Cow,'','',newMap]
-
+    """
+        
     """
     if marker_operation == "SC":
        markers = []
@@ -4272,8 +4289,7 @@ def update_plot(click_data):
 def serve_static(filename):
     return send_from_directory('static', filename)
 
-
-
+user_data = (('cslgipuzkoa', 'csl.G1PUZKOA'),('user1', 'u123CSL'),('user2', 'u456CSL'),('user3', 'u789CSL'))
 @server.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -4282,9 +4298,20 @@ def login():
         password = request.form['password']
 
         # Add your authentication logic here
-        if username == 'cslgipuzkoa' and password == 'csl.G1PUZKOA':
-            return app.index()
-        else:
+        correct_login = 0
+        for name, pw in user_data:
+            if username == name and password == pw:
+                #if username == 'cslgipuzkoa' and password == 'csl.G1PUZKOA':
+                print('writing login info into file...')
+                f=open(root_dir + 'data' + '/' + 'login_data.txt','a+')
+                f.write(username + ' ')
+                f.write(password+'\n')
+                f.close()
+                #print(username, app.index())
+                correct_login = 1
+                return app.index()
+
+        if correct_login == 0:
             return 'Invalid username or password'
 
     # If the request method is GET, render the login template
