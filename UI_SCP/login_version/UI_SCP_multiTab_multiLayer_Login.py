@@ -86,7 +86,8 @@ print('Code restarted!')
 #im2 = '/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/DFG_logo.png'
 #im1 = '/home/beppe23/mysite/assets/CSL_logo.PNG'
 #im2 = '/home/beppe23/mysite/assets/DFG_logo.png'
-im1 = root_dir +'images/CSL_logo.PNG'
+#im1 = root_dir +'images/CSL_logo.PNG'
+im1 = root_dir +'images/CSL_logo.jpg'
 #im2 = root_dir +'images/DFG_logo.png'
 #im3 = root_dir +'images/MUBIL_logo.png'
 
@@ -3995,12 +3996,13 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_dir, Nclick):
 @app.callback([Output('map_1','children',allow_duplicate=True)],
               [State('internal-value_stops_1','data'),
               State('internal-value_coworking_1','data'),
-              State('internal-value_routes_1','data')],
+              State('internal-value_routes_1','data'),
+              State('internal-value_scenario_1','data')],
               [Input("visualize_routes_1", "n_clicks")],
               prevent_initial_call=True
               )
 #def visualize_route(Route,St,Cow,RoutesCoords,Nclick):
-def visualize_route(St,Cow,RoutesCoords,Nclick):
+def visualize_route(St,Cow,RoutesCoords,result_json,Nclick):
     if Nclick > 0:
       print()
       print('Start route visualization...')
@@ -4016,6 +4018,8 @@ def visualize_route(St,Cow,RoutesCoords,Nclick):
              custom_icon = custom_icon_bus
         tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
         markers.append(tmp)  
+
+      """  
       map_children = [dl.TileLayer(), dl.ScaleControl(position="topright")]
       colors = generate_colors(len(RoutesCoords))
       for i in range(len(RoutesCoords)):
@@ -4025,6 +4029,25 @@ def visualize_route(St,Cow,RoutesCoords,Nclick):
       newMap = dl.Map(map_children + markers + Eskuz_marker,
                      center=center, zoom=12, id="map_1",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+      """
+
+      map_routes = []
+      colors = generate_colors(len(RoutesCoords))
+      for i in range(len(RoutesCoords)):
+          map_routes.append(dl.Polyline(positions=[RoutesCoords[i]], pathOptions={'weight':10, 'color': colors[i]}))         
+
+      if len(result_json) ==0:
+            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + map_routes + markers + Eskuz_marker,
+                        center=center, zoom=12, id="map_1",
+                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+      else:
+            result = pd.DataFrame.from_dict(result_json) 
+            result = geopandas.GeoDataFrame(
+                    result, geometry=geopandas.points_from_xy(result.O_long, result.O_lat), crs="EPSG:4326"
+                    )
+            newMap = generate_map(result, Cow, St, map_routes + markers + Eskuz_marker)
+
+
       print('Route visualization completed!')
       return [newMap]
 
