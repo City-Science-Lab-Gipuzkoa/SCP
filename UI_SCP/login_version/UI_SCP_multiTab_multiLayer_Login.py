@@ -1099,23 +1099,46 @@ def generate_color_gradient(CO2max,CO2_i, label=0):
     ]
     """
     if label==0:
+        """
         ranges = [
             {"start": "2ECC71", "end": "F4D03F"},
             {"start": "F4D03F", "end": "C0392B"}
         ]
+        """
+        ranges = [
+            {"start": "ABEBC6", "end": "2ECC71"},
+            {"start": "FCF3CF", "end": "F1C40F"},
+            {"start": "f1948a", "end": "E74C3C"}
+        ]
+        
         color_start_hex = ranges[0]["start"]
         color_end_hex = ranges[0]["end"]
         color_start_rgb = hex_to_rgb(color_start_hex)
         color_end_rgb = hex_to_rgb(color_end_hex)
         # Generate gradient
-        gradient1 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
+        #gradient1 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
+        #gradient1 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 32)]
+        gradient1 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 4)]
+        
         color_start_hex = ranges[1]["start"]
         color_end_hex = ranges[1]["end"]
         color_start_rgb = hex_to_rgb(color_start_hex)
         color_end_rgb = hex_to_rgb(color_end_hex)
         # Generate gradient
-        gradient2 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
-        gradient = gradient1 + gradient2
+        #gradient2 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
+        gradient2 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 4)]
+
+        color_start_hex = ranges[2]["start"]
+        color_end_hex = ranges[2]["end"]
+        color_start_rgb = hex_to_rgb(color_start_hex)
+        color_end_rgb = hex_to_rgb(color_end_hex)
+        # Generate gradient
+        #gradient3 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 256)]
+        gradient3 = [interpolate_color(color_start_rgb, color_end_rgb, t) for t in np.linspace(0, 1, 4)]
+
+        gradient = gradient1 + gradient2 +  gradient3
+        #gradient = gradient1 + gradient2 
+
 
     elif label== 'Car':
         ranges = [
@@ -3701,7 +3724,10 @@ def show_workers(n_clusters,workerData, startHour, N):
         #colors = generate_colors(n_clusters)
         n_colors = n_max
         #n_colors = 255
-        colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
+        print(len(clusters), len(clusters_size), n_clusters)
+        #colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
+        colors = [generate_color_gradient(n_max, clusters_size[i]) for i in range(n_clusters)]
+        print(colors)
         #colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
         cluster_shapes = [dl.Polygon(children = dl.Tooltip('Number of workers: '+str(clusters_size[i])), positions=clusters[i], fill=True, fillColor = colors[i], fillOpacity=0.9) for i in range(n_clusters)]
         newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + cluster_shapes + Eskuz_marker,
