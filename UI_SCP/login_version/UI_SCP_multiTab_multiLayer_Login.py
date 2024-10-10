@@ -4350,11 +4350,14 @@ def login():
         correct_login = 0
         for name, pw in user_data:
             if username == name and password == pw:
+                DateTime = datetime.datetime.now()
+                DateTime = DateTime.strftime("%m/%d/%Y_%H:%M:%S")
                 #if username == 'cslgipuzkoa' and password == 'csl.G1PUZKOA':
                 print('writing login info into file...')
                 f=open(root_dir + 'data' + '/' + 'login_data.txt','a+')
                 f.write(username + ' ')
-                f.write(password+'\n')
+                f.write(password + ' ')
+                f.write(DateTime + '\n')
                 f.close()
                 #print(username, app.index())
                 correct_login = 1
