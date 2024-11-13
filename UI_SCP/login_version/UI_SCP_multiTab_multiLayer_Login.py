@@ -664,6 +664,10 @@ fig11 = go.Table(
         ))
 data = {'Coworking_hubs' : [0], 'Coworking_days' : 0}
 df = pd.DataFrame(data)
+print()
+print('Check initial values of Coworking:')
+print(df)
+print()
 fig12 = go.Table(
         header=dict(
             values=["<b>Coworking hubs</b>", "<b>Coworking days</b>"],
@@ -795,7 +799,7 @@ indicators_1 = html.Div(
         dcc.Graph(
             figure=fig,
             id = 'Indicator_panel_1',
-            style={'width': '60vh', 'height': '100vh'}) 
+            style={'width': '60vh', 'height': '150vh'}) 
         ],
         style=INDICATORS_STYLE
         )
@@ -1673,6 +1677,10 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, additional_co2, sto
             ))
     data = {'Coworking_hubs' : [sum(CowFlags)], 'Coworking_days' : CowDays}
     df = pd.DataFrame(data)
+    print()
+    print('check Coworking data:')
+    print(df)
+    print()
     fig12 = go.Table(
             header=dict(
                 values=["<b>Coworking hubs</b>", "<b>Coworking days</b>"],

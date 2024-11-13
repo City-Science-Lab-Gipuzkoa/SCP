@@ -63,8 +63,8 @@ selec_trip_id =  32402 # 13 pts -> just as an example, select the set of stops
 """
 
 tol = 1.5
-tol_dist = 0.4 # % difference between longest and shortest route
-cont_limit = 200 # max number of iterations for convergence
+tol_dist = 0.7 # % difference between longest and shortest route
+cont_limit = 300 # max number of iterations for convergence
 
 #CO2km = 1.12
 
