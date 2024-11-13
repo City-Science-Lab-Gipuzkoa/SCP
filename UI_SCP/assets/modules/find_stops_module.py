@@ -66,7 +66,7 @@ def detect_local_minima(arr):
 
 def FindStops(workers_df, startHour, stops_df, n_clusters, cutoff):
 
-    minimum_cluster_size = 5
+    minimum_cluster_size = 15
     #lat_lon = workers_df[['O_lat', 'O_long']][::n_skip] # take every n elements
     # Create a copy column
 

@@ -1705,7 +1705,8 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, additional_co2, sto
     temp = result.loc[result['Coworking'] == 1]
     Total_CO2_cowork = temp['CO2'].sum() # this will be used later
 
-    Total_CO2_worst_case = result['CO2_worst_case'].sum() + additional_co2
+    Total_CO2_worst_case = result['CO2_worst_case'].sum() 
+    #Total_CO2_worst_case = result['CO2_worst_case'].sum() + additional_co2
     
     cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
     interv = np.linspace(0,1,cmap.N)
@@ -2104,7 +2105,7 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, additional_co2, sto
     temp = result.loc[(result['Rem_work'] == 1) & (result['Coworking'] == 0)]
     #Total_CO2_worst_case = temp['CO2_worst_case'].sum() + 0.000001 # to avoid div. by 0
     Total_CO2_worst_case = result['CO2_worst_case'].sum() 
-    Total_CO2 = temp['CO2'].sum()
+    Total_CO2 = temp['CO2'].sum() 
     fig1 = go.Indicator(mode = "gauge+number",
                         value = Total_CO2/Total_CO2_worst_case,
                        domain = {'x': [0, 1], 'y': [0, 1]},        
@@ -2152,7 +2153,8 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, additional_co2, sto
 
     temp = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0)]
     #Total_CO2_worst_case = temp['CO2_worst_case'].sum() + 0.000001 # to avoid div. by 0
-    Total_CO2_worst_case = result['CO2_worst_case'].sum() + additional_co2
+    #Total_CO2_worst_case = result['CO2_worst_case'].sum() + additional_co2
+    Total_CO2_worst_case = result['CO2_worst_case'].sum() 
     Total_CO2 = temp['CO2'].sum() + additional_co2
     fig4 = go.Indicator(mode = "gauge+number",
                        value = Total_CO2/Total_CO2_worst_case,
@@ -2708,7 +2710,8 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, co2km_bus
     temp = scenario.loc[scenario['Coworking'] == 1]
     Total_CO2_cowork = temp['CO2'].sum() # this will be used later
 
-    Total_CO2_worst_case = scenario['CO2_worst_case'].sum() + additional_co2
+    Total_CO2_worst_case = scenario['CO2_worst_case'].sum() 
+    #Total_CO2_worst_case = scenario['CO2_worst_case'].sum() + additional_co2
      
     cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
     interv = np.linspace(0,1,cmap.N)
