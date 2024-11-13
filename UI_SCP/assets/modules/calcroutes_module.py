@@ -537,6 +537,7 @@ def CalcRoutes_module(puntos,m_buses,root_dir,CO2km):
       routes = []
       total_CO2 = 0.0
       coords_routes = []
+      length_routes = []
       for ii in range(len(ruta_EZ0)):
           dist_temp = []
           length_route_i = 0
@@ -553,6 +554,14 @@ def CalcRoutes_module(puntos,m_buses,root_dir,CO2km):
                 ori_node = network.get_node_ids(df_coords.O_Long,df_coords.O_Lat)
                 dest_node = network.get_node_ids(df_coords.D_Long,df_coords.D_Lat)
                 route_i = network.shortest_paths(ori_node, dest_node, imp_name='distance')[0]
+                
+                #added to obtain the length of the route 11/11/2024
+                length_route_i_temp = network.shortest_path_lengths(ori_node, dest_node, imp_name='distance')[0]
+                print('partial route length: ',length_route_i_temp)
+                length_route_i = length_route_i + length_route_i_temp
+                print('cumulative length of route '+str(ii)+':',length_route_i)
+                ####################################################
+                
                 network.nodes_df['id'] = network.nodes_df.index
                 df = network.nodes_df.copy()
                 mask = df['id'].isin(route_i)
@@ -563,9 +572,10 @@ def CalcRoutes_module(puntos,m_buses,root_dir,CO2km):
                     #coords_route_i.append((Lat,Lon))
                     coords_route_i.append((row['y'],row['x']))
           coords_routes.append(coords_route_i)
+          length_routes.append(length_route_i)
           #print('Coords of route ',ii,':')
           #print(coords_route_i)
           #print()
 
       #print(coords_routes)
-      return ruta_EZ0, coords_routes, G
+      return ruta_EZ0, coords_routes, G, length_routes

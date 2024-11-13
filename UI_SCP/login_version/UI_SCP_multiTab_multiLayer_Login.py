@@ -7,7 +7,9 @@ from dash import html, callback_context, ALL
 from dash import dcc, Output, Input, State, callback, dash_table
 
 from dash_extensions import Download
-from dash_extensions.snippets import send_file
+#from dash_extensions.enrich import html, Output, Input, State, callback, dcc
+
+#from dash_extensions.snippets import send_file
 from dash_extensions.snippets import send_data_frame
 
 import dash_leaflet as dl
@@ -546,7 +548,8 @@ sidebar_1 =  html.Div(
         dcc.Store(id='internal-value_stops_1', data=[]),
         dcc.Store(id='internal-value_coworking_1', data=[]),
         dcc.Store(id='internal-value_coworking_days_1', data=0),        
-        dcc.Store(id='internal-value_routes_1', data=[]),        
+        dcc.Store(id='internal-value_routes_1', data=[]),         
+        dcc.Store(id='internal-value_routes_len_1', data=[]),        
         dcc.Store(id='internal-value_scenario_1', data=[]),       
         dcc.Store(id='internal-value_loaded_scenario_1', data=[]),   
         dcc.Store(id='internal-value_calculated_scenarios_1', data=[]),      
@@ -710,7 +713,18 @@ fig2 = go.Indicator(mode = "gauge+number",
                                 }
 
                     )
-
+fig21 = go.Table(
+            cells=dict(
+                values=[["<b>Total CO2 (ton/week)</b>:{:.3f}".format(0.)]],
+                fill_color=['rgb(107, 174, 214)'],
+                align='center', font=dict(color='black', size=14)
+            ))
+fig22 = go.Table(
+            cells=dict(
+                values=[["<b>Total CO2 (kg/week/person)</b>:{:.2f}".format(0.)]],
+                fill_color=['rgb(107, 174, 214)'],
+                align='center', font=dict(color='black', size=14)
+            ))
 
 fig3 = go.Pie(labels=df_tmp["Mode"],
                   values=df_tmp["counts"],
@@ -729,7 +743,7 @@ fig4 = go.Bar(
 row_titles = ("Company transportation",
               "Coworking",
               "Remote working", 
-              "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
+              "CO2 emissions", "","", "Transport share (%)", "Weekly distance share (km)")
 column_titles = ()
 
 """
@@ -742,14 +756,17 @@ fig = make_subplots(rows=4, cols=1,
                     )
 """
 
-fig = make_subplots(rows=6, cols=1, 
+fig = make_subplots(rows=8, cols=1, 
                     specs=[
                             [{"type": "table"}], 
                             [{"type": "table"}],
                             [{"type": "table"}],
                             [{"type": "indicator"}],
-                            [{"type": "pie"}], [{"type": "bar"}]],
-                    row_heights=[1,1,1,2,2,1],
+                            [{"type": "table"}],
+                            [{"type": "table"}],
+                            [{"type": "pie"}], 
+                            [{"type": "bar"}]],
+                    row_heights=[1,1,1,2,2,2,3,1],
                     subplot_titles=row_titles
                     ) #-> row height is used to re-size plots of specific rows
 #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
@@ -758,8 +775,10 @@ fig.append_trace(fig11, 1, 1)
 fig.append_trace(fig12, 2, 1)
 fig.append_trace(fig13, 3, 1)
 fig.append_trace(fig2, 4, 1)
-fig.append_trace(fig3, 5, 1)
-fig.append_trace(fig4, 6, 1)   
+fig.append_trace(fig21, 5, 1)
+fig.append_trace(fig22, 6, 1)
+fig.append_trace(fig3, 7, 1)
+fig.append_trace(fig4, 8, 1)   
 
 #fig.update_yaxes(title_text="CO2 emissions", row=1, col=1)
 #fig.update_yaxes(title_text="Transport share", row=2, col=1)
@@ -1609,7 +1628,9 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
     
     return new_map
 
-def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, StopsCoords=[], CowFlags=[]):
+def plot_result(result, NremDays, NremWork, CowDays, Nbuses, additional_co2, stored_scenarios, StopsCoords=[], CowFlags=[]):
+
+    Nworkers = len(result)
 
     radius_max = 1
     x0 = NremDays
@@ -1678,13 +1699,13 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
             ))
 
 
-    Total_CO2 = result['CO2'].sum()
+    Total_CO2 = result['CO2'].sum() + additional_co2
     temp = result.loc[result['Rem_work'] == 1]
     Total_CO2_remote = temp['CO2'].sum() # this will be used later
     temp = result.loc[result['Coworking'] == 1]
     Total_CO2_cowork = temp['CO2'].sum() # this will be used later
 
-    Total_CO2_worst_case = result['CO2_worst_case'].sum()
+    Total_CO2_worst_case = result['CO2_worst_case'].sum() + additional_co2
     
     cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
     interv = np.linspace(0,1,cmap.N)
@@ -1708,6 +1729,20 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
                                         }
                                     }
                         )
+
+    fig21 = go.Table(
+            cells=dict(
+                values=[["<b>Total CO2 (ton/week)</b>:{:.3f}".format(Total_CO2/1000.)]],
+                fill_color=['rgb(107, 174, 214)'],
+                align='center', font=dict(color='black', size=14)
+            ))
+    fig22 = go.Table(
+            cells=dict(
+                values=[["<b>Total CO2 (kg/week/person)</b>:{:.2f}".format(Total_CO2/Nworkers)]],
+                fill_color=['rgb(107, 174, 214)'],
+                align='center', font=dict(color='black', size=14)
+            ))
+
 
     predicted = result['prediction']
     unique_labels, counts = np.unique(predicted, return_counts=True)
@@ -1766,15 +1801,18 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     row_titles = ("Company transportation",
                     "Coworking",
                     "Remote working", 
-                    "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
-    fig_total = make_subplots(rows=6, cols=1, 
+                    "CO2 emissions", "", "", "Transport share (%)", "Weekly distance share (km)")
+    fig_total = make_subplots(rows=8, cols=1, 
                         specs=[
                                 [{"type": "table"}], 
                                 [{"type": "table"}],
                                 [{"type": "table"}],
                                 [{"type": "indicator"}],
-                                [{"type": "pie"}], [{"type": "bar"}]],
-                        row_heights=[1,1,1,2,2,1],
+                                [{"type": "table"}],
+                                [{"type": "table"}],
+                                [{"type": "pie"}], 
+                                [{"type": "bar"}]],
+                        row_heights=[1,1,1,2,2,2,3,1],
                         subplot_titles=row_titles
                         ) #-> row height is used to re-size plots of specific rows
     #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
@@ -1783,8 +1821,10 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
     fig_total.append_trace(fig12, 2, 1)
     fig_total.append_trace(fig13, 3, 1)
     fig_total.append_trace(fig2, 4, 1)
-    fig_total.append_trace(fig3, 5, 1)
-    fig_total.append_trace(fig4, 6, 1) 
+    fig_total.append_trace(fig21, 5, 1)
+    fig_total.append_trace(fig22, 6, 1)
+    fig_total.append_trace(fig3, 7, 1)
+    fig_total.append_trace(fig4, 8, 1) 
 
     fig_total.update_annotations(font_size=18)
     fig_total.update_layout(showlegend=False)    
@@ -2112,8 +2152,8 @@ def plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, S
 
     temp = result.loc[(result['Rem_work'] == 0) & (result['Coworking'] == 0)]
     #Total_CO2_worst_case = temp['CO2_worst_case'].sum() + 0.000001 # to avoid div. by 0
-    Total_CO2_worst_case = result['CO2_worst_case'].sum() 
-    Total_CO2 = temp['CO2'].sum()
+    Total_CO2_worst_case = result['CO2_worst_case'].sum() + additional_co2
+    Total_CO2 = temp['CO2'].sum() + additional_co2
     fig4 = go.Indicator(mode = "gauge+number",
                        value = Total_CO2/Total_CO2_worst_case,
                        domain = {'x': [0, 1], 'y': [0, 1]},        
@@ -2555,9 +2595,12 @@ def set_modified_timestamp(pathname):
     State('add-scenario_1', 'filename'),
     State('add-scenario_1', 'last_modified'),
     State('Tab_3', 'children'),
+    State('choose_co2_km_bus_1','value'),
+    State('internal-value_route_opt_done_1','data'),
+    State('internal-value_route_len_1','data'),
     State('internal-value_calculated_scenarios_1','data')],
     prevent_initial_call=True)
-def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_scenarios):
+def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, co2km_bus, routeOptDone, routeLengths, stored_scenarios):
 
     if list_of_contents is not None:
         print()
@@ -2654,16 +2697,19 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
             )
     
 
+    if routeOptDone:
+       additional_co2 = sum([RouteLengths_i*(1/1000)*co2km_bus for RouteLengths_i in routeLengths])
+    else:
+       additional_co2 = 0
 
-    Total_CO2 = scenario['CO2'].sum()
+    Total_CO2 = scenario['CO2'].sum() + additional_co2
     temp = scenario.loc[scenario['Rem_work'] == 1]
     Total_CO2_remote = temp['CO2'].sum() # this will be used later
     temp = scenario.loc[scenario['Coworking'] == 1]
     Total_CO2_cowork = temp['CO2'].sum() # this will be used later
 
-    Total_CO2_worst_case = scenario['CO2_worst_case'].sum()
-    
-    
+    Total_CO2_worst_case = scenario['CO2_worst_case'].sum() + additional_co2
+     
     cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
     interv = np.linspace(0,1,cmap.N)
     j = 0
@@ -2687,31 +2733,34 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
                                     }
                         )
 
+    
     predicted = scenario['prediction']
     unique_labels, counts = np.unique(predicted, return_counts=True)
     d = {'Mode': unique_labels, 'counts':counts}
     df = pd.DataFrame(data=d)
     df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'})
     df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    """
     fig3 = go.Pie(labels=df["Mode"],
                     values=df["counts"],
                     showlegend=False,
                     textposition='inside',
                     textinfo='label+percent',
                     marker=dict(colors=df['color']))
-
+    """
     temp = scenario.copy()
     temp['distance_km'] = temp['distance_week']/1000.
     temp = temp[['Mode','distance_km']]
     Contribs = temp.groupby(['Mode']).sum() 
     Contribs = Contribs.reset_index()
     Contribs['color'] = Contribs['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    """
     fig4 = go.Bar(
                 x=Contribs['distance_km'],
                 y=Contribs['Mode'],
                 orientation='h',
                 marker_color=Contribs['color'])
-
+    """
     try:
         new_scenarios = json.loads(stored_scenarios)
         from datetime import datetime
@@ -2719,7 +2768,7 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
         date_time = now.strftime("%m/%d/%Y_%H:%M:%S")
         scenario_name = date_time
     except:
-        new_scenarios = stored_scenarios
+        new_scenarios = stored_scenarios #empty?
         scenario_name = 'baseline'
 
     class NumpyEncoder(json.JSONEncoder):
@@ -2760,13 +2809,17 @@ def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, stored_sc
     temp_Contribs = Contribs.copy()
     diff_TS_df = temp_df[['Mode','counts']].set_index('Mode').subtract(BS_TS_df)
     diff_DS_df = temp_Contribs[['Mode','distance_km']].set_index('Mode').subtract(BS_DS_df)
-
+    print()
+    print('Baseline distance share: ')
+    print(BS_DS_df)
+    print('New distance share: ')
+    print(temp_Contribs[['Mode','distance_km']].set_index('Mode'))
 
     temp_df = pd.DataFrame({'counts': df['counts'].tolist()}, index=df['Mode'].tolist())
     temp_Contribs = pd.DataFrame({'distance_km': Contribs['distance_km'].tolist()}, index=Contribs['Mode'].tolist())
 
-    TS_diff_perc = 100*diff_TS_df.loc[diff_TS_df.index, ['counts']] / temp_df.loc[temp_df.index, ['counts']]
-    DS_diff_perc = 100*diff_DS_df.loc[diff_DS_df.index, ['distance_km']] / temp_Contribs.loc[temp_Contribs.index, ['distance_km']]
+    #TS_diff_perc = 100*diff_TS_df.loc[diff_TS_df.index, ['counts']] / temp_df.loc[temp_df.index, ['counts']]
+    #DS_diff_perc = 100*diff_DS_df.loc[diff_DS_df.index, ['distance_km']] / temp_Contribs.loc[temp_Contribs.index, ['distance_km']]
 
     y_diff = [Total_CO2_remote-baseline_scenario['Total_CO2_remote'], Total_CO2_cowork-baseline_scenario['Total_CO2_cowork'], Total_CO2-baseline_scenario['Total_CO2']]
     totals = [baseline_scenario['Total_CO2_remote']+1, baseline_scenario['Total_CO2_cowork']+1, baseline_scenario['Total_CO2']]
@@ -3065,6 +3118,7 @@ def update_remote_work(co2_car, co2_bus, co2_train, bus_ratio):
           State('internal-value_remote_days_1','data'),
           State('internal-value_remote_workers_1','data'),
           State('internal-value_route_opt_done_1','data'),
+          State('internal-value_routes_len_1','data'),
           State('internal-value_stops_1','data'),
           State('internal-value_coworking_1','data'),
           State('internal-value_coworking_days_1','data'),
@@ -3079,7 +3133,7 @@ def update_remote_work(co2_car, co2_bus, co2_train, bus_ratio):
           [Input('run_baseline_1','n_clicks'),
            Input('run_MCM_1', 'n_clicks')],
           prevent_initial_call=True)
-def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork, RouteOptDone, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, co2km_car, co2km_bus, co2km_train, bus_train_ratio, Tab3, Nclicks_base, Nclicks):
+def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork, RouteOptDone, RouteLengths, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, co2km_car, co2km_bus, co2km_train, bus_train_ratio, Tab3, Nclicks_base, Nclicks):
     print('Cow. Flags:')
     print(CowoFlags)
     CowoIn = np.nonzero(CowoFlags)[0]
@@ -3097,7 +3151,15 @@ def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork,
     # run_MCM(trips_ez, root_Dir, Transh, routeOptDone, co2km_car=0.1081, co2km_bus=1.3, co2km_train=0.049, bus_train_ratio=0.8, NremDays=0, NremWork=0, CowCoords=[], CowDays=0):
     result = run_MCM(df, root_dir, TransH, RouteOptDone, co2km_car, co2km_bus, co2km_train, bus_train_ratio, NremDays, NremWork, CowoCoords, CowDays)  
 
-    out = plot_result(result, NremDays, NremWork, CowDays, Nbuses, stored_scenarios, StopsCoords, CowoFlags)
+    # additional CO2 quota due to company bus service (if any) ###########
+    if RouteOptDone:
+       additional_CO2 = sum ([RouteLengths_i*(1/1000)*co2km_bus for RouteLengths_i in RouteLengths])
+    else:
+       additional_CO2 = 0
+    print()
+    print('additional CO2:')
+    print(additional_CO2)
+    out = plot_result(result, NremDays, NremWork, CowDays, Nbuses, additional_CO2, stored_scenarios, StopsCoords, CowoFlags)
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
@@ -3926,6 +3988,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, Nbuses, RoutesCoord
                Output("outdata_1", "children",allow_duplicate=True),
                Output("internal-value_route_opt_done_1", 'data',allow_duplicate=True),
                Output('internal-value_routes_1','data',allow_duplicate=True),
+               Output('internal-value_routes_len_1','data',allow_duplicate=True),
                Output('map_1','children',allow_duplicate=True)],
                State('internal-value_bus_number_1','data'), 
                State('choose_start_time_1', 'value'),  
@@ -3996,7 +4059,7 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_dir, Nclick):
       print('\n')
       print('\n')
       print('Start calculating routes...')
-      routes, routes_points_coords, Graph = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),root_dir,float(CO2km))
+      routes, routes_points_coords, Graph, route_lengths = calcroutes_module.CalcRoutes_module(Stops,int(Nroutes),root_dir,float(CO2km))
       print('Routes calculated!')
       #print(routes_points_coords)
       print('')
@@ -4015,7 +4078,7 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_dir, Nclick):
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"}) 
       ###################################################################################################   
       #return ["Calculation completed for: "+str(len(Stops)), route_opt, routes_points_coords, Nroutes, new_menu, newMap]
-      return ["Calculation completed for: "+str(len(Stops)) +' stops', route_opt, routes_points_coords, newMap]
+      return ["Calculation completed for: "+str(len(Stops)) +' stops', route_opt, routes_points_coords, route_lengths,newMap]
 
 
 #              [State('choose_route_1',"value"),

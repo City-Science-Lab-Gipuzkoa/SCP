@@ -138,6 +138,7 @@ def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, mod
     #gdf['CO2']  = gdf.apply(estimate_emissions, args=(gkm_car, gkm_bus, co2lt), axis=1)
     #gdf['CO2']  = gdf.apply(estimate_emissions, args=(co2km_car, co2km_bus, co2km_train, bus_train_ratio), axis=1)
     gdf['CO2']  = gdf.apply(estimate_emissions_2, args=(co2km_car, co2km_bus, co2km_train, bus_train_ratio), axis=1)
+   
     #CO2_aver_europe = 5.37 # aver. ton per person in 2021
     CO2_target = 2.3 * 0.4 # target CO2 ton per person in 2030 * 0.4 (assumes that 40% is associated to transportation)   
     n_weeks = 52 # weeks in one year
@@ -148,9 +149,15 @@ def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, mod
     gdf['CO2_worst_case']  = 5*co2km_car*gdf['original_distance']/1000 # 5 = number of days
     gdf['CO2_worst_case_over_target'] = gdf['CO2_worst_case']/(CO2_target*1000/n_weeks) 
     #gdf['distance_week']  = gdf['distance']*(5-gdf['Rem_work']) # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
-    gdf['distance_week'] = gdf['distance_base']*(5-gdf['Rem_work']-gdf['Coworking_days']) + gdf['distance']*gdf['Coworking_days'] # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    
+    # check the following: distance_original instead of distance_base?
+    #gdf['distance_week'] = gdf['distance_base']*(5-gdf['Rem_work']-gdf['Coworking_days']) + gdf['distance']*gdf['Coworking_days'] # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    #gdf['distance_week_interv'] = gdf['distance']*gdf['Coworking_days'] + 0.0*gdf['Rem_work'] 
+    #gdf['distance_week_no_interv'] = gdf['distance_base']*(5-gdf['Rem_work']-gdf['Coworking_days']) 
+
+    gdf['distance_week'] = gdf['original_distance']*(5-gdf['Rem_work']-gdf['Coworking_days']) + gdf['distance']*gdf['Coworking_days'] # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     gdf['distance_week_interv'] = gdf['distance']*gdf['Coworking_days'] + 0.0*gdf['Rem_work'] 
-    gdf['distance_week_no_interv'] = gdf['distance_base']*(5-gdf['Rem_work']-gdf['Coworking_days']) 
+    gdf['distance_week_no_interv'] = gdf['original_distance']*(5-gdf['Rem_work']-gdf['Coworking_days']) 
 
     gdf['weighted_d']  = gdf.apply(calculate_indicator_d, axis=1)
     #gdf['weighted_n']  = gdf.apply(calculate_indicator_n, axis=1)
