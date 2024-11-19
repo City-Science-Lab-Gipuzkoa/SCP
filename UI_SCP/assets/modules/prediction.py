@@ -39,7 +39,7 @@ def estimate_emissions(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio):
             return (5-df['Rem_work'])*co2km_car*df['distance']/1000
 
 
-def estimate_emissions_2(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio):
+def estimate_emissions_2(df, co2km_car, co2km_ecar, co2km_bus, co2km_train, bus_train_ratio):
         # weekly CO2 emissions in tons 
         aver_N_passengers = 29
         bus_train_ratio = bus_train_ratio/100.
@@ -51,8 +51,12 @@ def estimate_emissions_2(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio)
             CO2_base = 0.0
         elif df['Mode_base']=='PT':
             CO2_base =  (co2km_bus*df['distance_base']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance_base']/1000/aver_N_passengers)*(1-bus_train_ratio)
-        else:
-            CO2_base =  co2km_car*df['distance_base']/1000
+        else:        
+            if df['eCar'] == 0: # combustion car
+                CO2_base =  co2km_car*df['distance_base']/1000 
+            else:               # electric car
+                CO2_base =  co2km_ecar*co2km_car*df['distance_base']/1000
+            #CO2_base =  co2km_car*df['distance_base']/1000
         #######################################################
 
         # Result with interventions ################################
@@ -60,10 +64,12 @@ def estimate_emissions_2(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio)
             CO2_interv = 0.0
         elif df['Mode']=='PT':
             CO2_interv =  (co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance']/1000/aver_N_passengers)*(1-bus_train_ratio)
-        else:
-            CO2_interv =  co2km_car*df['distance']/1000
+        else:        
+            if df['eCar'] == 0: # combustion car
+                CO2_interv =  co2km_car*df['distance']/1000 
+            else:               # electric car
+                CO2_interv =  co2km_ecar*co2km_car*df['distance']/1000
         ########################################################
-
         return (5 - n_rw - n_cw)*CO2_base + n_cw*CO2_interv
 
 def calculate_indicator_d(df):
@@ -84,7 +90,7 @@ def calculate_indicator_n(df):
 
 
 #def predict(df, gkm_car, gkm_bus, co2lt, model_dir):
-def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, model_dir):
+def predict(df, df_base, routeOptDone, co2km_car, co2km_ecar, co2km_bus, co2km_train, bus_train_ratio, NeCar, model_dir):
     model_name = "rf_scp"  # El nombre del modelo que guardaste anteriormente
     #file_path = os.path.join("models", f'{model_name}.pkl')
     #with open(file_path, 'rb') as file:
@@ -111,6 +117,8 @@ def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, mod
     df = df[['Hora_Ini_E', 'Per_hog', 'Turismos', 'Sexo', 'Edad', 'crnt_tur', 'drive_tt', 'distance', 'walk_tt', 'transit_tt', 'Tipo_familia']]
     df_base = df_base[['Hora_Ini_E', 'Per_hog', 'Turismos', 'Sexo', 'Edad', 'crnt_tur', 'drive_tt', 'distance', 'walk_tt', 'transit_tt', 'Tipo_familia']]
 
+    #print('check if X and X_base dataframes are equal:')
+    #print(df_base.equals(df))
 
     x = np.array(df) 
     y_pred = model.predict(x)
@@ -135,9 +143,18 @@ def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, mod
     #co2km_bus = 0.3
     #co2km_train = 0.3
 
+    # Set eCar ###########################################################################    
+    gdf["eCar"] = 0
+    if NeCar > 0.0:
+        n_rw = int(len(gdf.index)*NeCar/100) # number of workers using eCar
+        df_to_set = gdf[gdf['Mode']=='Car'].sample(n_rw) # sample n_rw workers using Car
+        df_to_set["eCar"] = 1
+        gdf.update(df_to_set)
+    ######################################################################################  
+    
     #gdf['CO2']  = gdf.apply(estimate_emissions, args=(gkm_car, gkm_bus, co2lt), axis=1)
     #gdf['CO2']  = gdf.apply(estimate_emissions, args=(co2km_car, co2km_bus, co2km_train, bus_train_ratio), axis=1)
-    gdf['CO2']  = gdf.apply(estimate_emissions_2, args=(co2km_car, co2km_bus, co2km_train, bus_train_ratio), axis=1)
+    gdf['CO2']  = gdf.apply(estimate_emissions_2, args=(co2km_car, co2km_ecar, co2km_bus, co2km_train, bus_train_ratio), axis=1)
    
     #CO2_aver_europe = 5.37 # aver. ton per person in 2021
     CO2_target = 2.3 * 0.4 # target CO2 ton per person in 2030 * 0.4 (assumes that 40% is associated to transportation)   
@@ -163,8 +180,6 @@ def predict(df, df_base, co2km_car, co2km_bus, co2km_train, bus_train_ratio, mod
     #gdf['weighted_n']  = gdf.apply(calculate_indicator_n, axis=1)
     gdf['n_close_stops']  = gdf.apply(calculate_indicator_n, axis=1)
 
+    
     #gdf.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/Data_after_predict.csv', index=False)
-    print()
-    print('Final dataframe after predict:')
-    print(gdf.head(60))
     return gdf
