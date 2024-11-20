@@ -217,7 +217,7 @@ cow_actions = [{'label': 'Add coworking hub', 'value': 'AC'},
 interventions = [{'label': 'Company transportation', 'value': 'CT'},
                  {'label': 'Remote working', 'value': 'RW'},
                  {'label': 'Coworking', 'value': 'CW'},
-                 {'label': 'Electric car adoption', 'value': 'ECa'}                
+                 {'label': 'Car electrification', 'value': 'ECa'}                
                 ]
 
 choose_transp_hour = [{'label': "{:02d}".format(i) + ':00' + '-' + "{:02d}".format(i+1) + ':00', 'value': i} for i in range(24)] 
@@ -699,7 +699,7 @@ data = {'eCar_adoption' : [0], 'eCar_co2_km' : 0}
 df = pd.DataFrame(data)
 fig14 = go.Table(
         header=dict(
-            values=["<b>eCar adoption (%)</b>", "<b>CO2/km WRT combus.</b>"],
+            values=["<b>Car electrification %</b>", "<b>CO2/km WRT combus.</b>"],
             line_color='white', fill_color='white',
             align='center', font=dict(color='black', size=14)
         ),
@@ -1512,7 +1512,15 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
                      n_cw = 0    
                 text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]
 
+                #root_dir = root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets_user1/'
+                #MCM_data_dir = 'data/input_data_MCM/' 
+                #BL = pd.read_csv(root_dir + MCM_data_dir + 'baseline_scenario.csv')
+                #print(BL.head())
+                #print(i_pred.Index)
+                #BL_prediction_i = BL.iloc[i_pred.Index]['Mode']
                 color2 = generate_color_gradient(maxCO2,i_pred.CO2, i_pred.Mode_base)
+                #color2 = generate_color_gradient(maxCO2,i_pred.CO2, BL_prediction_i)
+
                 marker_i = dl.Marker(
                         id=str(i_pred),
                         children=[dl.Tooltip(content=text, offset={"x": 5, "y": 10})],
@@ -1731,7 +1739,7 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
     df = pd.DataFrame(data)
     fig14 = go.Table(
             header=dict(
-                values=["<b>eCar adoption (%)</b>", "<b>CO2/km WRT combus.</b>"],
+                values=["<b>Car electrification %</b>", "<b>CO2/km WRT combus.</b>"],
                 line_color='white', fill_color='white',
                 align='center', font=dict(color='black', size=14)
             ),
@@ -2028,7 +2036,7 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
                     'Coworking days', 
                     'Bus routes',
                     'Bus stops',
-                    'eCar adoption',
+                    'Car electrification',
                     'eCar CO2'],
                 hovertext= [str(x0),str(x1), str(x2), str(x3), str(x4), str(x5), str(x6), str(x7)],
                 fill='toself'
@@ -2843,16 +2851,16 @@ def update_remote_work(co2_car, co2_bus, co2_train, bus_ratio):
            Input('run_MCM_1', 'n_clicks')],
           prevent_initial_call=True)
 def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork, NeCar, co2km_eCar, RouteOptDone, RouteLengths, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, co2km_car, co2km_bus, co2km_train, bus_train_ratio, Tab3, Nclicks_base, Nclicks):
-    print('Cow. Flags:')
-    print(CowoFlags)
+    #print('Cow. Flags:')
+    #print(CowoFlags)
     CowoIn = np.nonzero(CowoFlags)[0]
-    print('Indices:')
-    print(CowoIn)
-    print('All coords:')
-    print(StopsCoords)
+    #print('Indices:')
+    #print(CowoIn)
+    #print('All coords:')
+    #print(StopsCoords)
     CowoCoords = np.array(StopsCoords)[CowoIn]
-    print('Cow coords:')
-    print(CowoCoords)
+    #print('Cow coords:')
+    #print(CowoCoords)
     TransH = int(TransH.split(':')[0])
 
     df = pd.DataFrame.from_dict(workerData)    
@@ -2862,31 +2870,25 @@ def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork,
 
     # additional CO2 quota due to company bus service (if any) ###########
     if RouteOptDone:
-        # calculate CO2 correction (kind of...)
-        MCM_data_dir = 'data/input_data_MCM/'
-        baseline_scenario = pd.read_csv(root_dir + MCM_data_dir + 'baseline_scenario.csv')
+      MCM_data_dir = 'data/input_data_MCM/'
+      baseline_scenario = pd.read_csv(root_dir + MCM_data_dir + 'baseline_scenario.csv')
+      if os.path.isfile(root_dir + MCM_data_dir + 'BL_plus_PT.csv'):
+        BL_plus_PT = pd.read_csv(root_dir + MCM_data_dir + 'BL_plus_PT.csv')
+        temp = pd.concat([baseline_scenario[['Mode','Coworking_days']], BL_plus_PT['Mode']], axis=1, ignore_index=True)
+      else:
+        result.to_csv(root_dir + MCM_data_dir + 'BL_plus_PT.csv')
         temp = pd.concat([baseline_scenario[['Mode','Coworking_days']], result['Mode']], axis=1, ignore_index=True)
-        temp.columns = ['Mode1','Coworking_days','Mode2']
-        temp_df = temp.loc[(temp['Mode1']=='Car') & (temp['Mode2']=='PT') & (temp['Coworking_days']==0)].dropna()
-        
-        """
-        temp_df2 = temp.loc[(temp['Mode1']=='Car') & (temp['Mode2']=='PT') & (temp['Coworking_days']==0)]
-        temp_df3 = temp.loc[(temp['Mode1']=='Car') & (temp['Mode2']=='PT')]
 
-        #result.to_csv(root_dir + MCM_data_dir + 'calculated_scenario.csv')
-        temp.to_csv(root_dir + MCM_data_dir + 'NotChanged_Mode.csv')        
-        temp_df.to_csv(root_dir + MCM_data_dir + 'changed_Mode.csv')
-        temp_df2.to_csv(root_dir + MCM_data_dir + 'changed_Mode1.csv')
-        temp_df3.to_csv(root_dir + MCM_data_dir + 'changed_Mode2.csv')
-        """
-        result.loc[temp_df.index.values, 'CO2'] = 0
-        #result.to_csv(root_dir + MCM_data_dir + 'calculated_scenario.csv')
-        additional_co2 = sum ([RouteLengths_i*(1/1000)*co2km_bus for RouteLengths_i in RouteLengths])
-        print()
-        print('CO2 emissions of Car->PT workers set to zero!')
+      temp.columns = ['Mode1','Coworking_days','Mode2']
+      temp_df = temp.loc[(temp['Mode1']=='Car') & (temp['Mode2']=='PT') & (temp['Coworking_days']==0)].dropna()
+        
+      result.loc[temp_df.index.values, 'CO2'] = 0
+      #result.to_csv(root_dir + MCM_data_dir + 'calculated_scenario.csv')
+      additional_co2 = sum ([RouteLengths_i*(1/1000)*co2km_bus for RouteLengths_i in RouteLengths])
+      print()
+      print('CO2 emissions of Car->PT workers set to zero!')
     else:
        additional_co2 = 0
-
 
     out = plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_co2, co2km_eCar, stored_scenarios, StopsCoords, CowoFlags)
 
@@ -3433,13 +3435,17 @@ def load_scenario(contents, names, dates):
                Output('map_1','children',allow_duplicate=True)],
               State("n_clusters_1", "value"),
               State('worker_data_1', 'data'),
+
+              State('internal-value_stops_1','data'),
+              State('internal-value_coworking_1','data'),
+
               State('root_dir_1','data'),
               State('choose_start_time_1', 'value'),
               State('internal-value_scenario_1','data'),     
               Input("propose_stops_1", "n_clicks"),
               prevent_initial_call=True
               )
-def propose_stops(n_clusters,workerData, root_dir, startHour, result_json, Nclick):
+def propose_stops(n_clusters,workerData, StopsCoords, CowFlags, root_dir, startHour, result_json, Nclick):
     if Nclick > 0:  
         sys.path.append(root_dir + 'modules')      
         import find_stops_module   
@@ -3454,14 +3460,23 @@ def propose_stops(n_clusters,workerData, root_dir, startHour, result_json, Nclic
         #for i in range(len(St)):
         #    out = out + str(St.loc[i,['Lat']]) + ', ' + str(St.loc[i,['Lon']]) + '; '
         out = ''
-        St = []
-        Cow = []
+        #St = []
+        #Cow = []
+        St = StopsCoords
+        Cow = CowFlags
         for ind in bus_stops_df.index:
             out = out + str(bus_stops_df['Lat'][ind]) + ',' + str(bus_stops_df['Lon'][ind]) +';'
             St.append((bus_stops_df['Lat'][ind],bus_stops_df['Lon'][ind]))
             Cow.append(0)
         
-        markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
+        markers = []
+        for i, pos in enumerate(St):
+            if Cow[i] == 0:
+                marker_i = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i})
+            else:
+                marker_i = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_coworking, id={'type': 'marker', 'index': i})
+            markers.append(marker_i)
+        #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
         Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
 
         if len(result_json) ==0:
@@ -3686,7 +3701,7 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, NeCar, eCar_co2_km,
         print(eCar_co2_km)
         sidebar_electric_car = html.Div(
                 [
-                html.P(['Choose electric car adoption (%)'],id='ecar_adoption_1',style={"margin-top": "15px","font-weight": "bold"}),
+                html.P(['Choose car electrifcation %'],id='ecar_adoption_1',style={"margin-top": "15px","font-weight": "bold"}),
 
                 dcc.Slider(0, 100, 5,
                        value=NeCar,

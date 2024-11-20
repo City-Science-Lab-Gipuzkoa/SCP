@@ -584,8 +584,8 @@ def pp(hour,X, RouteOptDone, CowCoords, CowDays, RemWoPer, RemWoDays, root_dir, 
 
             # Baseline dataframe ###################################
             X_base[f"{k}_tt"] = transit[k].shortest_path_lengths(   # original code
-            transit[k].get_node_ids(X.O_long,X.O_lat),         # original code
-            transit[k].get_node_ids(X.D_long,X.D_lat)          # original code
+            transit[k].get_node_ids(X_base.O_long,X_base.O_lat),         # original code
+            transit[k].get_node_ids(X_base.D_long,X_base.D_lat)          # original code
             )                                                  # original code
             ########################################################
             
