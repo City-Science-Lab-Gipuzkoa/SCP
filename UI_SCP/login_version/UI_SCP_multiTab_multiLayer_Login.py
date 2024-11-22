@@ -613,101 +613,11 @@ central_panel_1 = html.Div(
     ],
     style=CONTENT_STYLE)
 
+radius_max = 1
 
 #d_tmp = {'counts': [100, 50, 2], 'distance_week': [100, 50, 2], 'Mode': ['Car','PT','Walk'], 'color': ['red','blue','green']}
-d_tmp = {'counts': [0, 0, 0], 'distance_week': [0, 0, 0], 'Mode': ['Car','PT','Walk'], 'color': ['red','blue','green']}
+d_tmp = {'counts': [30, 30, 30], 'distance_week': [1, 20, 50], 'Mode': ['Car','PT','Walk'], 'color': ['red','blue','green']}
 df_tmp = pd.DataFrame(data=d_tmp)
-
-radius_max = 1
-x0 = 0
-x1 = 0
-x2 = 0
-x3 = 0
-x4 = 0  
-x5 = 0 
-"""
-x0 = 1
-x1 = 30
-x2 = 2
-x3 = 2
-x4 = 7  
-x5 = 7 
-"""
-x0_max = 5
-x1_max = 100
-x2_max = 3
-x3_max = 5
-x4_max = 15
-x5_max = 15
-"""
-fig1 = go.Scatterpolar(
-            r=[radius_max*x0/x0_max, radius_max*x1/x1_max, radius_max*x2/x2_max, radius_max*x3/x3_max, radius_max*x4/x4_max, radius_max*x5/x5_max],
-            theta=['Remote working days',
-                   'Remote working persons (%)',
-                   'Coworking hubs', 
-                   'Coworking days', 
-                   'Bus routes',
-                   'Bus stops'],
-            hovertext= [str(x0),str(x1), str(x2), str(x3), str(x4), str(x5)],
-            fill='toself'
-        )
-"""
-data = {'Number_routes' : [0], 'Number_stops' : 0}
-df = pd.DataFrame(data)
-fig11 = go.Table(
-        header=dict(
-            values=["<b>Number of routes</b>", "<b>Number of stops</b>"],
-            line_color='white', fill_color='white',
-            align='center', font=dict(color='black', size=14)
-        ),
-        cells=dict(
-            values=[df.Number_routes, df.Number_stops],
-            fill_color=['rgb(107, 174, 214)'],
-            align='center', font=dict(color='black', size=14)
-        ))
-data = {'Coworking_hubs' : [0], 'Coworking_days' : 0}
-df = pd.DataFrame(data)
-print()
-print('Check initial values of Coworking:')
-print(df)
-print()
-fig12 = go.Table(
-        header=dict(
-            values=["<b>Coworking hubs</b>", "<b>Coworking days</b>"],
-            line_color='white', fill_color='white',
-            align='center', font=dict(color='black', size=14)
-        ),
-        cells=dict(
-            values=[df.Coworking_hubs, df.Coworking_days],
-            fill_color=['rgb(107, 174, 214)'],
-            align='center', font=dict(color='black', size=14)
-        ))
-data = {'Remote_workers' : [0], 'Remote_days' : 0}
-df = pd.DataFrame(data)
-fig13 = go.Table(
-        header=dict(
-            values=["<b>Remote workers (%)</b>", "<b>Remote days</b>"],
-            line_color='white', fill_color='white',
-            align='center', font=dict(color='black', size=14)
-        ),
-        cells=dict(
-            values=[df.Remote_workers, df.Remote_days],
-            fill_color=['rgb(107, 174, 214)'],
-            align='center', font=dict(color='black', size=14)
-        ))
-data = {'eCar_adoption' : [0], 'eCar_co2_km' : 0}
-df = pd.DataFrame(data)
-fig14 = go.Table(
-        header=dict(
-            values=["<b>Car electrification %</b>", "<b>CO2/km WRT combus.</b>"],
-            line_color='white', fill_color='white',
-            align='center', font=dict(color='black', size=14)
-        ),
-        cells=dict(
-            values=[df.eCar_adoption, df.eCar_co2_km],
-            fill_color=['rgb(107, 174, 214)'],
-            align='center', font=dict(color='black', size=14)
-        ))
 
 cmap = cm.get_cmap('RdYlGn', 30)    # PiYG
 interv = np.linspace(0,1,cmap.N)
@@ -719,7 +629,7 @@ for i in reversed(range(cmap.N-1)):
     j+=1
     steps_gauge.append(t)
 
-fig2 = go.Indicator(mode = "gauge+number",
+fig1 = go.Indicator(mode = "gauge+number",
                         value = 0.0,
                        domain = {'x': [0, 1], 'y': [0, 1]},        
                         gauge= {
@@ -732,66 +642,71 @@ fig2 = go.Indicator(mode = "gauge+number",
                                 }
 
                     )
-fig21 = go.Table(
+headerColor = 'rgb(107, 174, 214)'
+fig11 = go.Table(
+            columnwidth = [40,60],
+            header=dict(
+                values=['<b>ton/week</b>','<b>kg/week/person</b>'],
+                line_color='darkslategray',
+                fill_color=headerColor,
+                align=['center','center','center'],
+                font=dict(color='white', size=14)
+            ),
             cells=dict(
-                values=[["<b>Total CO2 (ton/week)</b>:{:.3f}".format(0.)]],
+                values=[["{:.3f}".format(0.)],["{:.2f}".format(0.)]],
                 fill_color=['rgb(107, 174, 214)'],
-                align='center', font=dict(color='black', size=14)
-            ))
-fig22 = go.Table(
-            cells=dict(
-                values=[["<b>Total CO2 (kg/week/person)</b>:{:.2f}".format(0.)]],
-                fill_color=['rgb(107, 174, 214)'],
+                line_color='darkslategray',
                 align='center', font=dict(color='black', size=14)
             ))
 
-fig3 = go.Pie(labels=df_tmp["Mode"],
+fig2 = go.Pie(labels=df_tmp["Mode"],
                   values=df_tmp["counts"],
                   showlegend=False,
                   textposition='inside',
                   textinfo='label+percent',
                   marker=dict(colors=df_tmp['color']))
 
-
-fig4 = go.Bar(
+fig3 = go.Bar(
             x=df_tmp['distance_week'],
             y=df_tmp['Mode'],
             orientation='h',
             marker_color=df_tmp['color'])
 
-row_titles = ("Company transportation",
-              "Coworking",
-              "Remote working", 
-              "Electric car", 
-              "CO2 emissions", "","", "Transport share (%)", "Weekly distance share (km)")
-column_titles = ()
+rowEvenColor = 'rgb(189, 215, 231)'
+rowOddColor = 'rgb(107, 174, 214)'
+fig44 = go.Table(
+            columnwidth = [70,70],
+            cells=dict(
+                values=[["<b>Number of routes</b>:{:.2f}".format(0.),
+                         "<b>Coworking hubs</b>:{:.2f}".format(0.),
+                         "<b>Remote workers (%)</b>:{:.2f}".format(0.),
+                         "<b>Car electrification (%)</b>:{:.2f}".format(0.)],
+                        ["<b>Number of stops</b>:{:.2f}".format(0.),
+                         "<b>Coworking days</b>:{:.2f}".format(0.),
+                         "<b>Remote days</b>:{:.2f}".format(0.),
+                         "<b>CO2/km WRT combus.</b>:{:.2f}".format(0.)]],
+                fill_color = [[rowOddColor,rowEvenColor,rowOddColor,rowEvenColor,rowOddColor]*2],
+                line_color='darkslategray',
+                align='center', font=dict(color='black', size=14)
+            ))
 
-"""
-fig = make_subplots(rows=4, cols=1, 
-                    specs=[
-                            [{"type": "scatterpolar"}], [{"type": "indicator"}],
-                            [{"type": "pie"}], [{"type": "bar"}]],
-                    row_heights=[2,1,2,1],
-                    subplot_titles=row_titles
-                    )
-"""
 
-fig = make_subplots(rows=9, cols=1, 
+fig = make_subplots(rows=4, cols=2,
+                    subplot_titles=("Fractional CO2 emissions", "Transport share (%)", 
+                                    "Total CO2 emissions", "Interventions", 
+                                    "Weekly distance share (km)"),
                     specs=[
-                            [{"type": "table"}], 
-                            [{"type": "table"}],
-                            [{"type": "table"}],
-                            [{"type": "table"}],
-                            [{"type": "indicator"}],
-                            [{"type": "table"}],
-                            [{"type": "table"}],
-                            [{"type": "pie"}], 
-                            [{"type": "bar"}]],
-                    row_heights=[1,1,1,1,2,2,2,3,1],
-                    subplot_titles=row_titles
+                            [{"type": "indicator"},{"type": "pie"}],
+                            [{"type": "table", "colspan": 2},None],
+                            [{"type": "table", "colspan": 2},None],   
+                            [{"type": "bar", "colspan": 2},None]                      
+                            ],
+                    row_heights=[0.5,0.3,1,0.4],
+                    vertical_spacing=0.05
                     ) #-> row height is used to re-size plots of specific rows
 #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
-fig.for_each_annotation(lambda a:  a.update(x = 0.2) if a.text in row_titles else())
+#fig.for_each_annotation(lambda a:  a.update(x = 0.2) if a.text in row_titles else())
+"""
 fig.append_trace(fig11, 1, 1)
 fig.append_trace(fig12, 2, 1)
 fig.append_trace(fig13, 3, 1)
@@ -800,7 +715,18 @@ fig.append_trace(fig2, 5, 1)
 fig.append_trace(fig21, 6, 1)
 fig.append_trace(fig22, 7, 1)
 fig.append_trace(fig3, 8, 1)
-fig.append_trace(fig4, 9, 1)   
+fig.append_trace(fig4, 9, 1) 
+"""
+
+fig.append_trace(fig1, 1, 1)
+fig.append_trace(fig2, 1, 2)
+fig.append_trace(fig11, 2, 1)
+fig.append_trace(fig44, 3, 1) 
+#fig.append_trace(fig41, 5, 1)
+#fig.append_trace(fig42, 6, 1)
+#fig.append_trace(fig43, 7, 1)
+fig.append_trace(fig3, 4, 1)
+
 
 #fig.update_yaxes(title_text="CO2 emissions", row=1, col=1)
 #fig.update_yaxes(title_text="Transport share", row=2, col=1)
@@ -817,7 +743,7 @@ indicators_1 = html.Div(
         dcc.Graph(
             figure=fig,
             id = 'Indicator_panel_1',
-            style={'width': '65vh', 'height': '190vh'}) 
+            style={'width': '65vh', 'height': '90vh'}) 
         ],
         style=INDICATORS_STYLE
         )
@@ -1512,14 +1438,7 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
                      n_cw = 0    
                 text = text + '<br>' + 'Coworking: ' + (['Yes']*n_cw + ['No'])[n_cw-1]
 
-                #root_dir = root_dir = 'C:/Users/gfotidellaf/repositories/UI_SCP/assets_user1/'
-                #MCM_data_dir = 'data/input_data_MCM/' 
-                #BL = pd.read_csv(root_dir + MCM_data_dir + 'baseline_scenario.csv')
-                #print(BL.head())
-                #print(i_pred.Index)
-                #BL_prediction_i = BL.iloc[i_pred.Index]['Mode']
                 color2 = generate_color_gradient(maxCO2,i_pred.CO2, i_pred.Mode_base)
-                #color2 = generate_color_gradient(maxCO2,i_pred.CO2, BL_prediction_i)
 
                 marker_i = dl.Marker(
                         id=str(i_pred),
@@ -1679,77 +1598,6 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
     x5_max = 15
     x6_max = 100
     x7_max = 1
-    """
-    fig1 = go.Scatterpolar(
-                r=[radius_max*x0/x0_max, radius_max*x1/x1_max, radius_max*x2/x2_max, radius_max*x3/x3_max, radius_max*x4/x4_max, radius_max*x5/x5_max],
-                theta=['Remote working days',
-                    'Remote working persons (%)',
-                    'Coworking hubs',
-                    'Coworking days', 
-                    'Bus routes',
-                    'Bus stops'],
-                hovertext= [str(x0),str(x1), str(x2), str(x3), str(x4), str(x5)],
-                fill='toself'
-            )
-    """
-    data = {'Number_routes' : [Nbuses], 'Number_stops' : len(StopsCoords) - sum(CowFlags)}
-    df = pd.DataFrame(data)
-    fig11 = go.Table(
-            header=dict(
-                values=["<b>Number of routes</b>", "<b>Number of stops</b>"],
-                line_color='white', fill_color='white',
-                align='center', font=dict(color='black', size=14)
-            ),
-            cells=dict(
-                values=[df.Number_routes, df.Number_stops],
-                fill_color=['rgb(107, 174, 214)'],
-                align='center', font=dict(color='black', size=14)
-            ))
-    data = {'Coworking_hubs' : [sum(CowFlags)], 'Coworking_days' : CowDays}
-    df = pd.DataFrame(data)
-    print()
-    print('check Coworking data:')
-    print(df)
-    print()
-    fig12 = go.Table(
-            header=dict(
-                values=["<b>Coworking hubs</b>", "<b>Coworking days</b>"],
-                line_color='white', fill_color='white',
-                align='center', font=dict(color='black', size=14)
-            ),
-            cells=dict(
-                values=[df.Coworking_hubs, df.Coworking_days],
-                fill_color=['rgb(107, 174, 214)'],
-                align='center', font=dict(color='black', size=14)
-            ))
-    data = {'Remote_workers' : [NremWork], 'Remote_days' : NremDays}
-    df = pd.DataFrame(data)
-    fig13 = go.Table(
-            header=dict(
-                values=["<b>Remote workers (%)</b>", "<b>Remote days</b>"],
-                line_color='white', fill_color='white',
-                align='center', font=dict(color='black', size=14)
-            ),
-            cells=dict(
-                values=[df.Remote_workers, df.Remote_days],
-                fill_color=['rgb(107, 174, 214)'],
-                align='center', font=dict(color='black', size=14)
-            ))
-    data = {'eCar_adoption' : [NeCar], 'eCar_co2_km' : eCar_co2_km}
-    df = pd.DataFrame(data)
-    fig14 = go.Table(
-            header=dict(
-                values=["<b>Car electrification %</b>", "<b>CO2/km WRT combus.</b>"],
-                line_color='white', fill_color='white',
-                align='center', font=dict(color='black', size=14)
-            ),
-            cells=dict(
-                values=[df.eCar_adoption, df.eCar_co2_km],
-                fill_color=['rgb(107, 174, 214)'],
-                align='center', font=dict(color='black', size=14)
-            ))
-
-
 
     Total_CO2 = result['CO2'].sum() + additional_co2
     # Correct CO2 calculation 
@@ -1772,7 +1620,7 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
         j+=1
         steps_gauge.append(t)
 
-    fig2 = go.Indicator(mode = "gauge+number",
+    fig1 = go.Indicator(mode = "gauge+number",
                         value = Total_CO2/Total_CO2_worst_case,
                         domain = {'x': [0, 1], 'y': [0, 1]},        
                         gauge  = {
@@ -1784,37 +1632,38 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
                                         }
                                     }
                         )
+    
+    headerColor = 'rgb(107, 174, 214)'
+    fig11 = go.Table(
+                columnwidth = [40,60],
+                header=dict(
+                    values=['<b>ton/week</b>','<b>kg/week/person</b>'],
+                    line_color='darkslategray',
+                    fill_color=headerColor,
+                    align=['center','center'],
+                    font=dict(color='white', size=14)
+                ),
+                cells=dict(
+                    values=[["{:.3f}".format(Total_CO2/1000.)],["{:.2f}".format(Total_CO2/Nworkers)]],
+                    fill_color=['rgb(107, 174, 214)'],
+                    line_color='darkslategray',
+                    align='center', font=dict(color='black', size=14)
+                ))
 
-    fig21 = go.Table(
-            cells=dict(
-                values=[["<b>Total CO2 (ton/week)</b>:{:.3f}".format(Total_CO2/1000.)]],
-                fill_color=['rgb(107, 174, 214)'],
-                align='center', font=dict(color='black', size=14)
-            ))
-    fig22 = go.Table(
-            cells=dict(
-                values=[["<b>Total CO2 (kg/week/person)</b>:{:.2f}".format(Total_CO2/Nworkers)]],
-                fill_color=['rgb(107, 174, 214)'],
-                align='center', font=dict(color='black', size=14)
-            ))
 
 
     predicted = result['prediction']
     unique_labels, counts = np.unique(predicted, return_counts=True)
     d = {'Mode': unique_labels, 'counts':counts}
-    df = pd.DataFrame(data=d)
-    df['Mode'] = df['Mode'].map({0:'Walk',1:'PT',2:'Car'})
-    df['color'] = df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
-    print()
-    print('check predicted data:')
-    print(df)
-    print()
-    fig3 = go.Pie(labels=df["Mode"],
-                    values=df["counts"],
+    df0 = pd.DataFrame(data=d)
+    df0['Mode'] = df0['Mode'].map({0:'Walk',1:'PT',2:'Car'})
+    df0['color'] = df0['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    fig2 = go.Pie(labels=df0["Mode"],
+                    values=df0["counts"],
                     showlegend=False,
                     textposition='inside',
                     textinfo='label+percent',
-                    marker=dict(colors=df['color']))
+                    marker=dict(colors=df0['color']))
 
     temp = result.copy()
     #temp['distance_km'] = temp['distance_week']/1000.
@@ -1834,59 +1683,57 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
     print()
     print('Contribs:')  
     print(Contribs)
-    fig4 = go.Bar(
+    fig3 = go.Bar(
                 x=Contribs['distance_km'],
                 y=Contribs['Mode'],
                 orientation='h',
                 marker_color=Contribs['color'])
 
-    
-    """
-    row_titles = ("Interventions", "CO2 emissions", "Transport share (%)", "Weekly distance share (km)")
-    fig_total = make_subplots(rows=4, cols=1, 
+    data = {'Number_routes' : [Nbuses], 'Number_stops' : len(StopsCoords) - sum(CowFlags),
+            'Coworking_days' : CowDays, 'Coworking_hubs' : sum(CowFlags), 
+            'Remote_days' : NremDays, 'Remote_workers' : NremWork, 
+            'eCar_co2_km' : eCar_co2_km, 'eCar_adoption' : NeCar}
+    df1 = pd.DataFrame(data)
+    fig44 = go.Table(
+                columnwidth = [70,70],
+                cells=dict(
+                    values=[["<b>Number of routes</b>:{:.2f}".format(int(df1.Number_routes)),
+                            "<b>Coworking hubs</b>:{:.2f}".format(int(df1.Coworking_hubs)),
+                            "<b>Remote workers (%)</b>:{:.2f}".format(int(df1.Remote_workers)),
+                            "<b>Car electrification (%)</b>:{:.2f}".format(int(df1.eCar_adoption))],
+                            ["<b>Number of stops</b>:{:.2f}".format(int(df1.Number_stops)),
+                            "<b>Coworking days</b>:{:.2f}".format(int(df1.Coworking_days)),
+                            "<b>Remote days</b>:{:.2f}".format(int(df1.Remote_days)),
+                            "<b>CO2/km WRT combus.</b>:{:.2f}".format(int(df1.eCar_co2_km))]],
+                    fill_color = [[rowOddColor,rowEvenColor,rowOddColor,rowEvenColor,rowOddColor]*2],
+                    line_color='darkslategray',
+                    align='center', font=dict(color='black', size=14)
+                ))
+
+    fig_total = make_subplots(rows=4, cols=2, 
+                        subplot_titles=("Fractional CO2 emissions", "Transport share (%)", 
+                                        "Total CO2 emissions", "Interventions", 
+                                        "Weekly distance share (km)"),
                         specs=[
-                                [{"type": "scatterpolar"}], [{"type": "indicator"}],
-                                [{"type": "pie"}], [{"type": "bar"}]],
-                        row_heights=[2,1,2,1],
-                        subplot_titles=row_titles
+                                [{"type": "indicator"},{"type": "pie"}],
+                                [{"type": "table", "colspan": 2},None],
+                                [{"type": "table", "colspan": 2},None],
+                                [{"type": "bar", "colspan": 2},None]                         
+                                ],
+                    row_heights=[0.5,0.3,1,0.4],
+                    vertical_spacing=0.05
                         ) #-> row height is used to re-size plots of specific rows
-    #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
-    fig_total.for_each_annotation(lambda a:  a.update(x = 0.2) if a.text in row_titles else())
+
     fig_total.append_trace(fig1, 1, 1)
-    fig_total.append_trace(fig2, 2, 1)
-    fig_total.append_trace(fig3, 3, 1)
-    fig_total.append_trace(fig4, 4, 1) 
-    """
-    row_titles = ("Company transportation",
-                    "Coworking",
-                    "Remote working", 
-                    "Electric car",
-                    "CO2 emissions", "", "", "Transport share (%)", "Weekly distance share (km)")
-    fig_total = make_subplots(rows=9, cols=1, 
-                        specs=[
-                                [{"type": "table"}], 
-                                [{"type": "table"}],
-                                [{"type": "table"}],
-                                [{"type": "table"}],
-                                [{"type": "indicator"}],
-                                [{"type": "table"}],
-                                [{"type": "table"}],
-                                [{"type": "pie"}], 
-                                [{"type": "bar"}]],
-                        row_heights=[1,1,1,1,2,2,2,3,1],
-                        subplot_titles=row_titles
-                        ) #-> row height is used to re-size plots of specific rows
-    #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
-    fig_total.for_each_annotation(lambda a:  a.update(x = 0.2) if a.text in row_titles else())
-    fig_total.append_trace(fig11, 1, 1)
-    fig_total.append_trace(fig12, 2, 1)
-    fig_total.append_trace(fig13, 3, 1)
-    fig_total.append_trace(fig14, 4, 1)
-    fig_total.append_trace(fig2, 5, 1)
-    fig_total.append_trace(fig21, 6, 1)
-    fig_total.append_trace(fig22, 7, 1)
-    fig_total.append_trace(fig3, 8, 1)
-    fig_total.append_trace(fig4, 9, 1) 
+    fig_total.append_trace(fig2, 1, 2)
+    fig_total.append_trace(fig11, 2, 1)
+    fig_total.append_trace(fig44, 3, 1) 
+    #fig.append_trace(fig41, 5, 1)
+    #fig.append_trace(fig42, 6, 1)
+    #fig.append_trace(fig43, 7, 1)
+    fig_total.append_trace(fig3, 4, 1)
+
+
 
     fig_total.update_annotations(font_size=18)
     fig_total.update_layout(showlegend=False)    
@@ -1925,8 +1772,8 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
             'Total_CO2_remote': Total_CO2_remote,
             'Total_CO2_cowork': Total_CO2_cowork,
             'Total_CO2_worst_case': Total_CO2_worst_case,
-            'counts': df["counts"].tolist(), 
-            'Transport_share_labels': df["Mode"].tolist(),
+            'counts': df0["counts"].tolist(), 
+            'Transport_share_labels': df0["Mode"].tolist(),
             'distance_km': Contribs['distance_km'].tolist(), 
             'Distance_share_labels': Contribs["Mode"].tolist()
         }
@@ -1941,12 +1788,10 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
     BS_TS_df = pd.DataFrame({'counts': baseline_scenario['counts']}, index = baseline_scenario['Transport_share_labels'])
     BS_DS_df = pd.DataFrame({'distance_km': baseline_scenario['distance_km']}, index = baseline_scenario['Distance_share_labels'])
 
-    temp_df = df.copy()
+    temp_df = df0.copy()
     temp_Contribs = Contribs.copy()
     diff_TS_df = temp_df[['Mode','counts']].set_index('Mode').subtract(BS_TS_df)
     diff_DS_df = temp_Contribs[['Mode','distance_km']].set_index('Mode').subtract(BS_DS_df)
-
-
 
     #temp_df = pd.DataFrame({'counts': df['counts'].tolist()}, index=df['Mode'].tolist())
     #temp_Contribs = pd.DataFrame({'distance_km': Contribs['distance_km'].tolist()}, index=Contribs['Mode'].tolist())
@@ -1959,8 +1804,6 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
                     counts_ratio=lambda x: x['counts_diff'].div(x['counts_baseline']))
     DS_diff_perc = diff_DS_df.merge(BS_DS_df, on='Mode', suffixes=('_diff', '_baseline')).assign(
                     distance_km_ratio=lambda x: x['distance_km_diff'].div(x['distance_km_baseline']))
-
-
 
     y_diff = [Total_CO2_remote-baseline_scenario['Total_CO2_remote'], Total_CO2_cowork-baseline_scenario['Total_CO2_cowork'], Total_CO2-baseline_scenario['Total_CO2']]
     totals = [baseline_scenario['Total_CO2_remote']+1, baseline_scenario['Total_CO2_cowork']+1, baseline_scenario['Total_CO2']]
@@ -2023,9 +1866,6 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
         x6= 0
         x7 = 0
 
-    print('check input variables:')
-    print(x4)
-    print(x5)
     fig1 = go.Scatterpolar(
                 r=[radius_max*x0/x0_max, radius_max*x1/x1_max, radius_max*x2/x2_max, 
                    radius_max*x3/x3_max, radius_max*x4/x4_max, radius_max*x5/x5_max, 
@@ -2050,17 +1890,6 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
                 y=[y_perc[2]],
                 x=['Total'],                
                 marker_color=colors[2])
-    """
-    fig3 = go.Bar(
-                y=100*TS_diff_perc['counts_ratio'],
-                x=df['Mode'],
-                marker_color=df['color'])
-
-    fig4 = go.Bar(
-                y=100*DS_diff_perc['distance_km_ratio'],
-                x=Contribs['Mode'],
-                marker_color=Contribs['color'])
-    """
 
     diff_TS_df = diff_TS_df.reset_index()
     diff_TS_df['color'] = diff_TS_df['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
@@ -2076,19 +1905,6 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
                 x=diff_DS_df['Mode'],
                 marker_color=diff_DS_df['color'])
 
-    """
-    row_titles = ("Interventions","CO2 emissions difference WRT baseline","","Transport difference WRT baseline","Distance difference WRT baseline (km/week)")
-    fig_comp = make_subplots(
-        rows=4, cols=2,
-        specs=[[{"type": "scatterpolar","colspan": 2}, None],
-               [{"type": "bar"}, {"secondary_y": True}],
-               [{"type": "bar","colspan": 2}, None],
-               [{"type": "bar","colspan": 2}, None]],
-               row_heights=[2,1,1,1],
-               subplot_titles=row_titles,
-               horizontal_spacing=0.9,
-                ) 
-    """
     row_titles = ("Interventions", 
                   "CO2 emissions difference WRT baseline",
                   "",  
@@ -2567,12 +2383,7 @@ def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, co2km_car=0.1081, co2km_eC
     [Input('url', 'pathname'), Input('user_ip', 'data')]
 )
 def update_user_ip(modified_timestamp, pathname, user_ip):
-    #if not modified_timestamp:
-    #user_ip = request.remote_addr
-    #user_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
     user_ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr)
-    #user_ip2 = request.environ.get('REMOTE_ADDR')
-    #user_ip3 = request.access_route[0]
     print()
     print()
     print('user IP: ', user_ip)   
@@ -4195,6 +4006,7 @@ def change_stop_marker(St, Cow, marker_operation, result_json, *args):
        return ['Stop set as Coworking!',St,Cow,newMap]
     """    
 
+"""
 # Define the callback for the plot
 @app.callback(
     Output('plot', 'figure'),
@@ -4206,7 +4018,7 @@ def update_plot(click_data):
         return {'data': [{'x': [x], 'y': [x**2]}], 'layout': {'title': 'Squared Value'}}
     else:
         return {'data': [{'x': [1, 2, 3], 'y': [4, 1, 2]}], 'layout': {'title': 'My Plot'}}
-
+"""
 # Define the login route
 
 @server.route('/reports/<path:path>')

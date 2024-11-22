@@ -102,23 +102,9 @@ def predict(df, df_base, routeOptDone, co2km_car, co2km_ecar, co2km_bus, co2km_t
          )
 
     gdf['distance_base'] = df_base['distance']
-    #if baseline == 0:
-    #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat'])) 
-    #x = np.array(df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'Rem_work','Coworking']))      
-    #cols_to_drop = df.columns[df.columns.str.contains('distance_stop')]
-    # Drop the columns containing the string "Email"
-    #df.drop(cols_to_drop, axis=1, inplace=True)
-    
-    #df = df.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat', 'original_distance','Rem_work','Coworking','Coworking_days'], errors='ignore') # errors='ignore' only for the Baseline scenario where we do not have the 'Coworking' column      
-    #df_base = df_base.drop(columns = ['Mun_Des', 'Mun_Ori', 'O_long', 'O_lat', 'D_long', 'D_lat'], errors='ignore') # errors='ignore' only for the Baseline scenario where we do not have the 'Coworking' column      
-
-    ##df.to_csv('C:/Users/gfotidellaf/repositories/UI_SCP/assets/data/X_before_predict.csv', index=False)
 
     df = df[['Hora_Ini_E', 'Per_hog', 'Turismos', 'Sexo', 'Edad', 'crnt_tur', 'drive_tt', 'distance', 'walk_tt', 'transit_tt', 'Tipo_familia']]
     df_base = df_base[['Hora_Ini_E', 'Per_hog', 'Turismos', 'Sexo', 'Edad', 'crnt_tur', 'drive_tt', 'distance', 'walk_tt', 'transit_tt', 'Tipo_familia']]
-
-    #print('check if X and X_base dataframes are equal:')
-    #print(df_base.equals(df))
 
     x = np.array(df) 
     y_pred = model.predict(x)
