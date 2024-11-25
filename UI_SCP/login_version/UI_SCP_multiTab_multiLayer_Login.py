@@ -642,8 +642,17 @@ fig1 = go.Indicator(mode = "gauge+number",
                                 }
 
                     )
+
+
+fig2 = go.Pie(labels=df_tmp["Mode"],
+                  values=df_tmp["counts"],
+                  showlegend=False,
+                  textposition='inside',
+                  textinfo='label+percent',
+                  marker=dict(colors=df_tmp['color']))
+
 headerColor = 'rgb(107, 174, 214)'
-fig11 = go.Table(
+fig3 = go.Table(
             columnwidth = [40,60],
             header=dict(
                 values=['<b>ton/week</b>','<b>kg/week/person</b>'],
@@ -659,22 +668,10 @@ fig11 = go.Table(
                 align='center', font=dict(color='black', size=14)
             ))
 
-fig2 = go.Pie(labels=df_tmp["Mode"],
-                  values=df_tmp["counts"],
-                  showlegend=False,
-                  textposition='inside',
-                  textinfo='label+percent',
-                  marker=dict(colors=df_tmp['color']))
-
-fig3 = go.Bar(
-            x=df_tmp['distance_week'],
-            y=df_tmp['Mode'],
-            orientation='h',
-            marker_color=df_tmp['color'])
 
 rowEvenColor = 'rgb(189, 215, 231)'
 rowOddColor = 'rgb(107, 174, 214)'
-fig44 = go.Table(
+fig4 = go.Table(
             columnwidth = [70,70],
             cells=dict(
                 values=[["<b>Number of routes</b>:{:.2f}".format(0.),
@@ -690,6 +687,11 @@ fig44 = go.Table(
                 align='center', font=dict(color='black', size=14)
             ))
 
+fig5 = go.Bar(
+            x=df_tmp['distance_week'],
+            y=df_tmp['Mode'],
+            orientation='h',
+            marker_color=df_tmp['color'])
 
 fig = make_subplots(rows=4, cols=2,
                     subplot_titles=("Fractional CO2 emissions", "Transport share (%)", 
@@ -720,12 +722,9 @@ fig.append_trace(fig4, 9, 1)
 
 fig.append_trace(fig1, 1, 1)
 fig.append_trace(fig2, 1, 2)
-fig.append_trace(fig11, 2, 1)
-fig.append_trace(fig44, 3, 1) 
-#fig.append_trace(fig41, 5, 1)
-#fig.append_trace(fig42, 6, 1)
-#fig.append_trace(fig43, 7, 1)
-fig.append_trace(fig3, 4, 1)
+fig.append_trace(fig3, 2, 1)
+fig.append_trace(fig4, 3, 1) 
+fig.append_trace(fig5, 4, 1)
 
 
 #fig.update_yaxes(title_text="CO2 emissions", row=1, col=1)
@@ -1633,8 +1632,22 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
                                     }
                         )
     
+    predicted = result['prediction']
+    unique_labels, counts = np.unique(predicted, return_counts=True)
+    d = {'Mode': unique_labels, 'counts':counts}
+    df0 = pd.DataFrame(data=d)
+    df0['Mode'] = df0['Mode'].map({0:'Walk',1:'PT',2:'Car'})
+    df0['color'] = df0['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
+    fig2 = go.Pie(labels=df0["Mode"],
+                    values=df0["counts"],
+                    showlegend=False,
+                    textposition='inside',
+                    textinfo='label+percent',
+                    marker=dict(colors=df0['color']))
+
+
     headerColor = 'rgb(107, 174, 214)'
-    fig11 = go.Table(
+    fig3 = go.Table(
                 columnwidth = [40,60],
                 header=dict(
                     values=['<b>ton/week</b>','<b>kg/week/person</b>'],
@@ -1650,20 +1663,27 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
                     align='center', font=dict(color='black', size=14)
                 ))
 
+    data = {'Number_routes' : [Nbuses], 'Number_stops' : len(StopsCoords) - sum(CowFlags),
+            'Coworking_days' : CowDays, 'Coworking_hubs' : sum(CowFlags), 
+            'Remote_days' : NremDays, 'Remote_workers' : NremWork, 
+            'eCar_co2_km' : eCar_co2_km, 'eCar_adoption' : NeCar}
+    df1 = pd.DataFrame(data)
+    fig4 = go.Table(
+                columnwidth = [70,70],
+                cells=dict(
+                    values=[["<b>Number of routes</b>:{:.2f}".format(int(df1.Number_routes)),
+                            "<b>Coworking hubs</b>:{:.2f}".format(int(df1.Coworking_hubs)),
+                            "<b>Remote workers (%)</b>:{:.2f}".format(int(df1.Remote_workers)),
+                            "<b>Car electrification (%)</b>:{:.2f}".format(int(df1.eCar_adoption))],
+                            ["<b>Number of stops</b>:{:.2f}".format(int(df1.Number_stops)),
+                            "<b>Coworking days</b>:{:.2f}".format(int(df1.Coworking_days)),
+                            "<b>Remote days</b>:{:.2f}".format(int(df1.Remote_days)),
+                            "<b>CO2/km WRT combus.</b>:{:.2f}".format(int(df1.eCar_co2_km))]],
+                    fill_color = [[rowOddColor,rowEvenColor,rowOddColor,rowEvenColor,rowOddColor]*2],
+                    line_color='darkslategray',
+                    align='center', font=dict(color='black', size=14)
+                ))
 
-
-    predicted = result['prediction']
-    unique_labels, counts = np.unique(predicted, return_counts=True)
-    d = {'Mode': unique_labels, 'counts':counts}
-    df0 = pd.DataFrame(data=d)
-    df0['Mode'] = df0['Mode'].map({0:'Walk',1:'PT',2:'Car'})
-    df0['color'] = df0['Mode'].map({'Walk': 'green','PT': 'blue','Car':'red'})
-    fig2 = go.Pie(labels=df0["Mode"],
-                    values=df0["counts"],
-                    showlegend=False,
-                    textposition='inside',
-                    textinfo='label+percent',
-                    marker=dict(colors=df0['color']))
 
     temp = result.copy()
     #temp['distance_km'] = temp['distance_week']/1000.
@@ -1683,32 +1703,11 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
     print()
     print('Contribs:')  
     print(Contribs)
-    fig3 = go.Bar(
+    fig5 = go.Bar(
                 x=Contribs['distance_km'],
                 y=Contribs['Mode'],
                 orientation='h',
                 marker_color=Contribs['color'])
-
-    data = {'Number_routes' : [Nbuses], 'Number_stops' : len(StopsCoords) - sum(CowFlags),
-            'Coworking_days' : CowDays, 'Coworking_hubs' : sum(CowFlags), 
-            'Remote_days' : NremDays, 'Remote_workers' : NremWork, 
-            'eCar_co2_km' : eCar_co2_km, 'eCar_adoption' : NeCar}
-    df1 = pd.DataFrame(data)
-    fig44 = go.Table(
-                columnwidth = [70,70],
-                cells=dict(
-                    values=[["<b>Number of routes</b>:{:.2f}".format(int(df1.Number_routes)),
-                            "<b>Coworking hubs</b>:{:.2f}".format(int(df1.Coworking_hubs)),
-                            "<b>Remote workers (%)</b>:{:.2f}".format(int(df1.Remote_workers)),
-                            "<b>Car electrification (%)</b>:{:.2f}".format(int(df1.eCar_adoption))],
-                            ["<b>Number of stops</b>:{:.2f}".format(int(df1.Number_stops)),
-                            "<b>Coworking days</b>:{:.2f}".format(int(df1.Coworking_days)),
-                            "<b>Remote days</b>:{:.2f}".format(int(df1.Remote_days)),
-                            "<b>CO2/km WRT combus.</b>:{:.2f}".format(int(df1.eCar_co2_km))]],
-                    fill_color = [[rowOddColor,rowEvenColor,rowOddColor,rowEvenColor,rowOddColor]*2],
-                    line_color='darkslategray',
-                    align='center', font=dict(color='black', size=14)
-                ))
 
     fig_total = make_subplots(rows=4, cols=2, 
                         subplot_titles=("Fractional CO2 emissions", "Transport share (%)", 
@@ -1726,12 +1725,12 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
 
     fig_total.append_trace(fig1, 1, 1)
     fig_total.append_trace(fig2, 1, 2)
-    fig_total.append_trace(fig11, 2, 1)
-    fig_total.append_trace(fig44, 3, 1) 
+    fig_total.append_trace(fig3, 2, 1)
+    fig_total.append_trace(fig4, 3, 1) 
     #fig.append_trace(fig41, 5, 1)
     #fig.append_trace(fig42, 6, 1)
     #fig.append_trace(fig43, 7, 1)
-    fig_total.append_trace(fig3, 4, 1)
+    fig_total.append_trace(fig5, 4, 1)
 
 
 
