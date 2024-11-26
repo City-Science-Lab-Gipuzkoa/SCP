@@ -50,12 +50,15 @@ def estimate_emissions_2(df, co2km_car, co2km_ecar, co2km_bus, co2km_train, bus_
         if df['Mode_base']=='Walk':
             CO2_base = 0.0
         elif df['Mode_base']=='PT':
-            CO2_base =  (co2km_bus*df['distance_base']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance_base']/1000/aver_N_passengers)*(1-bus_train_ratio)
+            # We add a factor of "2" into CO2 calculation to account for round trip
+            CO2_base =  2*(co2km_bus*df['distance_base']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance_base']/1000/aver_N_passengers)*(1-bus_train_ratio)
         else:        
             if df['eCar'] == 0: # combustion car
-                CO2_base =  co2km_car*df['distance_base']/1000 
+                # We add a factor of "2" into CO2 calculation to account for round trip
+                CO2_base =  2*co2km_car*df['distance_base']/1000 
             else:               # electric car
-                CO2_base =  co2km_ecar*co2km_car*df['distance_base']/1000
+                # We add a factor of "2" into CO2 calculation to account for round trip
+                CO2_base =  2*co2km_ecar*co2km_car*df['distance_base']/1000
             #CO2_base =  co2km_car*df['distance_base']/1000
         #######################################################
 
@@ -63,12 +66,15 @@ def estimate_emissions_2(df, co2km_car, co2km_ecar, co2km_bus, co2km_train, bus_
         if df['Mode']=='Walk':
             CO2_interv = 0.0
         elif df['Mode']=='PT':
-            CO2_interv =  (co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance']/1000/aver_N_passengers)*(1-bus_train_ratio)
+            # We add a factor of "2" into CO2 calculation to account for round trip
+            CO2_interv =  2*(co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance']/1000/aver_N_passengers)*(1-bus_train_ratio)
         else:        
             if df['eCar'] == 0: # combustion car
-                CO2_interv =  co2km_car*df['distance']/1000 
+                # We add a factor of "2" into CO2 calculation to account for round trip
+                CO2_interv =  2*co2km_car*df['distance']/1000 
             else:               # electric car
-                CO2_interv =  co2km_ecar*co2km_car*df['distance']/1000
+                # We add a factor of "2" into CO2 calculation to account for round trip
+                CO2_interv =  2*co2km_ecar*co2km_car*df['distance']/1000
         ########################################################
         return (5 - n_rw - n_cw)*CO2_base + n_cw*CO2_interv
 
@@ -149,7 +155,9 @@ def predict(df, df_base, routeOptDone, co2km_car, co2km_ecar, co2km_bus, co2km_t
     print(gdf.columns.values)
     gdf['CO2_over_target'] = gdf['CO2']/(CO2_target*1000/n_weeks) 
     #gdf['CO2_worst_case']  = 5*gkm_car*co2lt*gdf['original_distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
-    gdf['CO2_worst_case']  = 5*co2km_car*gdf['original_distance']/1000 # 5 = number of days
+    
+    # We add a factor of "2" into CO2 calculation to account for round trip
+    gdf['CO2_worst_case']  = 2*5*co2km_car*gdf['original_distance']/1000 # 5 = number of days
     gdf['CO2_worst_case_over_target'] = gdf['CO2_worst_case']/(CO2_target*1000/n_weeks) 
     #gdf['distance_week']  = gdf['distance']*(5-gdf['Rem_work']) # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     
