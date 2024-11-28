@@ -25,7 +25,7 @@ def rev_categorize(code):
 #def estimate_emissions(df, GasKm_car, GasKm_bus, CO2lt):
 def estimate_emissions(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio):
         # weekly CO2 emissions in tons 
-        aver_N_passengers = 29
+        aver_N_passengers = 28
         bus_train_ratio = bus_train_ratio/100.
         if df['Mode']=='Walk':
             return 0.0
@@ -34,14 +34,15 @@ def estimate_emissions(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio):
         #else:
         #    return (5-df['Rem_work'])*GasKm_car*CO2lt*df['distance']/1000
         elif df['Mode']=='PT':
-            return (5-df['Rem_work'])*(co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + (5-df['Rem_work'])*(co2km_train*df['distance']/1000/aver_N_passengers)*(1-bus_train_ratio)
+            return (5-df['Rem_work'])*(co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + (5-df['Rem_work'])*(co2km_train*df['distance']/1000)*(1-bus_train_ratio)
         else:
             return (5-df['Rem_work'])*co2km_car*df['distance']/1000
 
 
 def estimate_emissions_2(df, co2km_car, co2km_ecar, co2km_bus, co2km_train, bus_train_ratio):
         # weekly CO2 emissions in tons 
-        aver_N_passengers = 29
+        #aver_N_passengers = 29 
+        aver_N_passengers = 28.5
         bus_train_ratio = bus_train_ratio/100.
         n_rw = df['Rem_work']
         n_cw = df['Coworking_days']
@@ -51,7 +52,7 @@ def estimate_emissions_2(df, co2km_car, co2km_ecar, co2km_bus, co2km_train, bus_
             CO2_base = 0.0
         elif df['Mode_base']=='PT':
             # We add a factor of "2" into CO2 calculation to account for round trip
-            CO2_base =  2*(co2km_bus*df['distance_base']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance_base']/1000/aver_N_passengers)*(1-bus_train_ratio)
+            CO2_base =  2*(co2km_bus*df['distance_base']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance_base']/1000)*(1-bus_train_ratio)
         else:        
             if df['eCar'] == 0: # combustion car
                 # We add a factor of "2" into CO2 calculation to account for round trip
@@ -67,7 +68,7 @@ def estimate_emissions_2(df, co2km_car, co2km_ecar, co2km_bus, co2km_train, bus_
             CO2_interv = 0.0
         elif df['Mode']=='PT':
             # We add a factor of "2" into CO2 calculation to account for round trip
-            CO2_interv =  2*(co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance']/1000/aver_N_passengers)*(1-bus_train_ratio)
+            CO2_interv =  2*(co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance']/1000)*(1-bus_train_ratio)
         else:        
             if df['eCar'] == 0: # combustion car
                 # We add a factor of "2" into CO2 calculation to account for round trip

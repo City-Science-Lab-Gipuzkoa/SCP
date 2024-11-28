@@ -468,25 +468,25 @@ sidebar_1 =  html.Div(
         dbc.Row([
             dbc.Collapse([
                 #html.P([ html.Br(),'Liters of gasoline per kilometer (car)'],id='gas_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
-                html.P(['CO2 emissions per kilometer (combustion car)'],id='co2_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
-                dcc.Slider(0, 1.4,0.01,
-                    value=0.1081,
+                html.P(['CO2 kg/km (combustion car)'],id='co2_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
+                dcc.Slider(0, 1.0,0.01,
+                    value=0.15,
                     id='choose_co2_km_car_1',
                     marks=None,
                     tooltip={"placement": "bottom", "always_visible": True}
                 ),                 
                 #html.P([ html.Br(),'Liters of gasoline per kilometer (bus)'],id='gas_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
-                html.P(['CO2 emissions per kilometer (bus)'],id='co2_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
-                dcc.Slider(0, 1.4,0.1,
-                    value=1.3,
+                html.P(['CO2 kg/km (bus)'],id='co2_km_bus_1',style={"margin-top": "15px","font-weight": "bold"}),
+                dcc.Slider(0, 2,0.1,
+                    value=1.46,
                     id='choose_co2_km_bus_1',
                     marks=None,
                     tooltip={"placement": "bottom", "always_visible": True}
                 ),                    
                 #html.P([ html.Br(),'CO2 Kg per lt'],id='CO2_lt_1',style={"margin-top": "15px","font-weight": "bold"}),
-                html.P(['CO2 emissions per kilometer (train)'],id='co2_km_train_1',style={"margin-top": "15px","font-weight": "bold"}),
-                dcc.Slider(0, 1.4,0.02,
-                    value=0.049,
+                html.P(['CO2 kg/km/person (train)'],id='co2_km_train_1',style={"margin-top": "15px","font-weight": "bold"}),
+                dcc.Slider(0, 0.5,0.01,
+                    value=0.019,
                     id='choose_co2_km_train_1',
                     marks=None,
                     tooltip={"placement": "bottom", "always_visible": True}
@@ -562,9 +562,9 @@ sidebar_1 =  html.Div(
         dcc.Store(id='internal-value_trip_freq_1', data=30),
         dcc.Store(id='internal-value_trip_number_1', data=1),
         dcc.Store(id='internal-value_start_hour_1', data='8:00'),     
-        dcc.Store(id='internal-value_co2_km_car_1', data=0.1081),     
-        dcc.Store(id='internal-value_co2_km_bus_1', data=1.3),     
-        dcc.Store(id='internal-value_co2_km_train_1', data=0.049), 
+        dcc.Store(id='internal-value_co2_km_car_1', data=0.15),     
+        dcc.Store(id='internal-value_co2_km_bus_1', data=1.46),     
+        dcc.Store(id='internal-value_co2_km_train_1', data=0.019), 
         dcc.Store(id='internal-value_bus_train_ratio_1', data=0.8)        
         ],
         id='sidebar_1',
@@ -2325,7 +2325,7 @@ def categorize_Mode(code):
         return 'PT'
     
 #def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, gkm_car=1./12, gkm_bus=1.1, co2lt=2.3, NremDays=0, NremWork=0, CowCoords=[], CowDays=0):
-def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, co2km_car=0.1081, co2km_eCar= 0.01081, co2km_bus=1.3, co2km_train=0.049, bus_train_ratio=0.8, NremDays=0, NremWork=0, NeCar=0, CowCoords=[], CowDays=0):
+def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, co2km_car=0.15, co2km_eCar= 0.01081, co2km_bus=1.3, co2km_train=0.049, bus_train_ratio=0.8, NremDays=0, NremWork=0, NeCar=0, CowCoords=[], CowDays=0):
     import pandas as pd
     import sys    
     root_dir = root_Dir
