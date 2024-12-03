@@ -34,15 +34,17 @@ def estimate_emissions(df, co2km_car, co2km_bus, co2km_train, bus_train_ratio):
         #else:
         #    return (5-df['Rem_work'])*GasKm_car*CO2lt*df['distance']/1000
         elif df['Mode']=='PT':
-            return (5-df['Rem_work'])*(co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + (5-df['Rem_work'])*(co2km_train*df['distance']/1000)*(1-bus_train_ratio)
+            return 2*(5-df['Rem_work'])*(co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + 2*(5-df['Rem_work'])*(co2km_train*df['distance']/1000)*(1-bus_train_ratio)
         else:
-            return (5-df['Rem_work'])*co2km_car*df['distance']/1000
+            return 2*(5-df['Rem_work'])*co2km_car*df['distance']/1000
 
 
 def estimate_emissions_2(df, co2km_car, co2km_ecar, co2km_bus, co2km_train, bus_train_ratio):
         # weekly CO2 emissions in tons 
         #aver_N_passengers = 29 
-        aver_N_passengers = 28.5
+        #aver_N_passengers = 28.5 
+        #aver_N_passengers = 25
+        aver_N_passengers = 10
         bus_train_ratio = bus_train_ratio/100.
         n_rw = df['Rem_work']
         n_cw = df['Coworking_days']
@@ -52,7 +54,7 @@ def estimate_emissions_2(df, co2km_car, co2km_ecar, co2km_bus, co2km_train, bus_
             CO2_base = 0.0
         elif df['Mode_base']=='PT':
             # We add a factor of "2" into CO2 calculation to account for round trip
-            CO2_base =  2*(co2km_bus*df['distance_base']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance_base']/1000)*(1-bus_train_ratio)
+            CO2_base =  2*(co2km_bus*df['distance_base']/1000/aver_N_passengers)*bus_train_ratio + 2*(co2km_train*df['distance_base']/1000)*(1-bus_train_ratio)
         else:        
             if df['eCar'] == 0: # combustion car
                 # We add a factor of "2" into CO2 calculation to account for round trip
@@ -68,7 +70,7 @@ def estimate_emissions_2(df, co2km_car, co2km_ecar, co2km_bus, co2km_train, bus_
             CO2_interv = 0.0
         elif df['Mode']=='PT':
             # We add a factor of "2" into CO2 calculation to account for round trip
-            CO2_interv =  2*(co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + (co2km_train*df['distance']/1000)*(1-bus_train_ratio)
+            CO2_interv =  2*(co2km_bus*df['distance']/1000/aver_N_passengers)*bus_train_ratio + 2*(co2km_train*df['distance']/1000)*(1-bus_train_ratio)
         else:        
             if df['eCar'] == 0: # combustion car
                 # We add a factor of "2" into CO2 calculation to account for round trip
@@ -158,7 +160,7 @@ def predict(df, df_base, routeOptDone, co2km_car, co2km_ecar, co2km_bus, co2km_t
     #gdf['CO2_worst_case']  = 5*gkm_car*co2lt*gdf['original_distance']/1000 # 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     
     # We add a factor of "2" into CO2 calculation to account for round trip
-    gdf['CO2_worst_case']  = 2*5*co2km_car*gdf['original_distance']/1000 # 5 = number of days
+    gdf['CO2_worst_case']  = 2*5*co2km_car*gdf['original_distance']/1000 # 5 = number of days, 2 for round trip
     gdf['CO2_worst_case_over_target'] = gdf['CO2_worst_case']/(CO2_target*1000/n_weeks) 
     #gdf['distance_week']  = gdf['distance']*(5-gdf['Rem_work']) # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
     
@@ -167,9 +169,9 @@ def predict(df, df_base, routeOptDone, co2km_car, co2km_ecar, co2km_bus, co2km_t
     #gdf['distance_week_interv'] = gdf['distance']*gdf['Coworking_days'] + 0.0*gdf['Rem_work'] 
     #gdf['distance_week_no_interv'] = gdf['distance_base']*(5-gdf['Rem_work']-gdf['Coworking_days']) 
 
-    gdf['distance_week'] = gdf['original_distance']*(5-gdf['Rem_work']-gdf['Coworking_days']) + gdf['distance']*gdf['Coworking_days'] # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
-    gdf['distance_week_interv'] = gdf['distance']*gdf['Coworking_days'] + 0.0*gdf['Rem_work'] 
-    gdf['distance_week_no_interv'] = gdf['original_distance']*(5-gdf['Rem_work']-gdf['Coworking_days']) 
+    gdf['distance_week'] = 2*gdf['original_distance']*(5-gdf['Rem_work']-gdf['Coworking_days']) + 2*gdf['distance']*gdf['Coworking_days'] # weekly distance: 5 = number of days, 1./12 = lt per Km, 2.3 = CO2 Kg per lt
+    gdf['distance_week_interv'] = 2*gdf['distance']*gdf['Coworking_days'] + 0.0*gdf['Rem_work'] 
+    gdf['distance_week_no_interv'] = 2*gdf['original_distance']*(5-gdf['Rem_work']-gdf['Coworking_days']) 
 
     gdf['weighted_d']  = gdf.apply(calculate_indicator_d, axis=1)
     #gdf['weighted_n']  = gdf.apply(calculate_indicator_n, axis=1)

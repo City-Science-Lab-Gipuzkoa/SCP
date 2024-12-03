@@ -20,6 +20,7 @@ import dash_html_components as html
 from flask import Flask, render_template, send_from_directory
 from flask import Flask, render_template, request, send_from_directory
 
+import csv
 
 import plotly.express as px
 # plot test data
@@ -470,7 +471,7 @@ sidebar_1 =  html.Div(
                 #html.P([ html.Br(),'Liters of gasoline per kilometer (car)'],id='gas_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
                 html.P(['CO2 kg/km (combustion car)'],id='co2_km_car_1',style={"margin-top": "15px","font-weight": "bold"}),
                 dcc.Slider(0, 1.0,0.01,
-                    value=0.15,
+                    value=0.19,
                     id='choose_co2_km_car_1',
                     marks=None,
                     tooltip={"placement": "bottom", "always_visible": True}
@@ -562,7 +563,7 @@ sidebar_1 =  html.Div(
         dcc.Store(id='internal-value_trip_freq_1', data=30),
         dcc.Store(id='internal-value_trip_number_1', data=1),
         dcc.Store(id='internal-value_start_hour_1', data='8:00'),     
-        dcc.Store(id='internal-value_co2_km_car_1', data=0.15),     
+        dcc.Store(id='internal-value_co2_km_car_1', data=0.19),     
         dcc.Store(id='internal-value_co2_km_bus_1', data=1.46),     
         dcc.Store(id='internal-value_co2_km_train_1', data=0.019), 
         dcc.Store(id='internal-value_bus_train_ratio_1', data=0.8)        
@@ -4024,7 +4025,11 @@ def update_plot(click_data):
 def serve_static(filename):
     return send_from_directory('static', filename)
 
-user_data = (('cslgipuzkoa', 'csl.G1PUZKOA'),('user1', 'u123CSL'),('user2', 'u456CSL'),('user3', 'u789CSL'))
+
+MCM_data_dir = 'data/input_data_MCM/'
+with open(root_dir + MCM_data_dir + "user_data.csv") as f:
+       r = csv.reader(f)
+       user_data = [row for row in r]
 @server.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
