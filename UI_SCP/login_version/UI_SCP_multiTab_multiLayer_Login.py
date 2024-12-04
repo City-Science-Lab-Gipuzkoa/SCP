@@ -112,8 +112,8 @@ stops_lat_lon = stops_df[['stop_lat','stop_lon']].to_numpy()
 bus_icon = "https://i.ibb.co/HV0K5Fp/bus-stop.png" 
 worker_icon = "https://i.ibb.co/W0H7nYM/meeting-point.png"
 coworking_icon = "https://i.ibb.co/J2qXGKN/coworking-icon.png"
-Eskuz_icon = "https://i.ibb.co/bLytVQM/industry-icon.png"
-Eskuz_pos = (43.25632640541216, -2.029996706597628)
+IndPark_icon = "https://i.ibb.co/bLytVQM/industry-icon.png"
+IndPark_pos = (43.25632640541216, -2.029996706597628)
 
 center = (43.26852347667122, -1.9741372404905988)
 #    iconUrl= 'https://uxwing.com/wp-content/themes/uxwing/download/location-travel-map/bus-stop-icon.png',
@@ -133,8 +133,8 @@ custom_icon_coworking = dict(
     iconSize=[40,40],
     iconAnchor=[22, 40]
 )
-custom_icon_Eskuz = dict(
-    iconUrl= Eskuz_icon,
+custom_icon_IndPark = dict(
+    iconUrl= IndPark_icon,
     iconSize=[40,40],
     iconAnchor=[22, 40]
 )
@@ -326,6 +326,14 @@ sidebar_1 =  html.Div(
         ]),
         dbc.Row([
                 dbc.Collapse([
+                        dbc.Checklist(
+                                options=[
+                                        {"label": "Choose position of Industrial Park", "value": 1},
+                                        ],
+                                value=[],
+                                id="set_ind_park_1",
+                                switch=True
+                                    ),
                         dcc.Upload(
                                 id='upload-data_1',
                                 children=html.Div([
@@ -339,7 +347,8 @@ sidebar_1 =  html.Div(
                                 'borderStyle': 'dashed',
                                 'borderRadius': '5px',
                                 'textAlign': 'center',
-                                'margin': '10px'
+                                'margin': '10px',
+                                "margin-top": "15px"
                             },
                             # Allow multiple files to be uploaded
                             multiple=True),
@@ -545,6 +554,8 @@ sidebar_1 =  html.Div(
         dcc.Store(id='user_ip', data=0),         
         dcc.Store(id='worker_data_1', data=[]),
         dcc.Store(id='root_dir_1', data = root_dir), 
+        dcc.Store(id='internal-value_ind_park_1', data=0), 
+        dcc.Store(id='internal-value_ind_park_coord_1', data=IndPark_pos),        
         dcc.Store(id='internal-value_marker_option_1', data=0),        
         dcc.Store(id='internal-value_route_opt_done_1', data=0),   
         dcc.Store(id='internal-value_stops_1', data=[]),
@@ -577,7 +588,7 @@ sidebar_1 =  html.Div(
 markers_all_1 = []
 markers_remote_1 = []
 markers_cow_1 = []
-Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
+IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndPark_pos, icon=custom_icon_IndPark, id='IndPark_1')]
 central_panel_1 = html.Div(
        [
           html.P(['Sustainable Commuting Platform (SCP): help your business transition towards a sustainable mobility '],id='title_SCP_1',style={'font-size': '24px',"font-weight": "bold"}),
@@ -595,7 +606,7 @@ central_panel_1 = html.Div(
                                          dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking", id='markers_cow_1', checked=False)], 
                                         id="lc_1"
                                         )
-                                ] + Eskuz_marker, 
+                                ] + IndPark_marker, 
                                 center=center, 
                                 zoom=12,
                                 id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
@@ -1341,37 +1352,12 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
     markers_remote_cow_1 = []
     markers_comm_1 = []
 
-    """
-    custom_icon_coworking_big = dict(
-        iconUrl= "https://i.ibb.co/J2qXGKN/coworking-icon.png",
-        iconSize=[50,50],
-        iconAnchor=[10, 10]
-        )
-    """
-    """
-    custom_icon_coworking = dict(
-        iconUrl= "https://i.ibb.co/jMgmc4W/cowork-small-icon.png",
-        iconSize=[20,20],
-        iconAnchor=[10, 10]
-        )  
-    """
     custom_icon_coworking = dict(
         iconUrl= coworking_icon,
         iconSize=[40,40],
         iconAnchor=[22, 40]
     )    
-    custom_icon_coworking = dict(
-    iconUrl= coworking_icon,
-    iconSize=[40,40],
-    iconAnchor=[22, 40]
-    )
-    """
-    custom_icon_home = dict(
-        iconUrl= "https://i.ibb.co/0ZqM4PG/home-icon.png",
-        iconSize=[20,20],
-        iconAnchor=[10, 10]
-        )
-    """
+ 
     for i_pred in result.itertuples():
         #print(i_pred.geometry.y, i_pred.geometry.x)
         #color = generate_color_gradient(maxCO2,i_pred.CO2) 
@@ -1568,8 +1554,10 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
                 Cow_markers.append(tmp)  
         children = children + Cow_markers
 
-    Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
-    children = children + Eskuz_marker + additional_markers
+    #Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
+    #IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndParkCoord, icon=custom_icon_IndPark, id='IndPark_1')]
+
+    children = children + additional_markers
 
     new_map = dl.Map(children, center=center,
                                      zoom=12,                        
@@ -1577,7 +1565,7 @@ def generate_map(result, CowFlags, StopsCoords, additional_markers=[]):
     
     return new_map
 
-def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_co2, eCar_co2_km,stored_scenarios, StopsCoords=[], CowFlags=[]):
+def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_co2, eCar_co2_km,stored_scenarios, IndParkCoord, StopsCoords=[], CowFlags=[]):
 
     Nworkers = len(result)
 
@@ -2311,8 +2299,9 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
 
     #Total_CO2 = result['CO2'].sum()
     #Total_CO2_worst_case = result['CO2_worst_case'].sum()
+    IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndParkCoord, icon=custom_icon_IndPark, id='IndPark_1')]
 
-    new_map = generate_map(result, CowFlags,StopsCoords)
+    new_map = generate_map(result, CowFlags,StopsCoords, IndPark_marker)
     #return [Total_CO2/Total_CO2_worst_case, fig_total, fig_decomp, new_map]
     return [fig_total, new_map, fig_decomp, fig_comp, new_stored_scenarios]
 
@@ -2374,7 +2363,7 @@ def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, co2km_car=0.15, co2km_eCar
         #print()
 
     return prediction
- 
+
 
 @app.callback(
     [Output('user_ip', 'data'),
@@ -2450,6 +2439,8 @@ def set_modified_timestamp(pathname):
     prevent_initial_call=True)
 def add_scenario(list_of_contents, list_of_names, list_of_dates, Tab3, co2km_bus, routeOptDone, routeLengths, stored_scenarios):
 """
+
+
 
 
 # Left sidebar subpanels #############################################
@@ -2567,7 +2558,7 @@ def update_coworking(cow_days):
           ],
           Input('num_trips_1','value'),
           prevent_initial_call=True)
-def update_remote_work(Ntrips):
+def update_trip_number(Ntrips):
     print()
     print('updating trip number')
     print(Ntrips)
@@ -2579,7 +2570,7 @@ def update_remote_work(Ntrips):
           ],
           Input('trip_freq_1','value'),
           prevent_initial_call=True)
-def update_remote_work(TripFreq):
+def update_trip_freq(TripFreq):
     return [TripFreq]
 
 #          Input('choose_start_hour_1','value'),
@@ -2588,7 +2579,7 @@ def update_remote_work(TripFreq):
           ],
           Input('choose_start_time_1','value'),
           prevent_initial_call=True)
-def update_remote_work(StartHour):
+def update_start_time(StartHour):
     return [StartHour]
 
 
@@ -2612,23 +2603,12 @@ def update_remote_work(StartHour):
           Input('choose_bus_train_ratio_1','value')
           ],
           prevent_initial_call=True)
-def update_remote_work(co2_car, co2_bus, co2_train, bus_ratio):
+def update_co2_values(co2_car, co2_bus, co2_train, bus_ratio):
     return [co2_car, co2_bus, co2_train, bus_ratio]
 
 ###########################################################################
 
 
-
-"""
-@callback([Output('CO2_gauge_1', 'value',allow_duplicate=True),
-           Output('Transport_share','figure',allow_duplicate=True),
-           Output('Km_share','figure',allow_duplicate=True),
-"""
-"""
-          State('choose_gas_km_car_1','value'),
-          State('choose_gas_km_bus_1','value'),
-          State('choose_CO2_lt_1','value'),
-"""
 # Output('internal-value_scenario','data',allow_duplicate=True),
 @callback([Output('Indicator_panel_1', 'figure',allow_duplicate=True),
            Output('map_1','children',allow_duplicate=True),
@@ -2650,6 +2630,7 @@ def update_remote_work(co2_car, co2_bus, co2_train, bus_ratio):
           State('internal-value_stops_1','data'),
           State('internal-value_coworking_1','data'),
           State('internal-value_coworking_days_1','data'),
+          State('internal-value_ind_park_coord_1','data'),
           State('internal-value_bus_number_1','data'),
           State('choose_start_time_1','value'),
           State('choose_co2_km_car_1','value'),
@@ -2661,7 +2642,7 @@ def update_remote_work(co2_car, co2_bus, co2_train, bus_ratio):
           [Input('run_baseline_1','n_clicks'),
            Input('run_MCM_1', 'n_clicks')],
           prevent_initial_call=True)
-def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork, NeCar, co2km_eCar, RouteOptDone, RouteLengths, StopsCoords, CowoFlags, CowDays, Nbuses, TransH, co2km_car, co2km_bus, co2km_train, bus_train_ratio, Tab3, Nclicks_base, Nclicks):
+def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork, NeCar, co2km_eCar, RouteOptDone, RouteLengths, StopsCoords, CowoFlags, CowDays, IndParkCoord, Nbuses, TransH, co2km_car, co2km_bus, co2km_train, bus_train_ratio, Tab3, Nclicks_base, Nclicks):
     #print('Cow. Flags:')
     #print(CowoFlags)
     CowoIn = np.nonzero(CowoFlags)[0]
@@ -2701,7 +2682,7 @@ def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork,
     else:
        additional_co2 = 0
 
-    out = plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_co2, co2km_eCar, stored_scenarios, StopsCoords, CowoFlags)
+    out = plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_co2, co2km_eCar, stored_scenarios, IndParkCoord, StopsCoords, CowoFlags)
 
     scenario = pd.DataFrame(result.drop(columns='geometry'))
     scenario_json = scenario.to_dict('records') # not working?
@@ -2729,9 +2710,10 @@ def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork,
 @callback([
            Output('map_1','children',allow_duplicate=True)],
            State('internal-value_scenario_1','data'),
+           State('internal-value_ind_park_coord','data'),
            Input('lc_1', "baseLayer"),
            prevent_initial_call=True)
-def switch_layer(Scen, layer):
+def switch_layer(Scen, IndParkCoord, layer):
 
     print('switching layer...')
     print(layer)
@@ -3033,7 +3015,6 @@ def switch_layer(Scen, layer):
 
     markers_comm_1 = list(set(markers_all_1) - set(markers_remote_1) - set(markers_cow_1) )
 
-
     Baselayer = [dl.BaseLayer(dl.TileLayer(), name='CO2', checked=False),
                  dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_target', checked=False),
                  #dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
@@ -3058,8 +3039,10 @@ def switch_layer(Scen, layer):
                                      id="lc_1"
                                     )
                     ]
-    Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
-    children = children + Eskuz_marker
+    #Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
+    IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndParkCoord, icon=custom_icon_IndPark, id='IndPark_1')]
+
+    children = children + IndPark_marker
     new_map = dl.Map(children, center=center,
                                         zoom=12,                        
                                         id="map_1",
@@ -3249,6 +3232,7 @@ def load_scenario(contents, names, dates):
 
               State('internal-value_stops_1','data'),
               State('internal-value_coworking_1','data'),
+              State('internal-value_ind_park_coord_1','data'),
 
               State('root_dir_1','data'),
               State('choose_start_time_1', 'value'),
@@ -3256,7 +3240,7 @@ def load_scenario(contents, names, dates):
               Input("propose_stops_1", "n_clicks"),
               prevent_initial_call=True
               )
-def propose_stops(n_clusters,workerData, StopsCoords, CowFlags, root_dir, startHour, result_json, Nclick):
+def propose_stops(n_clusters,workerData, StopsCoords, CowFlags, IndParkCoord, root_dir, startHour, result_json, Nclick):
     if Nclick > 0:  
         sys.path.append(root_dir + 'modules')      
         import find_stops_module   
@@ -3287,11 +3271,12 @@ def propose_stops(n_clusters,workerData, StopsCoords, CowFlags, root_dir, startH
             else:
                 marker_i = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_coworking, id={'type': 'marker', 'index': i})
             markers.append(marker_i)
+
         #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
-        Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
+        IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndParkCoord, icon=custom_icon_IndPark, id='IndPark_1')]
 
         if len(result_json) ==0:
-            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers + Eskuz_marker,
+            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers + IndPark_marker,
                         center=center, zoom=12, id="map_1",
                         style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
         else:
@@ -3299,19 +3284,20 @@ def propose_stops(n_clusters,workerData, StopsCoords, CowFlags, root_dir, startH
             result = geopandas.GeoDataFrame(
                     result, geometry=geopandas.points_from_xy(result.O_long, result.O_lat), crs="EPSG:4326"
                     )
-            newMap = generate_map(result, Cow, St, markers)
+            newMap = generate_map(result, Cow, St, markers + IndPark_marker)
         return [St,Cow,newMap]    
 
 @app.callback([Output('map_1','children',allow_duplicate=True)],
                 State("n_clusters_1", "value"),
                 State('worker_data_1', 'data'),
+                State('internal-value_ind_park_coord_1', 'data'),
                 State('choose_start_time_1', 'value'),
                [Input("show_workers_1", "n_clicks")],
               prevent_initial_call=True
               )
-def show_workers(n_clusters,workerData, startHour, N):
+def show_workers(n_clusters,workerData, IndParkCoord, startHour, N):
     workers_df = pd.DataFrame.from_dict(workerData)
-    Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
+    IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndParkCoord, icon=custom_icon_IndPark, id='IndPark_1')]
 
     try:
         startHour = int(startHour.split(':')[0])
@@ -3351,12 +3337,12 @@ def show_workers(n_clusters,workerData, startHour, N):
         print(colors)
         #colors = [generate_color_gradient(n_max, len(clusters[i])) for i in range(len(clusters))]
         cluster_shapes = [dl.Polygon(children = dl.Tooltip('Number of workers: '+str(clusters_size[i])), positions=clusters[i], fill=True, fillColor = colors[i], fillOpacity=0.9) for i in range(n_clusters)]
-        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + cluster_shapes + Eskuz_marker,
+        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + cluster_shapes + IndPark_marker,
                         center=center, zoom=12, id="map_1",
                         style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
     else:
-        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + Eskuz_marker,
+        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + IndPark_marker,
                         center=center, zoom=12, id="map_1",
                         style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
@@ -3617,13 +3603,14 @@ def choose_intervention(St,Cow,CowDays, RemDays, RemWorkers, NeCar, eCar_co2_km,
                State('choose_start_time_1', 'value'),  
                State('internal-value_stops_1','data'),
                State('internal-value_coworking_1','data'),
+               State('internal-value_ind_park_coord_1','data'),
                State('internal-value_co2_km_car_1','data'),
                State('root_dir_1','data'),
                Input("calc_routes_1", "n_clicks"),
                manager=long_callback_manager,
               prevent_initial_call=True
               )
-def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_dir, Nclick):
+def calc_routes(Nroutes,StartHour,St,Cow,IndParkCoord, CO2km, root_dir, Nclick):
     Ntrips = 1 # default
     freq = 30 # default
     if Nclick > 0:
@@ -3654,11 +3641,13 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_dir, Nclick):
       iconAnchor=[22, 40]
       )    
     
-      Eskuz_marker = [dl.Marker(dl.Tooltip("Eskuzaitzeta Industrial Park"), position=Eskuz_pos, icon=custom_icon_Eskuz, id='Eskuz_1')]
+      IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndParkCoord, icon=custom_icon_IndPark, id='IndPark_1')]
 
-      center = (43.26852347667122, -1.9741372404905988)
+      #center = (43.26852347667122, -1.9741372404905988)
+      center = IndParkCoord
       # Set origin of bus routes to Eskuzaitzeta #######################################
-      origin_bus_routes = (43.257414680347246, -2.027512109345033)        
+      #origin_bus_routes = (43.257414680347246, -2.027512109345033)        
+      origin_bus_routes = IndParkCoord        
       St.insert(0, origin_bus_routes)
       Cow.insert(0, 0)
       ###################################################################################
@@ -3696,7 +3685,7 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_dir, Nclick):
       route_opt = 1
       # We don't really need to update the map here. We do it just to make the Spinner work: ############ 
       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(Stops)]
-      newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers + Eskuz_marker,
+      newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers + IndPark_marker,
                      center=center, zoom=12, id="map_1",
                      style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"}) 
       ###################################################################################################   
@@ -3708,20 +3697,17 @@ def calc_routes(Nroutes,StartHour,St,Cow,CO2km, root_dir, Nclick):
 @app.callback([Output('map_1','children',allow_duplicate=True)],
               [State('internal-value_stops_1','data'),
               State('internal-value_coworking_1','data'),
+              State('internal-value_ind_park_coord_1','data'),
               State('internal-value_routes_1','data'),
               State('internal-value_scenario_1','data')],
               [Input("visualize_routes_1", "n_clicks")],
               prevent_initial_call=True
               )
 #def visualize_route(Route,St,Cow,RoutesCoords,Nclick):
-def visualize_route(St,Cow,RoutesCoords,result_json,Nclick):
+def visualize_route(St,Cow,IndParkCoord, RoutesCoords,result_json,Nclick):
     if Nclick > 0:
       print()
       print('Start route visualization...')
-      #Route = int(Route)-1    
-      #RoutesCoords = RoutesCoords[Route]
-      #print('RoutesCoords received:')
-      #print(RoutesCoords)
       markers = []
       for i, pos in enumerate(St): 
         if Cow[i]==1:
@@ -3730,6 +3716,8 @@ def visualize_route(St,Cow,RoutesCoords,result_json,Nclick):
              custom_icon = custom_icon_bus
         tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})    
         markers.append(tmp)  
+
+      IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndParkCoord, icon=custom_icon_IndPark, id='IndPark_1')]
 
       """  
       map_children = [dl.TileLayer(), dl.ScaleControl(position="topright")]
@@ -3749,7 +3737,7 @@ def visualize_route(St,Cow,RoutesCoords,result_json,Nclick):
           map_routes.append(dl.Polyline(positions=[RoutesCoords[i]], pathOptions={'weight':10, 'color': colors[i]}))         
 
       if len(result_json) ==0:
-            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + map_routes + markers + Eskuz_marker,
+            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + map_routes + markers + IndPark_marker,
                         center=center, zoom=12, id="map_1",
                         style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
       else:
@@ -3757,7 +3745,7 @@ def visualize_route(St,Cow,RoutesCoords,result_json,Nclick):
             result = geopandas.GeoDataFrame(
                     result, geometry=geopandas.points_from_xy(result.O_long, result.O_lat), crs="EPSG:4326"
                     )
-            newMap = generate_map(result, Cow, St, map_routes + markers + Eskuz_marker)
+            newMap = generate_map(result, Cow, St, map_routes + markers + IndPark_marker)
 
 
       print('Route visualization completed!')
@@ -3769,20 +3757,17 @@ def visualize_route(St,Cow,RoutesCoords,result_json,Nclick):
                Output('map_1','children',allow_duplicate=True)],
               [State('internal-value_stops_1','data'),
                State('internal-value_coworking_1','data'),
+               State('internal-value_ind_park_coord_1','data'),
                State('internal-value_scenario_1','data')],
                Input("match_stops_1", "n_clicks"),
               prevent_initial_call=True
               )
-def match_stops(St,Cow,result_json,Nclick):
-    print('inside callback')
+def match_stops(St,Cow,IndParkCoord, result_json,Nclick):
     if Nclick > 0:
-      print('inside if...')
-      print('matching stops...')  
       bus_stops = []
       out = ''
       for i_st in range(len(St)):
         if Cow[i_st] == 0:  
-          #ref = np.array([lat,lon])
           ref = np.array([St[i_st][0],St[i_st][1]])
           ref = np.tile(ref,(len(stops_lat_lon),1)) # generate replicas of ref point
           #d = [sum((p-q)**2)**0.5 for p, q in zip(ref, stops_lat_lon)] # calculate distance of each bus stop to ref point
@@ -3805,8 +3790,10 @@ def match_stops(St,Cow,result_json,Nclick):
            markers.append(tmp)
       #markers = [dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon_bus, id={'type': 'marker', 'index': i}) for i, pos in enumerate(St)]
 
+      IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndParkCoord, icon=custom_icon_IndPark, id='IndPark_1')]
+
       if len(result_json) ==0:
-            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers + Eskuz_marker,
+            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers + IndPark_marker,
                         center=center, zoom=12, id="map_1",
                         style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
       else:
@@ -3814,13 +3801,9 @@ def match_stops(St,Cow,result_json,Nclick):
             result = geopandas.GeoDataFrame(
                     result, geometry=geopandas.points_from_xy(result.O_long, result.O_lat), crs="EPSG:4326"
                     )
-            newMap = generate_map(result, Cow, St, markers)      
+            newMap = generate_map(result, Cow, St, markers + IndPark_marker)      
       
       return [St,newMap]
-
-#              [Input('map_1','clickData')],
-
-
 
 # Save marker option in internal value #####################################
 
@@ -3849,30 +3832,32 @@ def set_coworking(selection):
 ################################################################################
 
 
-
 @app.callback(
     [
         Output('internal-value_stops_1', 'data', allow_duplicate=True),
         Output('internal-value_coworking_1', 'data', allow_duplicate=True),
+        Output('internal-value_ind_park_coord_1','data',allow_duplicate=True),
         Output('map_1', 'children', allow_duplicate=True)
     ],
     [
         State('internal-value_stops_1', 'data'),
         State('internal-value_coworking_1', 'data'),
-        State('internal-value_marker_option_1', 'data'),
+        State('internal-value_marker_option_1', 'data'),        
+        State('set_ind_park_1','value'),
+        State('internal-value_ind_park_coord_1','data'),
         State('internal-value_scenario_1','data')        
     ],
     [Input('map_1', 'dblclickData')],
     prevent_initial_call=True
 )
-def add_marker(St, Cow, MarkerOption, result_json, clickd):
+def add_marker(St, Cow, MarkerOption, set_park, IndParkCoord, result_json, clickd):
     print('adding marker...')
-    result = pd.DataFrame.from_dict(result_json) 
-    result = geopandas.GeoDataFrame(
-                result, geometry=geopandas.points_from_xy(result.O_long, result.O_lat), crs="EPSG:4326"
-                )
 
     if MarkerOption == 'AS' or MarkerOption == 'AC':
+        result = pd.DataFrame.from_dict(result_json) 
+        result = geopandas.GeoDataFrame(
+                result, geometry=geopandas.points_from_xy(result.O_long, result.O_lat), crs="EPSG:4326"
+                )    
         print('adding marker...')
         print(clickd)
         print('Selected action:')
@@ -3903,8 +3888,46 @@ def add_marker(St, Cow, MarkerOption, result_json, clickd):
         #                style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
 
         newMap = generate_map(result, Cow, St, markers) 
-        return [St, Cow, newMap]
-          
+        return [St, Cow, IndParkCoord, newMap]
+    if set_park:
+      if set_park[0]==1:
+        print('start modifying map...')
+        marker_lat = clickd['latlng']['lat']
+        marker_lon = clickd['latlng']['lng']
+        St.append((marker_lat, marker_lon))
+        Cow.append(0)
+
+        out = '' # -> not needed anymore
+        for i in range(len(St)):
+            out = out + str(St[i][0]) + ', ' + str(St[i][1]) + '; '
+
+        markers = []
+        for i, pos in enumerate(St):
+            if Cow[i] == 1:
+                custom_icon = custom_icon_coworking
+            else:
+                custom_icon = custom_icon_bus
+            tmp = dl.Marker(dl.Tooltip("Double click on Marker to remove it"), position=pos, icon=custom_icon, id={'type': 'marker', 'index': i})
+            markers.append(tmp)
+
+        print('creating new marker...')
+        IndParkCoord = (marker_lat,marker_lon)
+        IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndParkCoord, icon=custom_icon_IndPark, id='IndPark_1')]
+        print('new marker created')
+
+        print('generating new map...')
+        if len(result_json) ==0:
+            newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers + IndPark_marker,
+                        center=center, zoom=12, id="map_1",
+                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+        else:
+            result = pd.DataFrame.from_dict(result_json) 
+            result = geopandas.GeoDataFrame(
+                    result, geometry=geopandas.points_from_xy(result.O_long, result.O_lat), crs="EPSG:4326"
+                    )
+            newMap = generate_map(result, Cow, St, markers + IndPark_marker)        
+        print('new map generated!')
+        return [St, Cow, [marker_lat, marker_lon], newMap]
 
 
 #               Output('internal-value_marker_option_1', 'data',allow_duplicate=True),
@@ -3915,11 +3938,12 @@ def add_marker(St, Cow, MarkerOption, result_json, clickd):
                Output('map_1','children',allow_duplicate=True)],
               [State('internal-value_stops_1','data'), 
                State('internal-value_coworking_1','data'), 
+               State('internal-value_ind_park_coord_1','data'), 
                State('internal-value_marker_option_1', 'data'),
                State('internal-value_scenario_1','data')],
               [Input({"type": "marker", "index": ALL},"n_clicks")],
               prevent_initial_call=True)
-def change_stop_marker(St, Cow, marker_operation, result_json, *args):
+def change_stop_marker(St, Cow, IndParkCoord, marker_operation, result_json, *args):
     marker_id = callback_context.triggered[0]["prop_id"].split(".")[0].split(":")[1].split(",")[0]
     n_clicks = callback_context.triggered[0]["value"]
     result = pd.DataFrame.from_dict(result_json) 
@@ -3928,7 +3952,6 @@ def change_stop_marker(St, Cow, marker_operation, result_json, *args):
                 )
 
     print('changing marker...')
-    #print('marker id?:', marker_id)
     print('requested Marker Operation:')
     print(marker_operation)
     
@@ -3950,8 +3973,10 @@ def change_stop_marker(St, Cow, marker_operation, result_json, *args):
         #newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + markers,
         #                center=center, zoom=12, id="map_1",
         #                style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
-        
-        newMap = generate_map(result, Cow, St, markers)
+        IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndParkCoord, icon=custom_icon_IndPark, id='IndPark_1')]
+
+
+        newMap = generate_map(result, Cow, St, markers + IndPark_marker)
 
         return ['Marker deleted!',St,Cow,'',newMap]
 
@@ -4006,19 +4031,6 @@ def change_stop_marker(St, Cow, marker_operation, result_json, *args):
        return ['Stop set as Coworking!',St,Cow,newMap]
     """    
 
-"""
-# Define the callback for the plot
-@app.callback(
-    Output('plot', 'figure'),
-    [Input('plot', 'clickData')]
-)
-def update_plot(click_data):
-    if click_data:
-        x = click_data['points'][0]['x']
-        return {'data': [{'x': [x], 'y': [x**2]}], 'layout': {'title': 'Squared Value'}}
-    else:
-        return {'data': [{'x': [1, 2, 3], 'y': [4, 1, 2]}], 'layout': {'title': 'My Plot'}}
-"""
 # Define the login route
 
 @server.route('/reports/<path:path>')
