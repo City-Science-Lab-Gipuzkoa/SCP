@@ -3944,8 +3944,8 @@ def add_marker(St, Cow, MarkerOption, set_park, IndParkCoord, result_json, click
         print('start modifying map...')
         marker_lat = clickd['latlng']['lat']
         marker_lon = clickd['latlng']['lng']
-        St.append((marker_lat, marker_lon))
-        Cow.append(0)
+        #St.append((marker_lat, marker_lon))
+        #Cow.append(0)
 
         out = '' # -> not needed anymore
         for i in range(len(St)):
