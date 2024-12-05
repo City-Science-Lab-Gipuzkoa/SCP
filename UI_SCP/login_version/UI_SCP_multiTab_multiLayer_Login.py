@@ -72,8 +72,12 @@ temp_un = None
 server = Flask(__name__)
 #server.secret_key = 'your_secret_key'
 #app = Dash(name = 'SCP_app', server = server, external_stylesheets=[dbc.themes.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
+#app = Dash(name = 'SCP_app', server = server, url_base_pathname='/dash/',
+#           external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME, dbc.icons.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
+
 app = Dash(name = 'SCP_app', server = server, url_base_pathname='/dash/',
-           external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME, dbc.icons.BOOTSTRAP],prevent_initial_callbacks=True,suppress_callback_exceptions = True)
+           external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME, dbc.icons.BOOTSTRAP],prevent_initial_callbacks=False,suppress_callback_exceptions = True)
+
 
 # Generate a timestamp-based ID
 timestamp_id = str(int(time.time()))
@@ -554,6 +558,7 @@ sidebar_1 =  html.Div(
         dcc.Store(id='user_ip', data=0),         
         dcc.Store(id='worker_data_1', data=[]),
         dcc.Store(id='root_dir_1', data = root_dir), 
+        dcc.Store(id='internal-value_first_refresh_1', data=0),
         dcc.Store(id='internal-value_ind_park_1', data=0), 
         dcc.Store(id='internal-value_ind_park_coord_1', data=IndPark_pos),        
         dcc.Store(id='internal-value_marker_option_1', data=0),        
@@ -589,11 +594,13 @@ markers_all_1 = []
 markers_remote_1 = []
 markers_cow_1 = []
 IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndPark_pos, icon=custom_icon_IndPark, id='IndPark_1')]
-central_panel_1 = html.Div(
-       [
-          html.P(['Sustainable Commuting Platform (SCP): help your business transition towards a sustainable mobility '],id='title_SCP_1',style={'font-size': '24px',"font-weight": "bold"}),
-          dls.Clock(
-                    children=[ dl.Map(
+
+"""
+        newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + IndPark_marker,
+                        center=center, zoom=12, id="map_1",
+                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+
+dl.Map(
                                 [dl.ScaleControl(position="topright"),
                                  dl.LayersControl(
                                         [dl.BaseLayer(dl.TileLayer(), name='CO2', checked='CO2'),
@@ -609,7 +616,34 @@ central_panel_1 = html.Div(
                                 ] + IndPark_marker, 
                                 center=center, 
                                 zoom=12,
-                                id="map_1",style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+                                id="map_1",
+                                style={'width': '100%', 'height': '75vh', 'margin': "auto", "display": "block"})
+
+"""
+
+central_panel_1 = html.Div(
+       [
+          html.P(['Sustainable Commuting Platform (SCP): help your business transition towards a sustainable mobility '],id='title_SCP_1',style={'font-size': '24px',"font-weight": "bold"}),
+          dls.Clock(
+                    children=[ 
+                                dl.Map(
+                                [dl.ScaleControl(position="topright"),
+                                 dl.LayersControl(
+                                        [dl.BaseLayer(dl.TileLayer(), name='CO2', checked='CO2'),
+                                         dl.BaseLayer(dl.TileLayer(), name='CO2/CO2_target', checked=False),
+                                         #dl.BaseLayer(dl.TileLayer(), name='weighted_d', checked=False),
+                                         dl.BaseLayer(dl.TileLayer(), name='Has a bus stop', checked=False),
+                                         dl.BaseLayer(dl.TileLayer(), name='Family type', checked=False)]  +
+                                        [dl.Overlay(dl.LayerGroup(markers_all_1), name="all", id='markers_all_1', checked=False),
+                                         dl.Overlay(dl.LayerGroup(markers_remote_1), name="remote", id='markers_remote_1', checked=False),
+                                         dl.Overlay(dl.LayerGroup(markers_cow_1), name="coworking", id='markers_cow_1', checked=False)], 
+                                        id="lc_1"
+                                        )
+                                ] + IndPark_marker, 
+                                center=center, 
+                                zoom=12,
+                                id="map_1",
+                                style={'width': '100%', 'height': '75vh', 'margin': "auto", "display": "block"})
                     ],
                     color="#435278",
                     speed_multiplier=1.5,
@@ -2364,6 +2398,23 @@ def run_MCM(trips_ez, root_Dir, Transh, routeOptDone, co2km_car=0.15, co2km_eCar
 
     return prediction
 
+# The following callback is just needed to refresh the map when the page is loaded, otherwise the map #############################
+# does not appear
+@app.callback([Output('internal-value_first_refresh_1','data'),
+               Output('map_1','children',allow_duplicate=True)],
+               State('internal-value_first_refresh_1','data'),
+               [Input('title_SCP_1', 'children')],      # -> dummy variable, it does not matter, we just need a trigger variable
+              prevent_initial_call='initial_duplicate'
+              )
+def first_page_refresh(first_refresh, N):
+    #center = (43.26802146639027, -1.9777370771095362)
+    if first_refresh == 0:
+       newMap = dl.Map([dl.TileLayer(),dl.ScaleControl(position="topright")] + IndPark_marker,
+                        center=center, zoom=12, id="map_1",
+                        style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
+       first_refresh = 1
+       return [first_refresh, newMap]
+###################################################################################################################################
 
 @app.callback(
     [Output('user_ip', 'data'),
@@ -3851,7 +3902,6 @@ def set_coworking(selection):
     prevent_initial_call=True
 )
 def add_marker(St, Cow, MarkerOption, set_park, IndParkCoord, result_json, clickd):
-    print('adding marker...')
 
     if MarkerOption == 'AS' or MarkerOption == 'AC':
         result = pd.DataFrame.from_dict(result_json) 
