@@ -1624,7 +1624,7 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
     Total_CO2 = result['CO2'].sum() + additional_co2
     # Correct CO2 calculation 
     
-    temp = result.loc[result['Rem_work'] == 1]
+    temp = result.loc[result['Rem_work'] > 0]
     Total_CO2_remote = temp['CO2'].sum() # this will be used later
     temp = result.loc[result['Coworking'] == 1]
     Total_CO2_cowork = temp['CO2'].sum() # this will be used later
@@ -1970,7 +1970,8 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
     #fig.for_each_annotation(lambda a:  a.update(y = 1.05) if a.text in column_titles else a.update(x = -0.07) if a.text in row_titles else())
 
     #Total_CO2_worst_case = result['CO2_worst_case'].sum()
-    temp = result.loc[(result['Rem_work'] == 1) & (result['Coworking'] == 0)]
+    #temp = result.loc[(result['Rem_work'] == 1) & (result['Coworking'] == 0)]
+    temp = result.loc[(result['Rem_work'] > 0) & (result['Coworking'] == 0)]
     #Total_CO2_worst_case = temp['CO2_worst_case'].sum() + 0.000001 # to avoid div. by 0
     Total_CO2_worst_case = result['CO2_worst_case'].sum() 
     Total_CO2 = temp['CO2'].sum() 
@@ -2002,7 +2003,7 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
                                       }
                                 })
 
-    temp = result.loc[(result['Rem_work'] == 1) & (result['Coworking'] == 1)]
+    temp = result.loc[(result['Rem_work'] > 0 ) & (result['Coworking'] == 1)]
     #Total_CO2_worst_case = temp['CO2_worst_case'].sum() + 0.000001 # to avoid div. by 0
     Total_CO2_worst_case = result['CO2_worst_case'].sum() 
     Total_CO2 = temp['CO2'].sum()
@@ -2037,7 +2038,7 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
                                 })
 
     #predicted = result.loc[result['Rem_work'] == 1, 'prediction'] 
-    predicted = result.loc[(result['Rem_work'] == 1) & (result['Coworking'] == 0), 'prediction']       
+    predicted = result.loc[(result['Rem_work'] > 0 ) & (result['Coworking'] == 0), 'prediction']       
     unique_labels, counts = np.unique(predicted, return_counts=True)
     d = {'Mode': unique_labels, 'counts':counts}
     df = pd.DataFrame(data=d)
@@ -2066,7 +2067,7 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
                   marker=dict(colors=df['color']),
                   scalegroup = 'one')
  
-    predicted = result.loc[(result['Rem_work'] == 1) & (result['Coworking'] == 1), 'prediction'] 
+    predicted = result.loc[(result['Rem_work'] > 0) & (result['Coworking'] == 1), 'prediction'] 
     unique_labels, counts = np.unique(predicted, return_counts=True)
     d = {'Mode': unique_labels, 'counts':counts}
     df = pd.DataFrame(data=d)
@@ -2096,7 +2097,7 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
 
 
     #temp = result.loc[result['Rem_work'] == 1]
-    temp = result.loc[(result['Rem_work'] == 1) & (result['Coworking'] == 0)] 
+    temp = result.loc[(result['Rem_work'] > 0 ) & (result['Coworking'] == 0)] 
     if not temp.empty:
         """
         temp['distance_km'] = temp['distance_week']/1000.
@@ -2168,7 +2169,7 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
     max_dist_2 = Contribs['distance_km'].max()
 
 
-    temp = result.loc[(result['Rem_work'] == 1) & (result['Coworking'] == 1)]    
+    temp = result.loc[(result['Rem_work'] > 0 ) & (result['Coworking'] == 1)]    
     if not temp.empty:
         """
         temp['distance_km'] = temp['distance_week']/1000.
@@ -2241,8 +2242,8 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
     #family_types = ['Hogar de una persona', 'Otros hogares sin niños', '2 adultos',
     #                '2 adultos con niño(s)', '1 adulto con niño(s)',
     #                'Otros hogares con niños']    
-    no_kids_df = result.loc[(result['Rem_work'] == 1) & (result['Coworking'] == 0) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
-    kids_df    = result.loc[(result['Rem_work'] == 1) & (result['Coworking'] == 0) &(result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
+    no_kids_df = result.loc[(result['Rem_work'] > 0) & (result['Coworking'] == 0) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
+    kids_df    = result.loc[(result['Rem_work'] > 0) & (result['Coworking'] == 0) &(result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
     fig13 = go.Bar(
             x=['No kids', 'Kids'],
             y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
@@ -2261,8 +2262,8 @@ def plot_result(result, NremDays, NremWork, CowDays, NeCar, Nbuses, additional_c
             marker=dict(cornerradius="30%"))
     max_families_2 = max(len(no_kids_df['CO2'].index),len(kids_df['CO2'].index))
 
-    no_kids_df = result.loc[(result['Coworking'] == 1) & (result['Rem_work'] == 1) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
-    kids_df    = result.loc[(result['Coworking'] == 1) & (result['Rem_work'] == 1) & (result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
+    no_kids_df = result.loc[(result['Coworking'] == 1) & (result['Rem_work'] > 0) & (result['Tipo_familia'] <3) & (result['Mode'] == 'Car')]
+    kids_df    = result.loc[(result['Coworking'] == 1) & (result['Rem_work'] > 0) & (result['Tipo_familia'] >2) & (result['Mode'] == 'Car')]
     fig15 = go.Bar(
             x=['No kids', 'Kids'],
             y=[len(no_kids_df['CO2'].index),len(kids_df['CO2'].index)],
@@ -4025,11 +4026,9 @@ def change_stop_marker(St, Cow, IndParkCoord, marker_operation, result_json, *ar
         #                style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"})
         IndPark_marker = [dl.Marker(dl.Tooltip("Industrial Park"), position=IndParkCoord, icon=custom_icon_IndPark, id='IndPark_1')]
 
-
         newMap = generate_map(result, Cow, St, markers + IndPark_marker)
 
         return ['Marker deleted!',St,Cow,'',newMap]
-
 
 
     """
@@ -4121,6 +4120,19 @@ def login():
 
     # If the request method is GET, render the login template
     return render_template('login.html')
+
+@server.route("/test1", endpoint='webpage1')
+#@exception_handler
+def webpage1():
+    print('trying to serve page 1')
+    #return render_template(path + "/Nere_webpage/index.html")
+    return render_template("index1.html")
+
+@server.route("/test2", endpoint='webpage2')
+def webpage2():
+    print('trying to serve page 2')
+    #return render_template(path + "/Nere_webpage_copy/index.html")
+    return render_template("index2.html")
 
 if __name__ == '__main__':
     server.run(debug=True, use_reloader=False, host='0.0.0.0', port=80)
