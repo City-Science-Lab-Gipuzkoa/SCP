@@ -40,3 +40,12 @@ UI_SCP/assets/data/login_data.txt
 UI_SCP/assets/data/login_data.txt
 UI_SCP/assets/modules/__pycache__/prediction.cpython-311.pyc
 UI_SCP/assets/data/login_data.txt
+UI_SCP/app/layout/__pycache__/layout.cpython-311.pyc
+UI_SCP/app/components/__pycache__/prediction.cpython-311.pyc
+UI_SCP/app/components/__pycache__/pp.cpython-311.pyc
+UI_SCP/app/components/__pycache__/misc_functions.cpython-311.pyc
+UI_SCP/app/components/__pycache__/generate_GTFS_module.cpython-311.pyc
+UI_SCP/app/components/__pycache__/find_stops_module.cpython-311.pyc
+UI_SCP/app/components/__pycache__/calcroutes_module.cpython-311.pyc
+UI_SCP/app/callbacks/__pycache__/callbacks.cpython-311.pyc
+UI_SCP/app/components/cpPY2server.exe
