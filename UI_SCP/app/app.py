@@ -8,7 +8,6 @@ from dash import dcc, Output, Input, State, callback, dash_table
 
 from dash_extensions import Download
 #from dash_extensions.enrich import html, Output, Input, State, callback, dcc
-
 #from dash_extensions.snippets import send_file
 from dash_extensions.snippets import send_data_frame
 
