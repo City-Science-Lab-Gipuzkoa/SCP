@@ -1439,6 +1439,9 @@ def run_MCM_callback(root_dir, workerData, stored_scenarios, NremDays, NremWork,
       else:
         result.to_csv(root_dir + MCM_data_dir + 'BL_plus_PT.csv')
         temp = pd.concat([baseline_scenario[['Mode','Coworking_days']], result['Mode']], axis=1, ignore_index=True)
+        temp_all = pd.concat([baseline_scenario, result[['Mode']].rename(columns={'Mode': 'Mode2'})], axis=1)
+        temp_all.to_csv(root_dir + MCM_data_dir + 'BL_plus_PT_all.csv', index=False)
+
 
       temp.columns = ['Mode1','Coworking_days','Mode2']
       temp_df = temp.loc[(temp['Mode1']=='Car') & (temp['Mode2']=='PT') & (temp['Coworking_days']==0)].dropna()
