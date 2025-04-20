@@ -1007,7 +1007,7 @@ class MiscFunctions:
                 )
 
         fig2 = go.Bar(
-                    y=y_diff[:2],
+                    y= [float(val) / 1000 for val in y_diff[:2]],
                     x=['Remote','Coworking'],
                     marker_color=colors[:2])
         fig22 = go.Bar(
@@ -1456,8 +1456,8 @@ class MiscFunctions:
         import pandas as pd
         import sys    
         root_dir = root_Dir
-        #sys.path.append(root_dir + 'modules')
-        sys.path.append(root_dir + 'components')
+        sys.path.append(root_dir + 'modules')
+        #sys.path.append(root_dir + 'components')
         import pp
         import prediction
         import pandas as pd
