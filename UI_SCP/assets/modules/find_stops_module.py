@@ -64,8 +64,23 @@ def detect_local_minima(arr):
     return np.where(detected_minima)
 
 
-def FindStops(workers_df, stops_df, n_clusters, cutoff):
+def FindStops(workers_df, startHour, stops_df, n_clusters, cutoff):
+
+    minimum_cluster_size = 22
     #lat_lon = workers_df[['O_lat', 'O_long']][::n_skip] # take every n elements
+    # Create a copy column
+
+    # select specific hour #####################################################
+    workers_df['Hora_Ini_E'] = workers_df['Hora_Ini'].copy()
+    workers_df['Hora_Ini'] = pd.to_datetime(workers_df['Hora_Ini_E'], format='%H:%M')
+    workers_df['Hora_Ini_E'] = ((workers_df['Hora_Ini'] - pd.to_datetime('00:00', format='%H:%M')).dt.total_seconds() / 300).astype(int) + 1
+    workers_df['Hora_Ini'] = workers_df['Hora_Ini'].dt.strftime('%H:%M')
+    convertido=((startHour*60*60)/300)+1
+    # Get 1-hour interval between "convertido" and "convertido+1hour"? #######
+    workers_df=workers_df[workers_df['Hora_Ini_E'] <= (convertido+11)]
+    workers_df=workers_df[workers_df['Hora_Ini_E'] >= convertido]
+    ############################################################################
+
     workers_lat_lon = workers_df[['O_lat', 'O_long']].values.tolist()
     stops_lat_lon = stops_df[['stop_lat','stop_lon']].to_numpy()    
     model = KMeans(n_clusters=n_clusters)
@@ -76,7 +91,7 @@ def FindStops(workers_df, stops_df, n_clusters, cutoff):
 
     # retrieve unique clusters
     clusters = np.unique(yhat)
-    centers = np.array(model.cluster_centers_)
+    #centers = np.array(model.cluster_centers_)
 
     highDens_points = []
     local_maxima_all_clusters = []
@@ -88,57 +103,58 @@ def FindStops(workers_df, stops_df, n_clusters, cutoff):
         # create scatter of these samples
         # get coordinates of workers of this cluster ##################################
         temp_array = np.array(workers_lat_lon)[row_ix[0]]
-        Lats = [temp_array[i,0] for i in range(len(temp_array))]
-        Lons = [temp_array[i,1] for i in range(len(temp_array))]
-        ###############################################################################
+        if len(temp_array) > minimum_cluster_size:
+            Lats = [temp_array[i,0] for i in range(len(temp_array))]
+            Lons = [temp_array[i,1] for i in range(len(temp_array))]
+            ###############################################################################
 
-        minLat = min(Lats)
-        maxLat = max(Lats)
-        minLon = min(Lons)
-        maxLon = max(Lons)
+            minLat = min(Lats)
+            maxLat = max(Lats)
+            minLon = min(Lons)
+            maxLon = max(Lons)
 
-        #xy = np.vstack([Y,X])
-        xy = np.vstack([Lons,Lats]) 
-        kernel = stats.gaussian_kde(xy)
-        x,y = np.mgrid[minLat:maxLat:150j, minLon:maxLon:150j]  # 150 x 150 grid for plotting
-        z = kernel.pdf(np.array([y.ravel(),x.ravel()])).reshape(x.shape)
+            #xy = np.vstack([Y,X])
+            xy = np.vstack([Lons,Lats]) 
+            kernel = stats.gaussian_kde(xy)
+            x,y = np.mgrid[minLat:maxLat:150j, minLon:maxLon:150j]  # 150 x 150 grid for plotting
+            z = kernel.pdf(np.array([y.ravel(),x.ravel()])).reshape(x.shape)
 
-        # find absolute max: ##########################################################
-        indmax = np.unravel_index(np.argmax(z, axis=None), z.shape)  # returns a tuple
-        highestDP = (x[indmax],y[indmax])
-        highDens_points.append(highestDP)
-        ###############################################################################
+            # find absolute max: ##########################################################
+            indmax = np.unravel_index(np.argmax(z, axis=None), z.shape)  # returns a tuple
+            highestDP = (x[indmax],y[indmax])
+            highDens_points.append(highestDP)
+            ###############################################################################
 
-        print('Point density function for cluster: ', str(cluster))
-        fig,ax = plt.subplots()
-        ax.contourf(y, x, z, levels=20)
-        ax.axis('scaled')
+            print('Point density function for cluster: ', str(cluster))
+            fig,ax = plt.subplots()
+            ax.contourf(y, x, z, levels=20)
+            ax.axis('scaled')
 
-        """
-        #plt.scatter(Y,X, marker = 'o', alpha=0.5, color='white')
-        plt.scatter(Lons,Lats, marker = 'o', alpha=0.5, color='white')
-        plt.scatter(highestDP[1], highestDP[0], s=48, marker="x", color='black')
-        #plt.savefig('/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Point_density_cluster_'+str(cluster)+'.png')
-        plt.show()
-        """
+            """
+            #plt.scatter(Y,X, marker = 'o', alpha=0.5, color='white')
+            plt.scatter(Lons,Lats, marker = 'o', alpha=0.5, color='white')
+            plt.scatter(highestDP[1], highestDP[0], s=48, marker="x", color='black')
+            #plt.savefig('/content/drive/MyDrive/Colab Notebooks/CSL_GIPUZKOA/Point_density_cluster_'+str(cluster)+'.png')
+            plt.show()
+            """
 
-        # find local maxima
-        local_maxima_locations = detect_local_minima(-z)
-        print('Local maxima for cluster: ', cluster)
-        print(z[local_maxima_locations])
-        maxs = z[local_maxima_locations]
-        ind_maxs = [i for i in range(len(maxs)) if maxs[i]/max(maxs)>=cutoff]
-        #for i_max in range(len(local_minima_locations[0])):
-        print('Local maxima within 20% of absolute max:')
-        local_maxima_cluster_i = []
-        for i_max in range(len(ind_maxs)):
-            i_tmp = ind_maxs[i_max]
-            x_coord = x.T.ravel()[local_maxima_locations[0][i_tmp]]
-            y_coord = y.ravel()[local_maxima_locations[1][i_tmp]]
-            print(x_coord, y_coord)
-            local_maxima_cluster_i.append((x_coord,y_coord))
-        print()
-        local_maxima_all_clusters.append(local_maxima_cluster_i)
+            # find local maxima
+            local_maxima_locations = detect_local_minima(-z)
+            print('Local maxima for cluster: ', cluster)
+            print(z[local_maxima_locations])
+            maxs = z[local_maxima_locations]
+            ind_maxs = [i for i in range(len(maxs)) if maxs[i]/max(maxs)>=cutoff]
+            #for i_max in range(len(local_minima_locations[0])):
+            print('Local maxima within 20% of absolute max:')
+            local_maxima_cluster_i = []
+            for i_max in range(len(ind_maxs)):
+                i_tmp = ind_maxs[i_max]
+                x_coord = x.T.ravel()[local_maxima_locations[0][i_tmp]]
+                y_coord = y.ravel()[local_maxima_locations[1][i_tmp]]
+                print(x_coord, y_coord)
+                local_maxima_cluster_i.append((x_coord,y_coord))
+            print()
+            local_maxima_all_clusters.append(local_maxima_cluster_i)
 
     # generate list of closest bus stops ######################################
     bus_stops = []
