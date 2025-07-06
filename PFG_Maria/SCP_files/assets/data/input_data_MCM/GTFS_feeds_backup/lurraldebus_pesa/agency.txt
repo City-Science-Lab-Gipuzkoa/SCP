@@ -1,0 +1,2 @@
+agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone,agency_fare_url
+10,Lurraldebus Transportes Pesa S.a.,https://www.lurraldebus.eus/,Europe/Madrid,es,+34900121400,https://www.mugi.eus/index.php/es/tarjetas/tarifas

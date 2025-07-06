@@ -1,0 +1,2 @@
+agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone,agency_fare_url
+01,LURRALDEBUS CIA TRANVIA DE TOLOSA,http://lurraldebus.net,Europe/Madrid,es,+34943361741,

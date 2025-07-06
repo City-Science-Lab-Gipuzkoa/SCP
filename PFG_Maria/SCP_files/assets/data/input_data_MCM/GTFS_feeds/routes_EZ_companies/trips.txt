@@ -1,0 +1,5 @@
+route_id,service_id,trip_id,shape_id
+vehiculo_1,WEEKDAY,vehiculo_1_080000,vehiculo_1_shape_0
+vehiculo_1,WEEKDAY,vehiculo_1_170000,vehiculo_1_shape_1
+vehiculo_2,WEEKDAY,vehiculo_2_080000,vehiculo_2_shape_2
+vehiculo_2,WEEKDAY,vehiculo_2_170000,vehiculo_2_shape_3

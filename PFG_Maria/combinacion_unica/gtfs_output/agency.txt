@@ -1,0 +1,2 @@
+agency_id,agency_name,agency_url,agency_timezone
+MUBIL,MUBIL Urban Bus,http://mubil.eus,Europe/Madrid
