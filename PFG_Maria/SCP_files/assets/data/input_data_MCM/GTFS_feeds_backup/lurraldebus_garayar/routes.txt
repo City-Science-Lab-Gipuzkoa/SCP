@@ -1,0 +1,6 @@
+route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
+13,04,G6,HERNANI-PICOAGA,,3,,,
+3,04,G1,HERNANI-AYETE-DONOSTIA,,3,,,
+5,04,G2,ANDOAIN-URNIETA-HERNANI-DONOSTIA,,3,,,
+7,04,G3,ANDOAIN-CIUDAD SANITARIA,,3,,,
+9,04,G4,NOCTURNO,,3,,,

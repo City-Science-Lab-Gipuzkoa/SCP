@@ -1,0 +1,2 @@
+agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone,agency_fare_url
+35,Lurraldebus Bilman,https://web.bilmanbus.es/lurraldebus/,Europe/Madrid,es,+34944263063,https://www.mugi.eus/index.php/es/tarjetas/tarifas

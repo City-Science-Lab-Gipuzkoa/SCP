@@ -1,0 +1,29 @@
+route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
+44,10,DG44G,Zumarraga>Legazpi>Oñati>Arrasate,,3,,FFFFFF,8DC63F
+45,10,DG45G,Eibar>Arrasate>Vitoria-Gasteiz,,3,,FFFFFF,8DC63F
+47,10,DG47G,Eskoriatza>Donostia,,3,,FFFFFF,8DC63F
+26,10,DG05A,(Ermua) Eibar>Bergara>Arrasate>Vitoria-Gasteiz,,3,,FFFFFF,8DC63F
+48,10,DG48G,Arrasate>Oñati>Aeropuerto Bilbao,,3,,FFFFFF,8DC63F
+27,10,DG05D,Eibar>Vitoria-Gasteiz (Paduratik/Por Pantano),,3,,FFFFFF,8DC63F
+28,10,DG11,Eibar>Arrasate,,3,,FFFFFF,8DC63F
+29,10,DG12,Arrasate>Oñati>Aeropuerto Bilbao,,3,,FFFFFF,8DC63F
+30,10,DG03,Zumarraga>Antzuola>Bergara>Antzuola>Zumarraga,,3,,FFFFFF,8DC63F
+31,10,DG04,Zumarraga>Legazpi>Oñati>Arrasate,,3,,FFFFFF,8DC63F
+10,10,DG10,Bergara>Arrasate>Aretxabaleta>Eskoriatza,,3,,FFFFFF,8DC63F
+11,10,DO01,Donostia>Bilbao,,3,,FFFFFF,8DC63F
+12,10,DO02,Donostia>Vitoria-Gasteiz,,3,,FFFFFF,8DC63F
+13,10,DO03,Donostia>Tolosa>Zumarraga>Bilbao,,3,,FFFFFF,8DC63F
+14,10,DO04,Donostia>Aeropuerto Bilbao,,3,,FFFFFF,8DC63F
+1,10,DG01,Arrasate>Oñati>Bilbao,,3,,FFFFFF,8DC63F
+2,10,DG02,Bergara>Oñati>Arrasate>Durango>Bilbao,,3,,FFFFFF,8DC63F
+5,10,DG05,Eibar>Arrasate>Vitoria-Gasteiz,,3,,FFFFFF,8DC63F
+6,10,DG06,Eskoriatza>Arrasate>Deba,,3,,FFFFFF,8DC63F
+7,10,DG07,Eskoriatza>Donostia,,3,,FFFFFF,8DC63F
+9,10,DG09,Zumarraga (Ospitalea)>Legazpi>Zumarraga (Ospitalea),,3,,FFFFFF,8DC63F
+40,10,DG40G,Eibar>Bergara>Arrasate>Eskoriatza,,3,,FFFFFF,8DC63F
+41,10,DG41G,Oñati>Arrasate>Eskoriatza>Leintzgatzaga,,3,,FFFFFF,8DC63F
+20,10,DG20E,Bergara>Elgeta,,3,,FFFFFF,8DC63F
+42,10,DG42G,Eibar>Soraluze>Bergara>Arrasate,,3,,FFFFFF,8DC63F
+64,10,DG04B,Zumarraga>Arrasate,,3,,FFFFFF,8DC63F
+21,10,DG21E,Leintz>Eskoriatza>Arrasate (Ospitalea),,3,,FFFFFF,8DC63F
+43,10,DG43G,Zumarraga>Antzuola>Bergar>Antzuola>Zumarraga,,3,,FFFFFF,8DC63F

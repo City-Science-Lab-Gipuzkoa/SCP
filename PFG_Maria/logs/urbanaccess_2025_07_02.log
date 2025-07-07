@@ -1,0 +1,388 @@
+2025-07-02 13:49:12,418 INFO urbanaccess Checking GTFS text file header whitespace... Reading files using encoding: utf-8 set in configuration.
+2025-07-02 13:49:15,620 INFO urbanaccess GTFS text file header whitespace check completed. Took 3.20 seconds
+2025-07-02 13:49:15,621 INFO urbanaccess --------------------------------
+2025-07-02 13:49:15,621 INFO urbanaccess Processing GTFS feed: lurraldebus_oiartzun
+2025-07-02 13:49:15,675 INFO urbanaccess The unique agency id: lurraldebus_urbano_de_oiartzun was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:15,680 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:15,689 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.01 seconds
+2025-07-02 13:49:15,694 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:15,698 INFO urbanaccess lurraldebus_oiartzun GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:15,738 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:15,757 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:15,767 INFO urbanaccess --------------------------------
+2025-07-02 13:49:15,768 INFO urbanaccess --------------------------------
+2025-07-02 13:49:15,770 INFO urbanaccess Processing GTFS feed: lurraldebus_ekialdebus
+2025-07-02 13:49:16,662 INFO urbanaccess The unique agency id: lurraldebus_ekialdebus was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:16,709 INFO urbanaccess Unique agency id operation complete. Took 0.06 seconds
+2025-07-02 13:49:16,728 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.02 seconds
+2025-07-02 13:49:16,742 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:16,744 INFO urbanaccess lurraldebus_ekialdebus GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:17,362 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:17,740 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:17,877 INFO urbanaccess --------------------------------
+2025-07-02 13:49:17,878 INFO urbanaccess --------------------------------
+2025-07-02 13:49:17,878 INFO urbanaccess Processing GTFS feed: Renfe
+2025-07-02 13:49:18,571 INFO urbanaccess The unique agency id: renfe_operadora was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:18,586 INFO urbanaccess Unique agency id operation complete. Took 0.02 seconds
+2025-07-02 13:49:18,593 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.01 seconds
+2025-07-02 13:49:18,597 WARNING urbanaccess WARNING: Renfe GTFS feed stops: 783 of 804 (97.39 percent of total) record(s) are outside the bounding box coordinates
+2025-07-02 13:49:18,598 INFO urbanaccess Records:
+2025-07-02 13:49:18,666 INFO urbanaccess     stop_id  stop_code                              stop_name  stop_desc  ...  stop_timezone  wheelchair_boarding  unique_agency_id  unique_feed_id
+0     71801        NaN       Estación de tren Barcelona-Sants        NaN  ...  Europe/Madrid                    1   renfe_operadora         renfe_3
+1     61307        NaN             Estación de tren Cartagena        NaN  ...  Europe/Madrid                    1   renfe_operadora         renfe_3
+2     61304        NaN         Estación de tren Torre-Pacheco        NaN  ...  Europe/Madrid                    2   renfe_operadora         renfe_3
+3     61303        NaN    Estación de tren Balsicas-Mar Menor        NaN  ...  Europe/Madrid                    2   renfe_operadora         renfe_3
+4     61200        NaN                Estación de tren Murcia        NaN  ...  Europe/Madrid                    1   renfe_operadora         renfe_3
+..      ...        ...                                    ...        ...  ...            ...                  ...               ...             ...
+799   34007        NaN               Estación de tren Crespos        NaN  ...  Europe/Madrid                    2   renfe_operadora         renfe_3
+800   34005        NaN  Estación de tren San Pedro del Arroyo        NaN  ...  Europe/Madrid                    2   renfe_operadora         renfe_3
+801   34002        NaN   Estación de tren Cardenyosa de Avila        NaN  ...  Europe/Madrid                    2   renfe_operadora         renfe_3
+802   72400        NaN      Estación de tren El Prat Aeroport        NaN  ...  Europe/Madrid                    2   renfe_operadora         renfe_3
+803   07004        NaN               Estación de tren Aguilas        NaN  ...  Europe/Madrid                    2   renfe_operadora         renfe_3
+
+[783 rows x 14 columns]
+2025-07-02 13:49:18,667 INFO urbanaccess Removed identified stops that are outside of bounding box.
+2025-07-02 13:49:18,668 INFO urbanaccess Renfe GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:18,718 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:18,751 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:18,861 INFO urbanaccess --------------------------------
+2025-07-02 13:49:18,861 INFO urbanaccess --------------------------------
+2025-07-02 13:49:18,861 INFO urbanaccess Processing GTFS feed: lurraldebus_areizaga
+2025-07-02 13:49:18,944 INFO urbanaccess The unique agency id: lurraldebus_hijos_de_antonio_areizaga_s.a. was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:18,947 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:18,950 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.00 seconds
+2025-07-02 13:49:18,961 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:18,962 INFO urbanaccess lurraldebus_areizaga GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:19,011 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:19,042 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:19,191 INFO urbanaccess --------------------------------
+2025-07-02 13:49:19,192 INFO urbanaccess --------------------------------
+2025-07-02 13:49:19,192 INFO urbanaccess Processing GTFS feed: routes_EZ_companies
+2025-07-02 13:49:19,231 INFO urbanaccess The unique agency id: mubil_urban_bus was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:19,233 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:19,236 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.00 seconds
+2025-07-02 13:49:19,244 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:19,246 INFO urbanaccess routes_EZ_companies GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:19,276 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:19,295 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:19,457 INFO urbanaccess --------------------------------
+2025-07-02 13:49:19,457 INFO urbanaccess --------------------------------
+2025-07-02 13:49:19,457 INFO urbanaccess Processing GTFS feed: lurraldebus_tsst
+2025-07-02 13:49:19,523 INFO urbanaccess The unique agency id: lurraldebus_cia_tranvia_de_tolosa was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:19,525 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:19,528 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.00 seconds
+2025-07-02 13:49:19,537 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:19,540 INFO urbanaccess lurraldebus_tsst GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:19,584 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:19,606 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:19,776 INFO urbanaccess --------------------------------
+2025-07-02 13:49:19,776 INFO urbanaccess --------------------------------
+2025-07-02 13:49:19,776 INFO urbanaccess Processing GTFS feed: dbus
+2025-07-02 13:49:21,825 INFO urbanaccess The unique agency id: dbus was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:21,889 INFO urbanaccess Unique agency id operation complete. Took 0.08 seconds
+2025-07-02 13:49:21,906 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.02 seconds
+2025-07-02 13:49:21,910 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:21,916 INFO urbanaccess dbus GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:23,259 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:24,023 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:24,359 INFO urbanaccess --------------------------------
+2025-07-02 13:49:24,359 INFO urbanaccess --------------------------------
+2025-07-02 13:49:24,359 INFO urbanaccess Processing GTFS feed: lurraldebus_euskotren_bus
+2025-07-02 13:49:24,547 INFO urbanaccess The unique agency id: lurraldebus_euskotren was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:24,559 INFO urbanaccess Unique agency id operation complete. Took 0.02 seconds
+2025-07-02 13:49:24,574 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.01 seconds
+2025-07-02 13:49:24,577 WARNING urbanaccess WARNING: lurraldebus_euskotren_bus GTFS feed stops: 3 of 231 (1.30 percent of total) record(s) are outside the bounding box coordinates
+2025-07-02 13:49:24,577 INFO urbanaccess Records:
+2025-07-02 13:49:24,597 INFO urbanaccess     stop_id  stop_code   stop_name   stop_lat  stop_lon  zone_id  location_type       unique_agency_id               unique_feed_id
+25      118        NaN  Amorebieta  43.218118 -2.730429       15              0  lurraldebus_euskotren  lurraldebus_euskotren_bus_8
+109    4350        NaN   Magdalena  43.171779 -2.632961       11              0  lurraldebus_euskotren  lurraldebus_euskotren_bus_8
+110    4351        NaN   Magdalena  43.171626 -2.632974       11              0  lurraldebus_euskotren  lurraldebus_euskotren_bus_8
+2025-07-02 13:49:24,598 INFO urbanaccess Removed identified stops that are outside of bounding box.
+2025-07-02 13:49:24,600 INFO urbanaccess lurraldebus_euskotren_bus GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:24,740 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:24,799 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:25,128 INFO urbanaccess --------------------------------
+2025-07-02 13:49:25,129 INFO urbanaccess --------------------------------
+2025-07-02 13:49:25,129 INFO urbanaccess Processing GTFS feed: lurraldebus_pesa
+2025-07-02 13:49:25,355 INFO urbanaccess The unique agency id: lurraldebus_transportes_pesa_s.a. was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:25,365 INFO urbanaccess Unique agency id operation complete. Took 0.02 seconds
+2025-07-02 13:49:25,371 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.01 seconds
+2025-07-02 13:49:25,379 WARNING urbanaccess WARNING: lurraldebus_pesa GTFS feed stops: 9 of 192 (4.69 percent of total) record(s) are outside the bounding box coordinates
+2025-07-02 13:49:25,379 INFO urbanaccess Records:
+2025-07-02 13:49:25,412 INFO urbanaccess     stop_id  stop_code                                       stop_name  ...  location_type                   unique_agency_id      unique_feed_id
+41     4314        NaN                        Bilboko Autobus Geltokia  ...              0  lurraldebus_transportes_pesa_s.a.  lurraldebus_pesa_9
+47     4323        NaN                        Vi-Estacion De Autobuses  ...              0  lurraldebus_transportes_pesa_s.a.  lurraldebus_pesa_9
+48     4324        NaN                                          Durana  ...              0  lurraldebus_transportes_pesa_s.a.  lurraldebus_pesa_9
+49     4325        NaN  Carretera A-3002. Direccion Arrasate-Mondragon  ...              0  lurraldebus_transportes_pesa_s.a.  lurraldebus_pesa_9
+60     4350        NaN                                       Magdalena  ...              0  lurraldebus_transportes_pesa_s.a.  lurraldebus_pesa_9
+61     4351        NaN                                       Magdalena  ...              0  lurraldebus_transportes_pesa_s.a.  lurraldebus_pesa_9
+73     4389        NaN                                        Mendibil  ...              0  lurraldebus_transportes_pesa_s.a.  lurraldebus_pesa_9
+74     4390        NaN                                          Durana  ...              0  lurraldebus_transportes_pesa_s.a.  lurraldebus_pesa_9
+144      60        NaN                               Aeropuerto Bilbao  ...              0  lurraldebus_transportes_pesa_s.a.  lurraldebus_pesa_9
+
+[9 rows x 9 columns]
+2025-07-02 13:49:25,414 INFO urbanaccess Removed identified stops that are outside of bounding box.
+2025-07-02 13:49:25,414 INFO urbanaccess lurraldebus_pesa GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:25,578 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:25,670 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:26,118 INFO urbanaccess --------------------------------
+2025-07-02 13:49:26,118 INFO urbanaccess --------------------------------
+2025-07-02 13:49:26,118 INFO urbanaccess Processing GTFS feed: lurraldebus_goierrialdea
+2025-07-02 13:49:26,283 INFO urbanaccess The unique agency id: lurraldebus_bilman was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:26,286 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:26,295 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.01 seconds
+2025-07-02 13:49:26,297 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:26,298 INFO urbanaccess lurraldebus_goierrialdea GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:26,396 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:26,444 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:26,866 INFO urbanaccess --------------------------------
+2025-07-02 13:49:26,866 INFO urbanaccess --------------------------------
+2025-07-02 13:49:26,867 INFO urbanaccess Processing GTFS feed: lurraldebus_garayar
+2025-07-02 13:49:26,977 INFO urbanaccess The unique agency id: lurraldebus_autobuses_garayar_s.a. was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:26,981 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:26,991 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.01 seconds
+2025-07-02 13:49:26,999 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:27,000 INFO urbanaccess lurraldebus_garayar GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:27,069 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:27,111 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:27,511 INFO urbanaccess --------------------------------
+2025-07-02 13:49:27,511 INFO urbanaccess --------------------------------
+2025-07-02 13:49:27,512 INFO urbanaccess Processing GTFS feed: lurraldebus_zarautz
+2025-07-02 13:49:27,569 INFO urbanaccess The unique agency id: zarauzko_hiribusa was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:27,572 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:27,575 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.00 seconds
+2025-07-02 13:49:27,582 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:27,584 INFO urbanaccess lurraldebus_zarautz GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:27,624 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:27,649 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:28,016 INFO urbanaccess --------------------------------
+2025-07-02 13:49:28,017 INFO urbanaccess --------------------------------
+2025-07-02 13:49:28,017 INFO urbanaccess Processing GTFS feed: lurraldebus_tbh
+2025-07-02 13:49:28,483 INFO urbanaccess The unique agency id: lurraldebus_interurbano_tolosa_buruntzaldea was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:28,502 INFO urbanaccess Unique agency id operation complete. Took 0.03 seconds
+2025-07-02 13:49:28,510 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.01 seconds
+2025-07-02 13:49:28,515 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:28,520 INFO urbanaccess lurraldebus_tbh GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:28,802 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:28,963 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:29,362 INFO urbanaccess --------------------------------
+2025-07-02 13:49:29,364 INFO urbanaccess --------------------------------
+2025-07-02 13:49:29,365 INFO urbanaccess Processing GTFS feed: Euskotren
+2025-07-02 13:49:31,363 INFO urbanaccess agency.txt agency_name column has more than one agency name listed. Unique agency id was assigned using the agency id and associated agency name.
+2025-07-02 13:49:31,379 INFO urbanaccess Unique agency id operation complete. Took 1.66 seconds
+2025-07-02 13:49:31,398 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.01 seconds
+2025-07-02 13:49:31,405 WARNING urbanaccess WARNING: Euskotren GTFS feed stops: 320 of 489 (65.44 percent of total) record(s) are outside the bounding box coordinates
+2025-07-02 13:49:31,406 INFO urbanaccess Records:
+2025-07-02 13:49:31,487 INFO urbanaccess                                    stop_id  stop_code   stop_name  ...  platform_code                   unique_agency_id  unique_feed_id
+0             ES:Euskotren:StopPlace:1468:        NaN      Atxuri  ...            NaN                                nan    euskotren_14
+1    ES:Euskotren:StopPlaceEntrance:14680:        NaN      Atxuri  ...            NaN                                nan    euskotren_14
+2                 ES:Euskotren:Quay:14681:        NaN      Atxuri  ...            NaN           euskotren_tranbia_bilbao    euskotren_14
+3             ES:Euskotren:StopPlace:1469:        NaN  Uribitarte  ...            NaN                                nan    euskotren_14
+4    ES:Euskotren:StopPlaceEntrance:14690:        NaN  Uribitarte  ...            NaN                                nan    euskotren_14
+..                                     ...        ...         ...  ...            ...                                ...             ...
+484               ES:Euskotren:Quay:26782:        NaN      Iliada  ...            NaN  euskotren_tranbia_vitoria-gasteiz    euskotren_14
+485           ES:Euskotren:StopPlace:2679:        NaN     Nikosia  ...            NaN                                nan    euskotren_14
+486  ES:Euskotren:StopPlaceEntrance:26790:        NaN     Nikosia  ...            NaN                                nan    euskotren_14
+487               ES:Euskotren:Quay:26791:        NaN     Nikosia  ...            NaN  euskotren_tranbia_vitoria-gasteiz    euskotren_14
+488               ES:Euskotren:Quay:26792:        NaN     Nikosia  ...            NaN  euskotren_tranbia_vitoria-gasteiz    euskotren_14
+
+[320 rows x 17 columns]
+2025-07-02 13:49:31,488 INFO urbanaccess Removed identified stops that are outside of bounding box.
+2025-07-02 13:49:31,490 INFO urbanaccess Euskotren GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:31,629 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:31,692 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:32,170 INFO urbanaccess --------------------------------
+2025-07-02 13:49:32,171 INFO urbanaccess --------------------------------
+2025-07-02 13:49:32,171 INFO urbanaccess Processing GTFS feed: Renfe_cercanias
+2025-07-02 13:49:35,972 INFO urbanaccess The unique agency id: renfe_cercanias was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:36,081 INFO urbanaccess Unique agency id operation complete. Took 0.13 seconds
+2025-07-02 13:49:36,101 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.02 seconds
+2025-07-02 13:49:36,106 WARNING urbanaccess WARNING: Renfe_cercanias GTFS feed stops: 921 of 951 (96.85 percent of total) record(s) are outside the bounding box coordinates
+2025-07-02 13:49:36,107 INFO urbanaccess Records:
+2025-07-02 13:49:36,129 INFO urbanaccess     stop_id                                  stop_name   stop_lat  stop_lon unique_agency_id      unique_feed_id
+0     04040         Estación de tren Zaragoza-Delicias  41.658649 -0.911615  renfe_cercanias  renfe_cercanias_15
+1     05102                  Estación de tren San Xoán  43.494664 -8.213713  renfe_cercanias  renfe_cercanias_15
+2     05103                Estación de tren Santa Icía  43.500113 -8.199581  renfe_cercanias  renfe_cercanias_15
+3     05104              Estación de tren Virxe Do Mar  43.496509 -8.204876  renfe_cercanias  renfe_cercanias_15
+4     05105                  Estación de tren PiÑeiros  43.509526 -8.183968  renfe_cercanias  renfe_cercanias_15
+..      ...                                        ...        ...       ...              ...                 ...
+946   97200  Estación de tren Mirasierra-Paco De Lucía  40.499662 -3.709016  renfe_cercanias  renfe_cercanias_15
+947   97201      Estación de tren Madrid-Ramón Y Cajal  40.488298 -3.694683  renfe_cercanias  renfe_cercanias_15
+948   98003            Estación de tren Fte De La Mora  40.484794 -3.662886  renfe_cercanias  renfe_cercanias_15
+949   98304                Estación de tren Valdebebas  40.482000 -3.616292  renfe_cercanias  renfe_cercanias_15
+950   98305      Estación de tren Madrid-Aeropuerto T4  40.491740 -3.593473  renfe_cercanias  renfe_cercanias_15
+
+[921 rows x 6 columns]
+2025-07-02 13:49:36,130 INFO urbanaccess Removed identified stops that are outside of bounding box.
+2025-07-02 13:49:36,131 INFO urbanaccess Renfe_cercanias GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:36,699 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:36,859 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:37,322 INFO urbanaccess --------------------------------
+2025-07-02 13:49:37,322 INFO urbanaccess --------------------------------
+2025-07-02 13:49:37,323 INFO urbanaccess Processing GTFS feed: lurraldebus_hernani
+2025-07-02 13:49:37,373 INFO urbanaccess The unique agency id: lurraldebus_urbano_de_hernani was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:37,375 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:37,378 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.00 seconds
+2025-07-02 13:49:37,405 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:37,419 INFO urbanaccess lurraldebus_hernani GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:37,444 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:37,462 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:37,940 INFO urbanaccess --------------------------------
+2025-07-02 13:49:37,940 INFO urbanaccess --------------------------------
+2025-07-02 13:49:37,941 INFO urbanaccess Processing GTFS feed: lurraldebus_tolosaldea
+2025-07-02 13:49:38,027 INFO urbanaccess The unique agency id: lurraldebus_tolosaldea_bus_s.l was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:38,031 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:38,036 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.00 seconds
+2025-07-02 13:49:38,046 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:38,047 INFO urbanaccess lurraldebus_tolosaldea GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:38,104 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:38,135 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:38,647 INFO urbanaccess --------------------------------
+2025-07-02 13:49:38,647 INFO urbanaccess --------------------------------
+2025-07-02 13:49:38,647 INFO urbanaccess Processing GTFS feed: lurraldebus_arrasate
+2025-07-02 13:49:38,700 INFO urbanaccess The unique agency id: lurraldebus_urbano_de_arrasate was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:38,702 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:38,705 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.00 seconds
+2025-07-02 13:49:38,713 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:38,715 INFO urbanaccess lurraldebus_arrasate GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:38,746 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:38,768 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:39,338 INFO urbanaccess --------------------------------
+2025-07-02 13:49:39,338 INFO urbanaccess --------------------------------
+2025-07-02 13:49:39,338 INFO urbanaccess Processing GTFS feed: lurraldebus_renteria
+2025-07-02 13:49:39,392 INFO urbanaccess The unique agency id: lurraldebus_urbano_de_errenteria was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:39,394 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:39,399 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.00 seconds
+2025-07-02 13:49:39,402 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:39,404 INFO urbanaccess lurraldebus_renteria GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:39,439 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:39,462 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:39,931 INFO urbanaccess --------------------------------
+2025-07-02 13:49:39,932 INFO urbanaccess --------------------------------
+2025-07-02 13:49:39,932 INFO urbanaccess Processing GTFS feed: lurraldebus_auif_urb
+2025-07-02 13:49:40,000 INFO urbanaccess The unique agency id: auif was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:40,002 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:40,005 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.00 seconds
+2025-07-02 13:49:40,014 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:40,015 INFO urbanaccess lurraldebus_auif_urb GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:40,064 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:40,092 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:40,562 INFO urbanaccess --------------------------------
+2025-07-02 13:49:40,563 INFO urbanaccess --------------------------------
+2025-07-02 13:49:40,563 INFO urbanaccess Processing GTFS feed: lurraldebus_eibar
+2025-07-02 13:49:40,616 INFO urbanaccess The unique agency id: udalbus_eibar was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:40,618 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:40,623 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.00 seconds
+2025-07-02 13:49:40,627 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:40,628 INFO urbanaccess lurraldebus_eibar GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:40,670 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:40,697 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:41,162 INFO urbanaccess --------------------------------
+2025-07-02 13:49:41,163 INFO urbanaccess --------------------------------
+2025-07-02 13:49:41,163 INFO urbanaccess Processing GTFS feed: lurraldebus_gipuzkoana
+2025-07-02 13:49:41,289 INFO urbanaccess The unique agency id: lurraldebus_autobuses_la_guipuzcoana_s.l. was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:41,294 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:41,303 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.01 seconds
+2025-07-02 13:49:41,305 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:41,306 INFO urbanaccess lurraldebus_gipuzkoana GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:41,392 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:41,443 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:41,882 INFO urbanaccess --------------------------------
+2025-07-02 13:49:41,883 INFO urbanaccess --------------------------------
+2025-07-02 13:49:41,883 INFO urbanaccess Processing GTFS feed: lurraldebus_lasarte
+2025-07-02 13:49:41,920 INFO urbanaccess The unique agency id: lurraldebus_urbano_de_lasarte was generated using the name of the agency in the agency.txt file.
+2025-07-02 13:49:41,922 INFO urbanaccess Unique agency id operation complete. Took 0.01 seconds
+2025-07-02 13:49:41,925 INFO urbanaccess Unique GTFS feed id operation complete. Took 0.00 seconds
+2025-07-02 13:49:41,928 INFO urbanaccess No GTFS feed stops were found to be outside the bounding box coordinates
+2025-07-02 13:49:41,929 INFO urbanaccess lurraldebus_lasarte GTFS feed stops: coordinates are in northwest hemisphere. Latitude = North (90); Longitude = West (-90).
+2025-07-02 13:49:41,956 INFO urbanaccess Appended route type to stops
+2025-07-02 13:49:41,974 INFO urbanaccess Appended route type to stop_times
+2025-07-02 13:49:42,462 INFO urbanaccess --------------------------------
+2025-07-02 13:49:43,866 INFO urbanaccess Added descriptive definitions to stops, routes, stop_times, and trips tables
+2025-07-02 13:49:52,515 INFO urbanaccess Successfully converted ['departure_time'] to seconds past midnight and appended new columns to stop_times. Took 8.65 seconds
+2025-07-02 13:49:52,638 INFO urbanaccess 23 GTFS feed file(s) successfully read as dataframes:
+2025-07-02 13:49:52,638 INFO urbanaccess      lurraldebus_oiartzun
+2025-07-02 13:49:52,639 INFO urbanaccess      lurraldebus_ekialdebus
+2025-07-02 13:49:52,639 INFO urbanaccess      Renfe
+2025-07-02 13:49:52,639 INFO urbanaccess      lurraldebus_areizaga
+2025-07-02 13:49:52,639 INFO urbanaccess      routes_EZ_companies
+2025-07-02 13:49:52,639 INFO urbanaccess      lurraldebus_tsst
+2025-07-02 13:49:52,640 INFO urbanaccess      dbus
+2025-07-02 13:49:52,640 INFO urbanaccess      lurraldebus_euskotren_bus
+2025-07-02 13:49:52,640 INFO urbanaccess      lurraldebus_pesa
+2025-07-02 13:49:52,641 INFO urbanaccess      lurraldebus_goierrialdea
+2025-07-02 13:49:52,641 INFO urbanaccess      lurraldebus_garayar
+2025-07-02 13:49:52,641 INFO urbanaccess      lurraldebus_zarautz
+2025-07-02 13:49:52,642 INFO urbanaccess      lurraldebus_tbh
+2025-07-02 13:49:52,642 INFO urbanaccess      Euskotren
+2025-07-02 13:49:52,642 INFO urbanaccess      Renfe_cercanias
+2025-07-02 13:49:52,642 INFO urbanaccess      lurraldebus_hernani
+2025-07-02 13:49:52,643 INFO urbanaccess      lurraldebus_tolosaldea
+2025-07-02 13:49:52,643 INFO urbanaccess      lurraldebus_arrasate
+2025-07-02 13:49:52,643 INFO urbanaccess      lurraldebus_renteria
+2025-07-02 13:49:52,643 INFO urbanaccess      lurraldebus_auif_urb
+2025-07-02 13:49:52,644 INFO urbanaccess      lurraldebus_eibar
+2025-07-02 13:49:52,646 INFO urbanaccess      lurraldebus_gipuzkoana
+2025-07-02 13:49:52,648 INFO urbanaccess      lurraldebus_lasarte
+2025-07-02 13:49:52,649 INFO urbanaccess      Took 40.23 seconds
+2025-07-02 13:49:52,837 INFO urbanaccess Using calendar to extract service_ids to select trips.
+2025-07-02 13:49:52,842 INFO urbanaccess 5,106 service_ids were extracted from calendar
+2025-07-02 13:49:52,964 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were found in calendar for GTFS feed(s): ['lurraldebus oiartzun', 'lurraldebus ekialdebus', 'renfe', 'lurraldebus areizaga', 'routes ez companies', 'lurraldebus tsst', 'dbus', 'lurraldebus euskotren bus', 'lurraldebus pesa', 'lurraldebus goierrialdea', 'lurraldebus garayar', 'lurraldebus zarautz', 'lurraldebus tbh', 'euskotren', 'renfe cercanias', 'lurraldebus hernani', 'lurraldebus tolosaldea', 'lurraldebus arrasate', 'lurraldebus renteria', 'lurraldebus auif urb', 'lurraldebus eibar', 'lurraldebus gipuzkoana', 'lurraldebus lasarte']
+2025-07-02 13:49:52,964 WARNING urbanaccess NOTE: If you expected more trips to have been extracted and your GTFS feed(s) have a calendar_dates file, consider utilizing the calendar_dates_lookup parameter in order to add additional trips based on information inside of calendar_dates. This should only be done if you know the corresponding GTFS feed is using calendar_dates instead of calendar to specify service_ids. When in doubt do not use the calendar_dates_lookup parameter.
+2025-07-02 13:49:52,965 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus oiartzun
+2025-07-02 13:49:52,965 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus ekialdebus
+2025-07-02 13:49:52,965 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus areizaga
+2025-07-02 13:49:52,966 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: dbus
+2025-07-02 13:49:52,966 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus euskotren bus
+2025-07-02 13:49:52,966 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus pesa
+2025-07-02 13:49:52,966 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus goierrialdea
+2025-07-02 13:49:52,966 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus garayar
+2025-07-02 13:49:52,967 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus zarautz
+2025-07-02 13:49:52,967 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus tbh
+2025-07-02 13:49:52,967 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: euskotren
+2025-07-02 13:49:52,968 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: renfe cercanias
+2025-07-02 13:49:52,968 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus hernani
+2025-07-02 13:49:52,968 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus tolosaldea
+2025-07-02 13:49:52,968 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus arrasate
+2025-07-02 13:49:52,969 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus renteria
+2025-07-02 13:49:52,970 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus auif urb
+2025-07-02 13:49:52,971 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus eibar
+2025-07-02 13:49:52,972 INFO urbanaccess 46,877 trip(s) 21.37 percent of 219,325 total trip records were not found in calendar for GTFS feed: lurraldebus gipuzkoana
+2025-07-02 13:49:53,107 INFO urbanaccess 46,877 of 219,325 total trips were extracted representing calendar day: monday. Took 0.38 seconds
+2025-07-02 13:49:56,572 INFO urbanaccess There are no departure time records missing from trips following the specified schedule. There are no records to interpolate.
+2025-07-02 13:49:57,077 INFO urbanaccess Difference between stop times has been successfully calculated. Took 0.10 seconds
+2025-07-02 13:49:57,317 INFO urbanaccess Stop times from 08:00:00 to 09:00:00 successfully selected 22,954 records out of 360,904 total records (6.36 percent of total). Took 0.24 seconds
+2025-07-02 13:49:57,331 INFO urbanaccess Starting transformation process for 1,877 total trips...
+2025-07-02 13:50:02,243 INFO urbanaccess stop time table transformation to Pandana format edge table completed. Took 4.92 seconds
+2025-07-02 13:50:02,282 INFO urbanaccess Time conversion completed: seconds converted to minutes.
+2025-07-02 13:50:02,310 INFO urbanaccess 2,525 of 2,917 records selected from stops. Took 0.03 seconds
+2025-07-02 13:50:02,328 INFO urbanaccess stop time table transformation to Pandana format node table completed. Took 0.02 seconds
+2025-07-02 13:50:05,049 INFO urbanaccess route type successfully joined to transit edges. Took 2.72 seconds
+2025-07-02 13:50:05,597 INFO urbanaccess route id successfully joined to transit edges. Took 0.54 seconds
+2025-07-02 13:50:05,937 INFO urbanaccess Successfully created transit network. Took 13.29 seconds
+2025-07-02 13:50:23,995 INFO urbanaccess Created OSM network with travel time impedance using a travel speed of 3 MPH. Took 0.01 seconds
+2025-07-02 13:50:23,995 INFO urbanaccess Loaded UrbanAccess network components comprised of:
+2025-07-02 13:50:23,995 INFO urbanaccess      Transit: 2,525 nodes and 21,077 edges;
+2025-07-02 13:50:23,996 INFO urbanaccess      OSM: 115,810 nodes and 382,718 edges
+2025-07-02 13:50:25,371 INFO urbanaccess Connector edges between the OSM and transit network nodes successfully completed. Took 1.37 seconds
+2025-07-02 13:50:27,884 INFO urbanaccess Edge and node tables formatted for Pandana with integer node ids: id_int, to_int, and from_int. Took 2.04 seconds
+2025-07-02 13:50:27,947 INFO urbanaccess Network edge and node network integration completed successfully resulting in a total of 118,335 nodes and 408,845 edges:
+2025-07-02 13:50:27,947 INFO urbanaccess      Transit: 2,525 nodes 21,077 edges;
+2025-07-02 13:50:27,948 INFO urbanaccess      OSM: 115,810 nodes 382,718 edges; and
+2025-07-02 13:50:27,948 INFO urbanaccess      OSM/Transit connector: 5,050 edges.
+2025-07-02 13:50:28,344 INFO urbanaccess Stop times from 08:00:00 to 09:00:00 successfully selected 22,954 records out of 360,904 total records (6.36 percent of total). Took 0.02 seconds
+2025-07-02 13:50:28,840 INFO urbanaccess Starting route stop headway calculation for 4,536 route stops...
+2025-07-02 13:50:46,726 INFO urbanaccess Route stop headway calculation complete. Took 17.94 seconds
+2025-07-02 13:50:47,471 INFO urbanaccess headway calculation complete. Took 19.52 seconds
+2025-07-02 13:50:47,507 INFO urbanaccess Loaded UrbanAccess network components comprised of:
+2025-07-02 13:50:47,507 INFO urbanaccess      Transit: 2,525 nodes and 21,077 edges;
+2025-07-02 13:50:47,508 INFO urbanaccess      OSM: 115,810 nodes and 382,718 edges
+2025-07-02 13:50:47,637 INFO urbanaccess routes successfully joined to transit nodes. Took 0.08 seconds
+2025-07-02 13:50:51,208 INFO urbanaccess Connector edges between the OSM and transit network nodes successfully completed. Took 3.57 seconds
+2025-07-02 13:50:51,208 INFO urbanaccess mean route stop headway will be used for pedestrian to transit edge impedance.
+2025-07-02 13:50:51,258 INFO urbanaccess Headway impedance calculation completed. Took 0.05 seconds
+2025-07-02 13:50:53,838 INFO urbanaccess Edge and node tables formatted for Pandana with integer node ids: id_int, to_int, and from_int. Took 2.36 seconds
+2025-07-02 13:50:53,916 INFO urbanaccess Network edge and node network integration completed successfully resulting in a total of 120,340 nodes and 431,266 edges:
+2025-07-02 13:50:53,916 INFO urbanaccess      Transit: 4,530 nodes 21,077 edges;
+2025-07-02 13:50:53,916 INFO urbanaccess      OSM: 115,810 nodes 382,718 edges; and
+2025-07-02 13:50:53,916 INFO urbanaccess      OSM/Transit connector: 27,471 edges.
